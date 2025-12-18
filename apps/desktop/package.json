@@ -1,0 +1,53 @@
+{
+  "name": "@my-app/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:main\" \"npm run dev:electron\"",
+    "dev:next": "cd renderer && next dev -p 1987",
+    "dev:main": "tsc -p main/tsconfig.json --watch",
+    "dev:electron": "wait-on http://localhost:1987 main/index.js && electron .",
+    "build": "nextron build",
+    "build:mac": "nextron build --mac",
+    "build:win": "nextron build --win",
+    "build:linux": "nextron build --linux"
+  },
+  "dependencies": {
+    "@my-app/types": "*",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@tanstack/react-query": "^5.17.19",
+    "axios": "^1.6.5",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "electron-serve": "^2.0.0",
+    "electron-store": "^8.1.0",
+    "lucide-react": "^0.309.0",
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "concurrently": "^8.2.2",
+    "electron": "^28.1.4",
+    "electron-builder": "^24.9.1",
+    "electron-is-dev": "^3.0.1",
+    "nextron": "^9.0.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "wait-on": "^9.0.3"
+  }
+}

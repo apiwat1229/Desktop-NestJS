@@ -1,0 +1,41 @@
+{
+  "name": "my-app-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo with Nextron (Next.js + Electron), NestJS, Prisma, and PostgreSQL",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:desktop\"",
+    "dev:api": "API_PORT=2530 npm run start:dev --workspace=apps/api",
+    "dev:desktop": "npm run dev --workspace=apps/desktop",
+    "dev:db": "docker-compose up -d",
+    "db:studio": "npm run studio --workspace=packages/database",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:desktop": "npm run build --workspace=apps/desktop",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "concurrently": "^8.2.2",
+    "copy-webpack-plugin": "^13.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
