@@ -24,7 +24,9 @@ export interface LoginDto {
 export interface RegisterDto {
     email: string;
     password: string;
-    name?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
 }
 
 export interface AuthResponse {
@@ -36,8 +38,17 @@ export interface AuthResponse {
 export interface UserDto {
     id: string;
     email: string;
-    name: string | null;
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    displayName: string | null;
+    department: string | null;
+    position: string | null;
     role: 'USER' | 'ADMIN';
+    status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    pinCode: string | null;
+    hodId: string | null;
+    avatar: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -45,14 +56,33 @@ export interface UserDto {
 export interface CreateUserDto {
     email: string;
     password: string;
-    name?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    department?: string;
+    position?: string;
     role?: 'USER' | 'ADMIN';
+    status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    pinCode?: string;
+    hodId?: string;
+    avatar?: string;
 }
 
 export interface UpdateUserDto {
     email?: string;
-    name?: string;
+    password?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    department?: string;
+    position?: string;
     role?: 'USER' | 'ADMIN';
+    status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    pinCode?: string;
+    hodId?: string;
+    avatar?: string;
 }
 
 // Post DTOs
@@ -71,6 +101,7 @@ export interface CreatePostDto {
     title: string;
     content?: string;
     published?: boolean;
+    authorId?: string; // Optional if inferred from auth
 }
 
 export interface UpdatePostDto {

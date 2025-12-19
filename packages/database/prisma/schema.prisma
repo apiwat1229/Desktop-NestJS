@@ -1,9 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  output   = "../../../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -14,16 +11,42 @@ datasource db {
 // Example Models - Customize based on your needs
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      Role     @default(USER)
+  id          String     @id @default(uuid())
+  email       String     @unique
+  username    String?    @unique
+  password    String
+  role        Role       @default(USER)
+  
+  // Profile Info
+  firstName   String?    @map("first_name")
+  lastName    String?    @map("last_name")
+  displayName String?    @map("display_name")
+  avatar      String?
+  
+  // Work Info
+  department  String?
+  position    String?
+  
+  // Security & Status
+  status      UserStatus @default(ACTIVE)
+  pinCode     String?    @map("pin_code")
+  
+  // Organization
+  hodId       String?    @map("hod_id")
+  hod         User?      @relation("UserHod", fields: [hodId], references: [id])
+  subordinates User[]    @relation("UserHod")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   posts     Post[]
 
   @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
 
 model Post {

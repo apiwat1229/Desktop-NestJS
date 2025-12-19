@@ -1,5 +1,6 @@
 import { CreateUserDto, UpdateUserDto } from '@my-app/types';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -15,8 +16,24 @@ export class UsersService {
             throw new ConflictException('User with this email already exists');
         }
 
+        if (createUserDto.username) {
+            const existingUsername = await this.prisma.user.findUnique({
+                // @ts-ignore
+                where: { username: createUserDto.username },
+            });
+            if (existingUsername) {
+                throw new ConflictException('Username is already taken');
+            }
+        }
+
+        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
         return this.prisma.user.create({
-            data: createUserDto,
+            // @ts-ignore
+            data: {
+                ...createUserDto,
+                password: hashedPassword,
+            },
         });
     }
 
@@ -25,25 +42,37 @@ export class UsersService {
             select: {
                 id: true,
                 email: true,
-                name: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                department: true,
+                position: true,
                 role: true,
+                status: true,
                 createdAt: true,
                 updatedAt: true,
-            },
+            } as any,
         });
     }
 
-    async findOne(id: string) {
+    async findOne(id: string): Promise<any> {
         const user = await this.prisma.user.findUnique({
             where: { id },
             select: {
                 id: true,
                 email: true,
-                name: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                department: true,
+                position: true,
                 role: true,
+                status: true,
                 createdAt: true,
                 updatedAt: true,
-            },
+            } as any,
         });
 
         if (!user) {
@@ -53,26 +82,81 @@ export class UsersService {
         return user;
     }
 
-    async findByEmail(email: string) {
+    async findByEmail(email: string): Promise<any> {
         return this.prisma.user.findUnique({
             where: { email },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                role: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                department: true,
+                position: true,
+                status: true,
+                avatar: true,
+                createdAt: true,
+                updatedAt: true,
+            } as any,
         });
     }
 
     async update(id: string, updateUserDto: UpdateUserDto) {
         await this.findOne(id); // Check if exists
 
+        const {
+            username,
+            email,
+            password,
+            firstName,
+            lastName,
+            displayName,
+            department,
+            position,
+            role,
+            status,
+            avatar,
+        } = updateUserDto;
+
+        const dataToUpdate: any = {
+            username,
+            email,
+            firstName,
+            lastName,
+            displayName,
+            department,
+            position,
+            role,
+            status,
+            avatar,
+        };
+
+        if (password) {
+            dataToUpdate.password = await bcrypt.hash(password, 10);
+        }
+
         return this.prisma.user.update({
             where: { id },
-            data: updateUserDto,
+            // @ts-ignore
+            data: dataToUpdate,
             select: {
                 id: true,
                 email: true,
-                name: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                department: true,
+                position: true,
                 role: true,
+                status: true,
+                avatar: true,
                 createdAt: true,
                 updatedAt: true,
-            },
+            } as any,
         });
     }
 

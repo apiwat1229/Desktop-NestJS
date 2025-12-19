@@ -17,7 +17,6 @@ export class PostsService {
                     select: {
                         id: true,
                         email: true,
-                        name: true,
                         role: true,
                     },
                 },
@@ -33,7 +32,6 @@ export class PostsService {
                     select: {
                         id: true,
                         email: true,
-                        name: true,
                         role: true,
                     },
                 },
@@ -52,7 +50,6 @@ export class PostsService {
                     select: {
                         id: true,
                         email: true,
-                        name: true,
                         role: true,
                     },
                 },
@@ -82,7 +79,6 @@ export class PostsService {
                     select: {
                         id: true,
                         email: true,
-                        name: true,
                         role: true,
                     },
                 },
