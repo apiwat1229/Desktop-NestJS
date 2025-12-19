@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import AnimatedBackground from '../components/AnimatedBackground';
 import Navbar from '../components/Navbar';
 
 export default function Custom404() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
       <Navbar />
@@ -17,8 +19,8 @@ export default function Custom404() {
             <h1 className="text-7xl font-bold tracking-tighter text-foreground">404</h1>
             <div className="h-16 w-px bg-border"></div>
             <div className="text-left">
-              <h2 className="text-2xl font-semibold text-foreground">Page not found</h2>
-              <p className="text-muted-foreground">The page you are looking for does not exist.</p>
+              <h2 className="text-2xl font-semibold text-foreground">{t('system.pageNotFound')}</h2>
+              <p className="text-muted-foreground">{t('system.pageNotFoundDesc')}</p>
             </div>
           </div>
 
@@ -27,7 +29,7 @@ export default function Custom404() {
               href="/posts"
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-8"
             >
-              Go back home
+              {t('system.goBackHome')}
             </Link>
           </div>
         </div>

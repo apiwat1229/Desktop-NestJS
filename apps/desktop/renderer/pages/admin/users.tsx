@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ import { usersApi } from '../../lib/api';
 import { useUserColumns } from './users/columns';
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -230,10 +232,10 @@ export default function UsersPage() {
               <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground">Users Management</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage user access, profiles, and permissions.
-              </p>
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
+                {t('admin.users.title')}
+              </h1>
+              <p className="text-sm text-muted-foreground">{t('admin.users.subtitle')}</p>
             </div>
           </div>
 
@@ -241,28 +243,28 @@ export default function UsersPage() {
           <div className="hidden md:flex items-center bg-background/50 rounded-xl border border-border p-1 shadow-sm">
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px] border-r border-border/50 last:border-0">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                Total
+                {t('admin.status.total')}
               </span>
               <span className="text-lg font-bold text-foreground">{stats.total}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-green-600">
-                Active
+                {t('admin.status.active')}
               </span>
               <span className="text-lg font-bold text-green-600">{stats.active}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-destructive">
-                Inactive
+                {t('admin.status.inactive')}
               </span>
               <span className="text-lg font-bold text-destructive">{stats.inactive}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-orange-500">
-                Suspended
+                {t('admin.status.suspended')}
               </span>
               <span className="text-lg font-bold text-orange-500">{stats.suspended}</span>
             </div>
@@ -274,7 +276,7 @@ export default function UsersPage() {
             className="w-full xl:w-auto inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5 h-11 px-8"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add New User
+            {t('admin.users.addUser')}
           </button>
         </div>
 
@@ -292,14 +294,19 @@ export default function UsersPage() {
             <div className="mx-auto w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-2">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
-            <AlertDialogTitle>Delete User?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this user account. This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('admin.users.deleteConfirm')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('admin.users.deleteMessage')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -313,11 +320,14 @@ export default function UsersPage() {
               <div>
                 <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <Plus className="w-5 h-5 text-primary" />
-                  {editingUser ? 'Edit User Account' : 'Create New User Account'}
+                  {editingUser
+                    ? t('admin.users.editUserAccount')
+                    : t('admin.users.createNewUserAccount')}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Fill in the information below to {editingUser ? 'update the' : 'create a new'}{' '}
-                  user.
+                  {editingUser
+                    ? t('admin.users.updateUserDescription')
+                    : t('admin.users.createUserDescription')}
                 </p>
               </div>
               <button
@@ -337,14 +347,14 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2 border-b border-border pb-2">
                       <User className="w-4 h-4 text-primary" />
                       <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Account Information
+                        {t('admin.users.accountInfo')}
                       </h4>
                     </div>
 
                     <div className="space-y-3">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Email <span className="text-destructive">*</span>
+                          {t('admin.users.email')} <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="email"
@@ -359,7 +369,7 @@ export default function UsersPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Username
+                            {t('admin.users.username')}
                           </label>
                           <input
                             type="text"
@@ -371,7 +381,7 @@ export default function UsersPage() {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Display Name
+                            {t('admin.users.displayName')}
                           </label>
                           <input
                             type="text"
@@ -385,7 +395,7 @@ export default function UsersPage() {
                         </div>
                         <div className="col-span-2">
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Avatar Image
+                            {t('admin.users.avatarImage')}
                           </label>
                           <div className="flex items-start gap-4">
                             {/* Avatar Preview */}
@@ -419,7 +429,9 @@ export default function UsersPage() {
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-md text-sm font-medium cursor-pointer transition-colors border border-border"
                               >
                                 <Upload className="w-4 h-4" />
-                                {avatarPreview ? 'Change Image' : 'Upload Image'}
+                                {avatarPreview
+                                  ? t('admin.users.changeImage')
+                                  : t('admin.users.uploadImage')}
                               </label>
                               <input
                                 id="avatar-upload"
@@ -429,7 +441,7 @@ export default function UsersPage() {
                                 onChange={handleAvatarChange}
                               />
                               <p className="text-[10px] text-muted-foreground mt-2">
-                                Max 2MB. Supports JPG, PNG, GIF.
+                                {t('admin.users.maxFileSize')}
                               </p>
                             </div>
                           </div>
@@ -445,14 +457,14 @@ export default function UsersPage() {
                         ID
                       </span>
                       <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Personal Information
+                        {t('admin.users.personalInfo')}
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          First Name <span className="text-destructive">*</span>
+                          {t('admin.users.firstName')} <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="text"
@@ -465,7 +477,7 @@ export default function UsersPage() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Last Name <span className="text-destructive">*</span>
+                          {t('admin.users.lastName')} <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="text"
@@ -484,14 +496,14 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2 border-b border-border pb-2">
                       <Briefcase className="w-4 h-4 text-primary" />
                       <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Work Information
+                        {t('admin.users.workInfo')}
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Department <span className="text-destructive">*</span>
+                          {t('admin.users.department')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <select
@@ -502,23 +514,27 @@ export default function UsersPage() {
                               setFormData({ ...formData, department: e.target.value })
                             }
                           >
-                            <option value="">Select Department</option>
-                            <option value="Quality Assurance">Quality Assurance</option>
-                            <option value="Production">Production</option>
-                            <option value="Raw Material Receiving">Raw Material Receiving</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Human Resource">Human Resource</option>
-                            <option value="Accounting">Accounting</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Purchasing">Purchasing</option>
-                            <option value="Shipping">Shipping</option>
+                            <option value="">{t('admin.users.selectDepartment')}</option>
+                            <option value="Quality Assurance">{t('admin.departments.qa')}</option>
+                            <option value="Production">{t('admin.departments.production')}</option>
+                            <option value="Raw Material Receiving">
+                              {t('admin.departments.rawMaterial')}
+                            </option>
+                            <option value="Information Technology">
+                              {t('admin.departments.it')}
+                            </option>
+                            <option value="Human Resource">{t('admin.departments.hr')}</option>
+                            <option value="Accounting">{t('admin.departments.accounting')}</option>
+                            <option value="Finance">{t('admin.departments.finance')}</option>
+                            <option value="Purchasing">{t('admin.departments.purchasing')}</option>
+                            <option value="Shipping">{t('admin.departments.shipping')}</option>
                           </select>
                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Position <span className="text-destructive">*</span>
+                          {t('admin.users.position')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <select
@@ -527,18 +543,26 @@ export default function UsersPage() {
                             value={formData.position}
                             onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                           >
-                            <option value="">Select Position</option>
-                            <option value="Managing Director">Managing Director</option>
-                            <option value="General Manager">General Manager</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Assistant Manager">Assistant Manager</option>
-                            <option value="Senior Supervisor">Senior Supervisor</option>
-                            <option value="Supervisor">Supervisor</option>
-                            <option value="Senior Staff 2">Senior Staff 2</option>
-                            <option value="Senior Staff 1">Senior Staff 1</option>
-                            <option value="Staff 2">Staff 2</option>
-                            <option value="Staff 1">Staff 1</option>
-                            <option value="Operator Leader">Operator Leader</option>
+                            <option value="">{t('admin.users.selectPosition')}</option>
+                            <option value="Managing Director">{t('admin.positions.md')}</option>
+                            <option value="General Manager">{t('admin.positions.gm')}</option>
+                            <option value="Manager">{t('admin.positions.manager')}</option>
+                            <option value="Assistant Manager">
+                              {t('admin.positions.asstMgr')}
+                            </option>
+                            <option value="Senior Supervisor">
+                              {t('admin.positions.seniorSup')}
+                            </option>
+                            <option value="Supervisor">{t('admin.positions.sup')}</option>
+                            <option value="Senior Staff 2">
+                              {t('admin.positions.seniorStaff2')}
+                            </option>
+                            <option value="Senior Staff 1">
+                              {t('admin.positions.seniorStaff1')}
+                            </option>
+                            <option value="Staff 2">{t('admin.positions.staff2')}</option>
+                            <option value="Staff 1">{t('admin.positions.staff1')}</option>
+                            <option value="Operator Leader">{t('admin.positions.opLeader')}</option>
                           </select>
                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
@@ -547,9 +571,9 @@ export default function UsersPage() {
 
                     <div>
                       <label className="text-sm font-medium text-foreground mb-1 block flex items-center gap-1">
-                        HOD User (Optional)
+                        {t('admin.users.hodUser')}
                         <span className="text-xs text-muted-foreground ml-1 font-normal">
-                          (Leader/Manager)
+                          {t('admin.users.hodUserHelp')}
                         </span>
                       </label>
                       <div className="relative">
@@ -558,7 +582,7 @@ export default function UsersPage() {
                           value={formData.hodId}
                           onChange={(e) => setFormData({ ...formData, hodId: e.target.value })}
                         >
-                          <option value="">Select HOD (Ass.Manager+)</option>
+                          <option value="">{t('admin.users.selectHod')}</option>
                           {users
                             .filter((u) => u.id !== editingUser?.id)
                             .map((u) => (
@@ -580,14 +604,14 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2 border-b border-border pb-2">
                       <Shield className="w-4 h-4 text-primary" />
                       <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Security & Access
+                        {t('admin.users.securityAccess')}
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Role <span className="text-destructive">*</span>
+                          {t('admin.users.role')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <select
@@ -595,15 +619,15 @@ export default function UsersPage() {
                             value={formData.role}
                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                           >
-                            <option value="USER">Standard User</option>
-                            <option value="ADMIN">Administrator</option>
+                            <option value="USER">{t('admin.users.roles.user')}</option>
+                            <option value="ADMIN">{t('admin.users.roles.admin')}</option>
                           </select>
                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Status <span className="text-destructive">*</span>
+                          {t('admin.users.status')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <select
@@ -611,9 +635,9 @@ export default function UsersPage() {
                             value={formData.status}
                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                           >
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                            <option value="SUSPENDED">Suspended</option>
+                            <option value="ACTIVE">{t('admin.status.active')}</option>
+                            <option value="INACTIVE">{t('admin.status.inactive')}</option>
+                            <option value="SUSPENDED">{t('admin.status.suspended')}</option>
                           </select>
                           <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
@@ -626,14 +650,14 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2 border-b border-border pb-2">
                       <Lock className="w-4 h-4 text-primary" />
                       <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Set Password
+                        {t('admin.users.setPassword')}
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Password <span className="text-destructive">*</span>
+                          {t('admin.users.password')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -659,7 +683,8 @@ export default function UsersPage() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-1 block">
-                          Confirm <span className="text-destructive">*</span>
+                          {t('admin.users.confirmPassword')}{' '}
+                          <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
                           <input

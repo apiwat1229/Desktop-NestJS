@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { Plus, Trash2, Truck } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
 import {
   AlertDialog,
@@ -71,6 +72,7 @@ const masterApi = {
 };
 
 export default function SuppliersPage() {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -410,11 +412,9 @@ export default function SuppliersPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground">
-                Suppliers Management
+                {t('admin.suppliers.title')}
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Manage external suppliers, vendors, and partners.
-              </p>
+              <p className="text-sm text-muted-foreground">{t('admin.suppliers.subtitle')}</p>
             </div>
           </div>
 
@@ -422,28 +422,28 @@ export default function SuppliersPage() {
           <div className="hidden md:flex items-center bg-background/50 rounded-xl border border-border p-1 shadow-sm">
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px] border-r border-border/50 last:border-0">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                Total
+                {t('admin.status.total')}
               </span>
               <span className="text-lg font-bold text-foreground">{stats.total}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-green-600">
-                Active
+                {t('admin.status.active')}
               </span>
               <span className="text-lg font-bold text-green-600">{stats.active}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-destructive">
-                Inactive
+                {t('admin.status.inactive')}
               </span>
               <span className="text-lg font-bold text-destructive">{stats.inactive}</span>
             </div>
             <div className="w-px h-8 bg-border"></div>
             <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-orange-500">
-                Suspended
+                {t('admin.status.suspended')}
               </span>
               <span className="text-lg font-bold text-orange-500">{stats.suspended}</span>
             </div>
@@ -455,7 +455,7 @@ export default function SuppliersPage() {
             className="w-full xl:w-auto inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5 h-11 px-8"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add New Supplier
+            {t('admin.suppliers.addNew')}
           </button>
         </div>
 
@@ -468,7 +468,7 @@ export default function SuppliersPage() {
                   <SelectValue placeholder="Filter Province" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Provinces</SelectItem>
+                  <SelectItem value="all">{t('admin.suppliers.allProvinces')}</SelectItem>
                   {provinces.map((p) => (
                     <SelectItem key={p.id} value={p.id.toString()}>
                       {p.name_th}
@@ -482,7 +482,7 @@ export default function SuppliersPage() {
                   <SelectValue placeholder="Filter Rubber Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Rubber Types</SelectItem>
+                  <SelectItem value="all">{t('admin.suppliers.allRubberTypes')}</SelectItem>
                   {rubberTypes.map((rt) => (
                     <SelectItem key={rt.code} value={rt.code}>
                       {rt.name}
@@ -500,7 +500,7 @@ export default function SuppliersPage() {
             <div className="bg-background rounded-lg shadow-lg w-full max-w-2xl overflow-hidden border border-border">
               <div className="px-6 py-4 border-b border-border flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-foreground">
-                  {editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}
+                  {editingSupplier ? t('admin.suppliers.edit') : t('admin.suppliers.add')}
                 </h3>
                 <button
                   onClick={() => setIsModalOpen(false)}
@@ -518,25 +518,25 @@ export default function SuppliersPage() {
                         value="basic"
                         className="rounded-none border-b-2 border-transparent px-0 py-2 font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary bg-transparent text-sm"
                       >
-                        Basic Information
+                        {t('admin.suppliers.basicInfo')}
                       </TabsTrigger>
                       <TabsTrigger
                         value="contact"
                         className="rounded-none border-b-2 border-transparent px-0 py-2 font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary bg-transparent text-sm"
                       >
-                        Contact Information
+                        {t('admin.suppliers.contactInfo')}
                       </TabsTrigger>
                       <TabsTrigger
                         value="address"
                         className="rounded-none border-b-2 border-transparent px-0 py-2 font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary bg-transparent text-sm"
                       >
-                        Address
+                        {t('admin.suppliers.address')}
                       </TabsTrigger>
                       <TabsTrigger
                         value="business"
                         className="rounded-none border-b-2 border-transparent px-0 py-2 font-medium text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary bg-transparent text-sm"
                       >
-                        Business Details
+                        {t('admin.suppliers.businessDetails')}
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -547,7 +547,7 @@ export default function SuppliersPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Code <span className="text-destructive">*</span>
+                            {t('admin.suppliers.code')} <span className="text-destructive">*</span>
                           </label>
                           <input
                             type="text"
@@ -560,7 +560,7 @@ export default function SuppliersPage() {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Title
+                            {t('admin.suppliers.selectTitle')}
                           </label>
                           <Select
                             value={formData.title || ''}
@@ -570,19 +570,20 @@ export default function SuppliersPage() {
                               <SelectValue placeholder="Select Title" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="นาย">นาย</SelectItem>
-                              <SelectItem value="นาง">นาง</SelectItem>
-                              <SelectItem value="นางสาว">นางสาว</SelectItem>
-                              <SelectItem value="บริษัท">บริษัท</SelectItem>
+                              <SelectItem value="นาย">{t('common.titles.mr')}</SelectItem>
+                              <SelectItem value="นาง">{t('common.titles.mrs')}</SelectItem>
+                              <SelectItem value="นางสาว">{t('common.titles.ms')}</SelectItem>
+                              <SelectItem value="บริษัท">{t('common.titles.company')}</SelectItem>
                               <SelectItem value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</SelectItem>
-                              <SelectItem value="สหกรณ์">สหกรณ์</SelectItem>
+                              <SelectItem value="สหกรณ์">{t('common.titles.coop')}</SelectItem>
                               <SelectItem value="หจก.">หจก.</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            First Name <span className="text-destructive">*</span>
+                            {t('admin.suppliers.firstName')}{' '}
+                            <span className="text-destructive">*</span>
                           </label>
                           <input
                             type="text"
@@ -596,7 +597,8 @@ export default function SuppliersPage() {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Last Name <span className="text-destructive">*</span>
+                            {t('admin.suppliers.lastName')}{' '}
+                            <span className="text-destructive">*</span>
                           </label>
                           <input
                             type="text"
@@ -608,7 +610,7 @@ export default function SuppliersPage() {
                         </div>
                         <div className="col-span-1">
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Display Name
+                            {t('admin.suppliers.displayName')}
                           </label>
                           <input
                             type="text"
@@ -620,7 +622,7 @@ export default function SuppliersPage() {
                         </div>
                         <div className="col-span-1">
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Avatar URL
+                            {t('admin.suppliers.avatarUrl')}
                           </label>
                           <div className="flex gap-2">
                             <input
@@ -641,7 +643,7 @@ export default function SuppliersPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Phone
+                            {t('admin.suppliers.phone')}
                           </label>
                           <input
                             type="text"
@@ -654,7 +656,7 @@ export default function SuppliersPage() {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Email
+                            {t('admin.suppliers.email')}
                           </label>
                           <input
                             type="email"
@@ -670,7 +672,7 @@ export default function SuppliersPage() {
                     <TabsContent value="address" className="space-y-4 m-0">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="mb-1 block">Province</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.province')}</Label>
                           <SearchableSelect
                             value={formData.provinceId?.toString() || ''}
                             onChange={(val) => {
@@ -691,7 +693,7 @@ export default function SuppliersPage() {
                           />
                         </div>
                         <div>
-                          <Label className="mb-1 block">District</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.district')}</Label>
                           <SearchableSelect
                             value={formData.districtId?.toString() || ''}
                             disabled={!formData.provinceId}
@@ -712,7 +714,7 @@ export default function SuppliersPage() {
                           />
                         </div>
                         <div>
-                          <Label className="mb-1 block">Sub-District</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.subDistrict')}</Label>
                           <SearchableSelect
                             value={formData.subdistrictId?.toString() || ''}
                             disabled={!formData.districtId}
@@ -733,11 +735,11 @@ export default function SuppliersPage() {
                           />
                         </div>
                         <div>
-                          <Label className="mb-1 block">Zipcode</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.zipcode')}</Label>
                           <Input value={formData.zipCode} readOnly placeholder="Auto-filled" />
                         </div>
                         <div className="col-span-2">
-                          <Label className="mb-1 block">Address Line</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.addressLine')}</Label>
                           <textarea
                             rows={2}
                             className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
@@ -753,7 +755,7 @@ export default function SuppliersPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Rubber Types
+                            {t('admin.analytics.rubberTypes')}
                           </label>
                           <MultiSelect
                             options={rubberTypes.map((rt) => ({
@@ -770,7 +772,7 @@ export default function SuppliersPage() {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            Certificate Number
+                            {t('admin.suppliers.certNum')}
                           </label>
                           <input
                             type="text"
@@ -782,7 +784,7 @@ export default function SuppliersPage() {
                           />
                         </div>
                         <div>
-                          <Label className="mb-1 block">Certificate Expiration</Label>
+                          <Label className="mb-1 block">{t('admin.suppliers.certExp')}</Label>
                           <DatePicker
                             date={
                               formData.certificateExpire

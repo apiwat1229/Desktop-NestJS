@@ -1,10 +1,12 @@
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../lib/api';
 import { useAuthStore } from '../stores/authStore';
 
 export default function Index() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -38,7 +40,7 @@ export default function Index() {
       useAuthStore.getState().login(response.user, response.accessToken);
       router.push('/posts');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -195,7 +197,7 @@ export default function Index() {
       <div className="w-full max-w-md relative z-10">
         {/* Login Heading */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 text-center">Login</h1>
+          <h1 className="text-3xl font-bold text-gray-900 text-center">{t('auth.login')}</h1>
         </div>
 
         {error && (
@@ -207,7 +209,9 @@ export default function Index() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('auth.email')}
+            </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +236,9 @@ export default function Index() {
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('auth.password')}
+            </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +255,7 @@ export default function Index() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-11 pr-12 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="•••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 required
               />
               <button
@@ -295,7 +301,7 @@ export default function Index() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
               />
-              <span className="ml-2 text-sm text-gray-700">Remember Me</span>
+              <span className="ml-2 text-sm text-gray-700">{t('auth.rememberMe')}</span>
             </label>
             <a
               href="#"
@@ -305,7 +311,7 @@ export default function Index() {
               }}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
-              Forget Password?
+              {t('auth.forgotPassword')}
             </a>
           </div>
 
@@ -337,10 +343,10 @@ export default function Index() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Signing in...
+                {t('auth.signingIn')}
               </>
             ) : (
-              'Sign in'
+              t('auth.signIn')
             )}
           </button>
         </form>

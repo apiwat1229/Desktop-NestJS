@@ -304,11 +304,11 @@ export default function BookingQueue() {
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={fetchQueues}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                รีเฟรช
+                {t('common.refresh')}
               </Button>
               <Button size="sm" disabled={isSlotFull} onClick={handleCreateBooking}>
                 <Plus className="h-4 w-4 mr-2" />
-                {isSlotFull ? 'ช่วงเวลานี้เต็มแล้ว' : 'เพิ่มการจอง'}
+                {isSlotFull ? t('booking.slotFull') : t('booking.addBooking')}
               </Button>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function BookingQueue() {
           <Card className="p-4">
             <div className="flex gap-4 items-center">
               <div className="flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">เลือกวันที่</span>
+                <span className="text-sm text-muted-foreground">{t('booking.selectDate')}</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -340,7 +340,7 @@ export default function BookingQueue() {
               </div>
 
               <div className="flex-1 flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">ช่วงเวลา</span>
+                <span className="text-sm text-muted-foreground">{t('booking.timeSlot')}</span>
                 <Tabs value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
                   <TabsList className="grid w-full grid-cols-5">
                     {getAvailableSlots(selectedDate).map((slot) => (
@@ -358,7 +358,9 @@ export default function BookingQueue() {
         {/* Slot Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-semibold">ช่วงเวลา {selectedTimeSlot}</h2>
+            <h2 className="text-xl font-semibold">
+              {t('booking.timeSlot')} {selectedTimeSlot}
+            </h2>
             <p className="text-sm text-muted-foreground">
               {format(selectedDate, 'dd-MMM-yyyy (EEE)')} •{' '}
               {slotConfig.limit
@@ -367,10 +369,14 @@ export default function BookingQueue() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Badge variant="secondary">คิวปัจจุบัน: {queues.length}</Badge>
+            <Badge variant="secondary">
+              {t('booking.currentQueue')}: {queues.length}
+            </Badge>
             {slotConfig.limit && (
               <Badge variant={isSlotFull ? 'destructive' : 'default'}>
-                {isSlotFull ? 'เต็ม' : `ว่าง ${slotConfig.limit - queues.length} คิว`}
+                {isSlotFull
+                  ? t('booking.full')
+                  : `${t('booking.available')} ${slotConfig.limit - queues.length} ${t('booking.queue')}`}
               </Badge>
             )}
           </div>
@@ -383,7 +389,7 @@ export default function BookingQueue() {
           </Card>
         ) : queues.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-muted-foreground">ยังไม่มีการจองในช่วงเวลานี้</p>
+            <p className="text-muted-foreground">{t('common.noData')}</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -463,23 +469,23 @@ export default function BookingQueue() {
         {/* Statistics */}
         <div className="grid grid-cols-4 gap-4 mt-8">
           <Card className="p-4">
-            <p className="text-sm text-muted-foreground">คิวทั้งหมดวันนี้</p>
+            <p className="text-sm text-muted-foreground">{t('booking.totalToday')}</p>
             <p className="text-2xl font-bold">{totalDailyQueues}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-muted-foreground">คิวปัจจุบัน</p>
+            <p className="text-sm text-muted-foreground">{t('booking.currentQueue')}</p>
             <p className="text-2xl font-bold text-primary">{queues.length}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-muted-foreground">คิวถัดไป</p>
+            <p className="text-sm text-muted-foreground">{t('booking.nextQueue')}</p>
             <p className="text-2xl font-bold text-green-600">
               {nextQueueNo !== null ? nextQueueNo : '-'}
             </p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-muted-foreground">สถานะ</p>
+            <p className="text-sm text-muted-foreground">{t('common.status')}</p>
             <p className={`text-2xl font-bold ${isSlotFull ? 'text-red-600' : 'text-green-600'}`}>
-              {isSlotFull ? 'เต็ม' : 'ว่าง'}
+              {isSlotFull ? t('booking.full') : t('booking.available')}
             </p>
           </Card>
         </div>

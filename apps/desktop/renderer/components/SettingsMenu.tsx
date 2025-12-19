@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useSettings } from '../contexts/SettingsContext';
 
 interface SettingsMenuProps {
@@ -17,6 +18,7 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
     setBorderRadius,
     setFontFamily,
   } = useSettings();
+  const { t } = useTranslation();
 
   const colors = [
     '#3B82F6', // Blue
@@ -44,13 +46,15 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
   return (
     <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl p-6 z-[60] animate-in fade-in zoom-in duration-200 origin-top-right">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Settings</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('settings.title')}</h2>
       </div>
 
       <div className="space-y-6">
         {/* Theme Mode */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme Mode</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t('settings.themeMode')}
+          </span>
           <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-full border border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setTheme('light')}
@@ -112,7 +116,7 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
         {/* Font Size */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-700">Font Size</span>
+            <span className="text-sm font-medium text-gray-700">{t('settings.fontSize')}</span>
             <span className="text-sm font-semibold text-gray-500">{fontSize}px</span>
           </div>
           <div className="flex gap-2">
@@ -135,7 +139,9 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
 
         {/* Primary Color */}
         <div>
-          <span className="block text-sm font-medium text-gray-700 mb-4">Primary Color</span>
+          <span className="block text-sm font-medium text-gray-700 mb-4">
+            {t('settings.primaryColor')}
+          </span>
           <div className="grid grid-cols-8 gap-2">
             {colors.map((color) => (
               <button
@@ -157,7 +163,9 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
         {/* Border Radius */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Roundness</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {t('settings.roundness')}
+            </span>
             <span className="text-sm font-semibold text-gray-500">{borderRadius}px</span>
           </div>
           <div className="flex gap-2">
@@ -183,7 +191,9 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
 
         {/* Font Family */}
         <div>
-          <span className="block text-sm font-medium text-gray-700 mb-4">Font Family</span>
+          <span className="block text-sm font-medium text-gray-700 mb-4">
+            {t('settings.fontFamily')}
+          </span>
           <div className="grid grid-cols-2 gap-2">
             {fonts.map((font) => (
               <button
@@ -231,7 +241,7 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
                         <line x1="3" x2="21" y1="9" y2="9" />
                         <line x1="9" x2="9" y1="21" y2="9" />
                       </svg>
-                      Admin Panel
+                      {t('settings.adminPanel')}
                     </button>
                   </div>
                 );

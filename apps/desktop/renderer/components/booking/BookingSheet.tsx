@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, bookingsApi } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 import {
@@ -60,6 +61,8 @@ export default function BookingSheet({
   onSuccess,
   editingBooking,
 }: BookingSheetProps) {
+  const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [rubberTypes, setRubberTypes] = useState<any[]>([]);
@@ -168,7 +171,9 @@ export default function BookingSheet({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'แก้ไขการจอง' : 'เพิ่มการจอง'}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? t('admin.users.editUser') : t('booking.addBooking')}
+          </DialogTitle>
           <DialogDescription>
             {format(selectedDate, 'dd MMM yyyy')} • {selectedSlot}
           </DialogDescription>
@@ -260,10 +265,14 @@ export default function BookingSheet({
 
           <DialogFooter className="mt-6">
             <Button type="button" variant="outline" onClick={onClose}>
-              ยกเลิก
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'กำลังบันทึก...' : isEditMode ? 'อัพเดท' : 'บันทึก'}
+              {loading
+                ? `${t('common.loading')}`
+                : isEditMode
+                  ? t('common.update')
+                  : t('common.save')}
             </Button>
           </DialogFooter>
         </form>
