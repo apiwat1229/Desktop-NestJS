@@ -46,6 +46,7 @@ export const th = {
         nextQueue: "คิวถัดไป",
         totalToday: "คิวทั้งหมดวันนี้",
         available: "ว่าง",
+        availableCount: "ว่าง {{count}} คิว",
         full: "เต็ม",
         slotFull: "ช่วงเวลานี้เต็มแล้ว",
         unlimited: "ไม่จำกัด",
@@ -73,7 +74,8 @@ export const th = {
         totalBookings: "จำนวนการจองทั้งหมด",
         completed: "เสร็จสิ้น",
         pending: "รอดำเนินการ",
-        queue: "คิว"
+        queue: "คิว",
+        noBookingsFound: "ไม่พบข้อมูลการจองในช่วงเวลานี้"
     },
     common: {
         save: "บันทึก",

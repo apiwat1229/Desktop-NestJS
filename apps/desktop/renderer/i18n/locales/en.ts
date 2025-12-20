@@ -46,6 +46,7 @@ export const en = {
         nextQueue: "Next Queue",
         totalToday: "Total Queues Today",
         available: "Available",
+        availableCount: "Available {{count}}",
         full: "Full",
         slotFull: "This time slot is full",
         unlimited: "Unlimited",
@@ -73,7 +74,8 @@ export const en = {
         totalBookings: "Total Bookings",
         completed: "Completed",
         pending: "Pending",
-        queue: "Queue"
+        queue: "Queue",
+        noBookingsFound: "No bookings found for this slot."
     },
     common: {
         save: "Save",

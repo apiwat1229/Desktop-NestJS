@@ -394,8 +394,8 @@ export default function BookingQueue() {
             <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
               <FileText className="w-8 h-8 text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">No data available</h3>
-            <p className="text-muted-foreground mt-1">No bookings found for this slot.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t('common.noData')}</h3>
+            <p className="text-muted-foreground mt-1">{t('booking.noBookingsFound')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -489,25 +489,31 @@ export default function BookingQueue() {
 
         {/* Statistics */}
         <div className="grid grid-cols-4 gap-4 mt-8">
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">{t('booking.totalToday')}</p>
-            <p className="text-2xl font-bold">{totalDailyQueues}</p>
+          <Card className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+            <p className="text-sm text-muted-foreground mb-2">{t('booking.totalToday')}</p>
+            <p className="text-3xl font-bold">{totalDailyQueues}</p>
           </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">{t('booking.currentQueue')}</p>
-            <p className="text-2xl font-bold text-primary">{queues.length}</p>
+          <Card className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+            <p className="text-sm text-muted-foreground mb-2">{t('booking.currentQueue')}</p>
+            <p className="text-3xl font-bold text-primary">{queues.length}</p>
           </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">{t('booking.nextQueue')}</p>
-            <p className="text-2xl font-bold text-green-600">
+          <Card className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+            <p className="text-sm text-muted-foreground mb-2">{t('booking.nextQueue')}</p>
+            <p className="text-3xl font-bold text-green-600">
               {nextQueueNo !== null ? nextQueueNo : '-'}
             </p>
           </Card>
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">{t('common.status')}</p>
-            <p className={`text-2xl font-bold ${isSlotFull ? 'text-red-600' : 'text-green-600'}`}>
-              {isSlotFull ? t('booking.full') : t('booking.available')}
-            </p>
+          <Card className="p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+            <p className="text-sm text-muted-foreground mb-2">{t('common.status')}</p>
+            {isSlotFull ? (
+              <p className="text-3xl font-bold text-red-600">{t('booking.full')}</p>
+            ) : slotConfig.limit ? (
+              <p className="text-3xl font-bold text-blue-500">
+                {t('booking.availableCount', { count: slotConfig.limit - queues.length })}
+              </p>
+            ) : (
+              <p className="text-3xl font-bold text-green-600">{t('booking.available')}</p>
+            )}
           </Card>
         </div>
       </main>
@@ -532,7 +538,7 @@ export default function BookingQueue() {
 
       {/* Ticket Dialog */}
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-md">
           {selectedTicket &&
             (() => {
               const date = new Date(selectedTicket.date);

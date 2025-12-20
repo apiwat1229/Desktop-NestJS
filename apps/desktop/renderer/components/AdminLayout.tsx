@@ -1,4 +1,4 @@
-import { Activity, Bell, Layers, LayoutDashboard, Truck, Users } from 'lucide-react';
+import { Activity, Bell, Layers, LayoutDashboard, Shield, Truck, Users } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +58,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems = [
     { icon: LayoutDashboard, label: t('admin.sidebar.dashboard'), path: '/admin' },
     { icon: Users, label: t('admin.sidebar.users'), path: '/admin/users' },
+    { icon: Shield, label: t('admin.sidebar.roles'), path: '/admin/roles' },
     { icon: Truck, label: t('admin.sidebar.suppliers'), path: '/admin/suppliers' },
     { icon: Layers, label: t('admin.sidebar.rubberTypes'), path: '/admin/rubber-types' },
     { icon: Bell, label: t('admin.sidebar.notifications'), path: '/admin/notifications' },
