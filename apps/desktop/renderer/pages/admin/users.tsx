@@ -1,7 +1,6 @@
 import {
   Briefcase,
   Check,
-  ChevronDown,
   Eye,
   EyeOff,
   Lock,
@@ -16,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
+import ImageCropper from '../../components/ImageCropper';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,11 +27,22 @@ import {
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { DataTable } from '../../components/ui/data-table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
+import { Spinner } from '../../components/ui/spinner';
+import { useToast } from '../../components/ui/use-toast';
 import { usersApi } from '../../lib/api';
+import { useAuthStore } from '../../stores/authStore';
 import { useUserColumns } from './users/columns';
 
 export default function UsersPage() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +82,11 @@ export default function UsersPage() {
 
   // Delete Confirmation State
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  // Avatar Cropper State
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -83,6 +99,10 @@ export default function UsersPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -110,7 +130,8 @@ export default function UsersPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (user: any) => {
+  const handleOpenEdit = async (user: any) => {
+    console.log('handleOpenEdit called with:', user);
     setEditingUser(user);
     setFormData({
       email: user.email || '',
@@ -130,6 +151,23 @@ export default function UsersPage() {
     });
     setAvatarPreview(user.avatar || '');
     setIsModalOpen(true);
+
+    // Fetch full user details to get avatar if missing from list
+    try {
+      console.log('Fetching full details for id:', user.id);
+      const fullUser = await usersApi.getOne(user.id);
+      console.log('Full user details fetched:', fullUser);
+
+      if (fullUser.avatar) {
+        console.log('Avatar found in full details, updating preview.');
+        setFormData((prev) => ({ ...prev, avatar: fullUser.avatar }));
+        setAvatarPreview(fullUser.avatar);
+      } else {
+        console.log('No avatar in full details.');
+      }
+    } catch (error) {
+      console.error('Failed to fetch full user details:', error);
+    }
   };
 
   const confirmDelete = async () => {
@@ -144,14 +182,47 @@ export default function UsersPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('handleSubmit triggered', formData);
 
-    if (!editingUser && formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+    // Manual Validation for required fields
+    const missingFields = [];
+    if (!formData.username) missingFields.push('username');
+    if (!formData.role) missingFields.push('role');
+    if (!formData.status) missingFields.push('status');
+    if (!formData.department) missingFields.push('department');
+    if (!formData.position) missingFields.push('position');
+
+    if (missingFields.length > 0) {
+      console.log('Validation failed. Missing:', missingFields);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: t(
+          'admin.users.requiredFieldsError',
+          `Please fill in: ${missingFields.join(', ')}`
+        ),
+      });
       return;
     }
 
+    if (!editingUser && formData.password !== formData.confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: t('admin.users.passwordMismatch', "Passwords don't match!"),
+      });
+      return;
+    }
+
+    // Bypass confirmation for debugging/UX
+    toast({ title: t('common.loading'), description: 'Saving user...' });
+    executeSave();
+    // setShowSaveConfirm(true);
+  };
+
+  const executeSave = async () => {
     try {
       const payload = { ...formData };
 
@@ -161,17 +232,33 @@ export default function UsersPage() {
       if (!payload.hodId) delete (payload as any).hodId;
       if (!payload.pinCode) delete (payload as any).pinCode;
 
+      let savedUser;
       if (editingUser) {
-        await usersApi.update(editingUser.id, payload);
+        savedUser = await usersApi.update(editingUser.id, payload);
+
+        // Update local session if editing self
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser && currentUser.id === editingUser.id) {
+          useAuthStore.getState().updateUser(savedUser);
+        }
       } else {
         await usersApi.create(payload);
       }
       setIsModalOpen(false);
+      setShowSaveConfirm(false);
       setAvatarPreview('');
       fetchUsers();
-    } catch (error) {
+      toast({
+        title: t('common.success'),
+        description: editingUser ? t('admin.users.updated') : t('admin.users.created'),
+      });
+    } catch (error: any) {
       console.error('Failed to save user:', error);
-      alert('Failed to save user');
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: error.response?.data?.message || 'Failed to save user',
+      });
     }
   };
 
@@ -180,23 +267,32 @@ export default function UsersPage() {
     if (file) {
       // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('File size must be less than 2MB');
+        toast({
+          variant: 'destructive',
+          title: t('common.error'),
+          description: t('admin.users.fileSizeError', 'File size must be less than 2MB'),
+        });
         return;
       }
 
       // Check file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        toast({
+          variant: 'destructive',
+          title: t('common.error'),
+          description: t('admin.users.fileTypeError', 'Please select an image file'),
+        });
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setFormData({ ...formData, avatar: base64String });
-        setAvatarPreview(base64String);
+        setPendingImage(reader.result as string);
+        setIsCropperOpen(true);
       };
       reader.readAsDataURL(file);
+      // Reset input value so same file selects trigger onChange
+      e.target.value = '';
     }
   };
 
@@ -219,6 +315,16 @@ export default function UsersPage() {
     onEdit: handleOpenEdit,
     onDelete: (id) => setDeleteId(id),
   });
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="h-[calc(100vh-100px)] w-full flex items-center justify-center">
+          <Spinner size="xl" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -312,11 +418,12 @@ export default function UsersPage() {
       </AlertDialog>
 
       {/* Advanced Create/Edit User Modal */}
+      {/* Advanced Create/Edit User Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-          <div className="bg-background rounded-xl shadow-2xl border border-border w-full max-w-4xl overflow-hidden animate-in zoom-in-95 duration-200 my-8">
+        <div className="fixed inset-0 z-50 w-screen h-screen grid place-items-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-background rounded-xl shadow-2xl border border-border w-full max-w-4xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 relative">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/10">
+            <div className="flex-none flex items-center justify-between p-6 border-b border-border bg-muted/10">
               <div>
                 <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <Plus className="w-5 h-5 text-primary" />
@@ -338,7 +445,7 @@ export default function UsersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8">
+            <form onSubmit={handleSubmit} className="p-8 overflow-y-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
                 {/* LEFT COLUMN */}
                 <div className="space-y-10">
@@ -358,7 +465,6 @@ export default function UsersPage() {
                         </label>
                         <input
                           type="email"
-                          required
                           className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
                           placeholder="john.doe@company.com"
                           value={formData.email}
@@ -369,7 +475,7 @@ export default function UsersPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium text-foreground mb-1 block">
-                            {t('admin.users.username')}
+                            {t('admin.users.username')} <span className="text-destructive">*</span>
                           </label>
                           <input
                             type="text"
@@ -443,6 +549,18 @@ export default function UsersPage() {
                               <p className="text-[10px] text-muted-foreground mt-2">
                                 {t('admin.users.maxFileSize')}
                               </p>
+                              {pendingImage && (
+                                <ImageCropper
+                                  open={isCropperOpen}
+                                  imageSrc={pendingImage}
+                                  onClose={() => setIsCropperOpen(false)}
+                                  onCropComplete={(croppedImage) => {
+                                    setFormData({ ...formData, avatar: croppedImage });
+                                    setAvatarPreview(croppedImage);
+                                    setIsCropperOpen(false);
+                                  }}
+                                />
+                              )}
                             </div>
                           </div>
                         </div>
@@ -468,7 +586,6 @@ export default function UsersPage() {
                         </label>
                         <input
                           type="text"
-                          required
                           className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
                           placeholder="John"
                           value={formData.firstName}
@@ -481,7 +598,6 @@ export default function UsersPage() {
                         </label>
                         <input
                           type="text"
-                          required
                           className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
                           placeholder="Doe"
                           value={formData.lastName}
@@ -506,30 +622,43 @@ export default function UsersPage() {
                           {t('admin.users.department')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
-                          <select
-                            required
-                            className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground appearance-none"
+                          <Select
                             value={formData.department}
-                            onChange={(e) =>
-                              setFormData({ ...formData, department: e.target.value })
-                            }
+                            onValueChange={(val) => setFormData({ ...formData, department: val })}
                           >
-                            <option value="">{t('admin.users.selectDepartment')}</option>
-                            <option value="Quality Assurance">{t('admin.departments.qa')}</option>
-                            <option value="Production">{t('admin.departments.production')}</option>
-                            <option value="Raw Material Receiving">
-                              {t('admin.departments.rawMaterial')}
-                            </option>
-                            <option value="Information Technology">
-                              {t('admin.departments.it')}
-                            </option>
-                            <option value="Human Resource">{t('admin.departments.hr')}</option>
-                            <option value="Accounting">{t('admin.departments.accounting')}</option>
-                            <option value="Finance">{t('admin.departments.finance')}</option>
-                            <option value="Purchasing">{t('admin.departments.purchasing')}</option>
-                            <option value="Shipping">{t('admin.departments.shipping')}</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('admin.users.selectDepartment')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Quality Assurance">
+                                {t('admin.departments.qa')}
+                              </SelectItem>
+                              <SelectItem value="Production">
+                                {t('admin.departments.production')}
+                              </SelectItem>
+                              <SelectItem value="Raw Material Receiving">
+                                {t('admin.departments.rawMaterial')}
+                              </SelectItem>
+                              <SelectItem value="Information Technology">
+                                {t('admin.departments.it')}
+                              </SelectItem>
+                              <SelectItem value="Human Resource">
+                                {t('admin.departments.hr')}
+                              </SelectItem>
+                              <SelectItem value="Accounting">
+                                {t('admin.departments.accounting')}
+                              </SelectItem>
+                              <SelectItem value="Finance">
+                                {t('admin.departments.finance')}
+                              </SelectItem>
+                              <SelectItem value="Purchasing">
+                                {t('admin.departments.purchasing')}
+                              </SelectItem>
+                              <SelectItem value="Shipping">
+                                {t('admin.departments.shipping')}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       <div>
@@ -537,34 +666,43 @@ export default function UsersPage() {
                           {t('admin.users.position')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
-                          <select
-                            required
-                            className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground appearance-none"
+                          <Select
                             value={formData.position}
-                            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                            onValueChange={(val) => setFormData({ ...formData, position: val })}
                           >
-                            <option value="">{t('admin.users.selectPosition')}</option>
-                            <option value="Managing Director">{t('admin.positions.md')}</option>
-                            <option value="General Manager">{t('admin.positions.gm')}</option>
-                            <option value="Manager">{t('admin.positions.manager')}</option>
-                            <option value="Assistant Manager">
-                              {t('admin.positions.asstMgr')}
-                            </option>
-                            <option value="Senior Supervisor">
-                              {t('admin.positions.seniorSup')}
-                            </option>
-                            <option value="Supervisor">{t('admin.positions.sup')}</option>
-                            <option value="Senior Staff 2">
-                              {t('admin.positions.seniorStaff2')}
-                            </option>
-                            <option value="Senior Staff 1">
-                              {t('admin.positions.seniorStaff1')}
-                            </option>
-                            <option value="Staff 2">{t('admin.positions.staff2')}</option>
-                            <option value="Staff 1">{t('admin.positions.staff1')}</option>
-                            <option value="Operator Leader">{t('admin.positions.opLeader')}</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('admin.users.selectPosition')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Managing Director">
+                                {t('admin.positions.md')}
+                              </SelectItem>
+                              <SelectItem value="General Manager">
+                                {t('admin.positions.gm')}
+                              </SelectItem>
+                              <SelectItem value="Manager">
+                                {t('admin.positions.manager')}
+                              </SelectItem>
+                              <SelectItem value="Assistant Manager">
+                                {t('admin.positions.asstMgr')}
+                              </SelectItem>
+                              <SelectItem value="Senior Supervisor">
+                                {t('admin.positions.seniorSup')}
+                              </SelectItem>
+                              <SelectItem value="Supervisor">{t('admin.positions.sup')}</SelectItem>
+                              <SelectItem value="Senior Staff 2">
+                                {t('admin.positions.seniorStaff2')}
+                              </SelectItem>
+                              <SelectItem value="Senior Staff 1">
+                                {t('admin.positions.seniorStaff1')}
+                              </SelectItem>
+                              <SelectItem value="Staff 2">{t('admin.positions.staff2')}</SelectItem>
+                              <SelectItem value="Staff 1">{t('admin.positions.staff1')}</SelectItem>
+                              <SelectItem value="Operator Leader">
+                                {t('admin.positions.opLeader')}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -577,21 +715,23 @@ export default function UsersPage() {
                         </span>
                       </label>
                       <div className="relative">
-                        <select
-                          className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground appearance-none"
+                        <Select
                           value={formData.hodId}
-                          onChange={(e) => setFormData({ ...formData, hodId: e.target.value })}
+                          onValueChange={(val) => setFormData({ ...formData, hodId: val })}
                         >
-                          <option value="">{t('admin.users.selectHod')}</option>
-                          {users
-                            .filter((u) => u.id !== editingUser?.id)
-                            .map((u) => (
-                              <option key={u.id} value={u.id}>
-                                {u.firstName} {u.lastName} ({u.position})
-                              </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('admin.users.selectHod')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {users
+                              .filter((u) => u.id !== editingUser?.id)
+                              .map((u) => (
+                                <SelectItem key={u.id} value={u.id}>
+                                  {u.firstName} {u.lastName} ({u.position})
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
@@ -614,15 +754,18 @@ export default function UsersPage() {
                           {t('admin.users.role')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
-                          <select
-                            className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground appearance-none"
+                          <Select
                             value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            onValueChange={(val) => setFormData({ ...formData, role: val })}
                           >
-                            <option value="USER">{t('admin.users.roles.user')}</option>
-                            <option value="ADMIN">{t('admin.users.roles.admin')}</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="USER">{t('admin.users.roles.user')}</SelectItem>
+                              <SelectItem value="ADMIN">{t('admin.users.roles.admin')}</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       <div>
@@ -630,16 +773,21 @@ export default function UsersPage() {
                           {t('admin.users.status')} <span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
-                          <select
-                            className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground appearance-none"
+                          <Select
                             value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            onValueChange={(val) => setFormData({ ...formData, status: val })}
                           >
-                            <option value="ACTIVE">{t('admin.status.active')}</option>
-                            <option value="INACTIVE">{t('admin.status.inactive')}</option>
-                            <option value="SUSPENDED">{t('admin.status.suspended')}</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ACTIVE">{t('admin.status.active')}</SelectItem>
+                              <SelectItem value="INACTIVE">{t('admin.status.inactive')}</SelectItem>
+                              <SelectItem value="SUSPENDED">
+                                {t('admin.status.suspended')}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -662,7 +810,6 @@ export default function UsersPage() {
                         <div className="relative">
                           <input
                             type={showPassword ? 'text' : 'password'}
-                            required={!editingUser}
                             className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground pr-10"
                             placeholder={editingUser ? '(Unchanged)' : '••••••••'}
                             value={formData.password}
@@ -689,7 +836,6 @@ export default function UsersPage() {
                         <div className="relative">
                           <input
                             type={showConfirmPassword ? 'text' : 'password'}
-                            required={!editingUser && formData.password.length > 0}
                             className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground pr-10"
                             placeholder={editingUser ? '(Unchanged)' : '••••••••'}
                             value={formData.confirmPassword}
@@ -713,57 +859,25 @@ export default function UsersPage() {
                     </div>
                   </div>
 
-                  {/* Pin Code */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 border-b border-border pb-2">
-                      <Shield className="w-4 h-4 text-primary" />
-                      <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                        Set Pincode (6 Digits)
-                      </h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      For verification on critical actions.
-                    </p>
-
-                    <div className="space-y-3 max-w-[200px]">
-                      <div>
-                        <label className="text-sm font-medium text-foreground mb-1 block">
-                          Pincode
-                        </label>
-                        <input
-                          type="text"
-                          maxLength={6}
-                          pattern="[0-9]*"
-                          className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground text-center tracking-widest font-mono"
-                          placeholder="_ _ _ _ _ _"
-                          value={formData.pinCode}
-                          onChange={(e) => {
-                            const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
-                            setFormData({ ...formData, pinCode: v });
-                          }}
-                        />
-                      </div>
-                    </div>
+                  {/* Action Buttons */}
+                  <div className="pt-6 border-t border-border flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-6 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors border border-transparent hover:border-border"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="px-8 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      {editingUser ? t('admin.users.saveChanges') : t('admin.users.confirmCreate')}
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="mt-12 pt-6 border-t border-border flex justify-end gap-3 sticky bottom-0 bg-background/95 backdrop-blur py-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors border border-transparent hover:border-border"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-8 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  {editingUser ? 'Save Changes' : 'Confirm & Create'}
-                </button>
               </div>
             </form>
           </div>

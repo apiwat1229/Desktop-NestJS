@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { Spinner } from '../../components/ui/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { useToast } from '../../components/ui/use-toast';
 import { api } from '../../lib/api';
@@ -398,6 +399,16 @@ export default function SuppliersPage() {
       suspended: suppliers.filter((s) => s.status === 'SUSPENDED').length,
     };
   }, [suppliers]);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="h-[calc(100vh-100px)] w-full flex items-center justify-center">
+          <Spinner size="xl" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

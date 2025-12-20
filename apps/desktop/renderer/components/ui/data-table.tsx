@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  searchPlaceholder?: string;
   children?: React.ReactNode;
 }
 
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey = 'email',
+  searchPlaceholder = 'Search...',
   children,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -69,7 +71,7 @@ export function DataTable<TData, TValue>({
     <div className="w-full">
       <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
-          placeholder="Search..."
+          placeholder={searchPlaceholder}
           value={globalFilter ?? ''}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"

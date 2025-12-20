@@ -1,0 +1,16 @@
+  "admin": {
+    "notifications": {
+      "title": "จัดการการแจ้งเตือน",
+      "subtitle": "สร้าง ดุ และจัดการการแจ้งเตือนในระบบ",
+      "create": "สร้าง",
+      "type": "ประเภท",
+      "message": "ข้อความ",
+      "titleLabel": "หัวข้อ",
+      "createDescription": "สร้างการแจ้งเตือนใหม่เพื่อส่งไปยังผู้ใช้ทุกคน",
+      "titlePlaceholder": "ระบุหัวข้อการแจ้งเตือน",
+      "messagePlaceholder": "ระบุข้อความการแจ้งเตือน",
+      "notificationCreated": "สร้างการแจ้งเตือนสำเร็จแล้ว",
+      "notificationDeleted": "ลบการแจ้งเตือนสำเร็จแล้ว",
+      "search": "ค้นหาจากหัวข้อ..."
+    },
+    "sidebar": {

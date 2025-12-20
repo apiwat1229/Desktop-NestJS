@@ -1,11 +1,16 @@
 export interface User {
     id: string;
     email: string;
-    username?: string;
-    name?: string;
+    username: string;
+    name?: string; // Kept for backward compatibility
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    avatar?: string;
     role?: string;
     roles?: string[];
-    avatar?: string;
+    department?: string;
+    position?: string;
 }
 
 export interface AuthState {

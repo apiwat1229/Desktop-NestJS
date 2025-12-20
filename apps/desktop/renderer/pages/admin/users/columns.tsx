@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
@@ -162,7 +161,6 @@ export const useUserColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Us
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => onEdit(user)}>
                 <Edit2 className="mr-2 h-4 w-4" />
                 {t('common.edit')}

@@ -11,8 +11,8 @@ export class AuthService {
         private jwtService: JwtService
     ) { }
 
-    async validateUser(email: string, password: string): Promise<any> {
-        const user = await this.usersService.findByEmail(email);
+    async validateUser(identifier: string, password: string): Promise<any> {
+        const user = await this.usersService.findByEmailOrUsername(identifier);
         if (user && (await bcrypt.compare(password, user.password))) {
             const { password, ...result } = user;
             return result;

@@ -114,6 +114,30 @@
     "queue": "คิว"
   },
   "admin": {
+    "notifications": {
+      "title": "จัดการการแจ้งเตือน",
+      "subtitle": "สร้าง ดู และจัดการการแจ้งเตือนในระบบ",
+      "create": "สร้าง",
+      "createNew": "สร้างการแจ้งเตือนใหม่",
+      "type": "ประเภท",
+      "message": "ข้อความ",
+      "titleLabel": "หัวข้อ",
+      "createDescription": "สร้างการแจ้งเตือนใหม่เพื่อส่งไปยังผู้ใช้ทุกคน",
+      "titlePlaceholder": "ระบุหัวข้อการแจ้งเตือน",
+      "messagePlaceholder": "ระบุข้อความการแจ้งเตือน",
+      "notificationCreated": "สร้างการแจ้งเตือนสำเร็จแล้ว",
+      "notificationDeleted": "ลบการแจ้งเตือนสำเร็จแล้ว",
+      "search": "ค้นหาจากหัวข้อ...",
+      "date": "วันที่",
+      "status": "สถานะ",
+      "read": "อ่านแล้ว",
+      "unread": "ยังไม่อ่าน",
+      "markAsRead": "ทำเครื่องหมายว่าอ่านแล้ว",
+      "deleteTitle": "ลบการแจ้งเตือน?",
+      "deleteDescription": "การกระทำนี้ไม่สามารถย้อนกลับได้ จะทำการลบการแจ้งเตือนนี้อย่างถาวร",
+      "cancel": "ยกเลิก",
+      "confirmDelete": "ลบ"
+    },
     "sidebar": {
       "main": "เมนูหลัก",
       "system": "ระบบ",
@@ -121,7 +145,33 @@
       "users": "ผู้ใช้งาน",
       "suppliers": "ผู้จัดจำหน่าย",
       "rubberTypes": "ประเภทยาง",
+      "notifications": "การแจ้งเตือน",
       "analytics": "การวิเคราะห์"
+    },
+    "userProfile": {
+      "title": "จัดการบัญชีผู้ใช้",
+      "subtitle": "จัดการข้อมูลส่วนตัวและการตั้งค่าความปลอดภัย",
+      "general": "ข้อมูลทั่วไป",
+      "security": "ความปลอดภัย",
+      "avatar": "รูปโปรไฟล์",
+      "uploadAvatar": "อัปโหลดรูปภาพใหม่",
+      "personalInfo": "ข้อมูลส่วนตัว",
+      "displayName": "ชื่อที่แสดง",
+      "firstName": "ชื่อจริง",
+      "lastName": "นามสกุล",
+      "email": "อีเมล",
+      "username": "ชื่อผู้ใช้",
+      "department": "แผนก",
+      "position": "ตำแหน่ง",
+      "role": "บทบาท",
+      "changePassword": "เปลี่ยนรหัสผ่าน",
+      "currentPassword": "รหัสผ่านปัจจุบัน",
+      "newPassword": "รหัสผ่านใหม่",
+      "confirmPassword": "ยืนยันรหัสผ่านใหม่",
+      "saveChanges": "บันทึกการเปลี่ยนแปลง",
+      "updateSuccess": "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว",
+      "passwordUpdateSuccess": "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว",
+      "passwordMismatch": "รหัสผ่านใหม่ไม่ตรงกัน"
     },
     "dashboard": {
       "title": "แดชบอร์ด",
@@ -287,6 +337,15 @@
     "roundness": "ความโค้งมน",
     "fontFamily": "แบบอักษร",
     "adminPanel": "แผงควบคุม"
+  },
+  "notifications": {
+    "title": "การแจ้งเตือน",
+    "markAllRead": "อ่านทั้งหมด",
+    "clearAll": "ลบทั้งหมด",
+    "empty": "ไม่มีการแจ้งเตือน",
+    "newNotification": "การแจ้งเตือนใหม่",
+    "testTitle": "ทดสอบการแจ้งเตือน",
+    "testMessage": "นี่คือการแจ้งเตือนทดสอบเพื่อตรวจสอบระบบ"
   },
   "system": {
     "pageNotFound": "ใม่พบหน้านี้",

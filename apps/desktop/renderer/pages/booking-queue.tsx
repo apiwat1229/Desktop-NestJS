@@ -39,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { Spinner } from '../components/ui/spinner';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../components/ui/use-toast';
 import { bookingsApi } from '../lib/api';
@@ -384,85 +385,105 @@ export default function BookingQueue() {
 
         {/* Queue Cards Grid */}
         {loading ? (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">กำลังโหลด...</p>
-          </Card>
+          <div className="flex flex-col items-center justify-center p-12 text-center h-[300px]">
+            <Spinner size="lg" className="mb-4" />
+            <p className="text-muted-foreground animate-pulse">กำลังโหลดข้อมูล...</p>
+          </div>
         ) : queues.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">{t('common.noData')}</p>
-          </Card>
+          <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-border rounded-xl bg-background/50 h-[300px]">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-blue-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">No data available</h3>
+            <p className="text-muted-foreground mt-1">No bookings found for this slot.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {queues.map((queue) => (
-              <Card key={queue.id} className="p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="font-semibold text-sm">QUEUE : {queue.queueNo}</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(queue)}>
-                        <Edit2 className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => setDeleteId(queue.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+            {queues.map((queue) => {
+              // Determine theme based on selected date (or queue date if needed, but usually selectedDate)
+              const date = new Date(selectedDate);
+              const dayOfWeek = date.getDay();
+              const dayTheme = DAY_COLORS[dayOfWeek];
 
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Code</p>
-                    <p className="font-medium">{queue.supplierCode}</p>
+              return (
+                <Card
+                  key={queue.id}
+                  className="p-4 transition-all hover:shadow-md border-l-4"
+                  style={{ borderLeftColor: dayTheme.queueBg }}
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-semibold text-sm">QUEUE : {queue.queueNo}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(queue)}>
+                          <Edit2 className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => setDeleteId(queue.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Supplier</p>
-                    <p>{queue.supplierName}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Truck</p>
-                    <p>{[queue.truckType, queue.truckRegister].filter(Boolean).join(' ') || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
-                    <p>
-                      {RUBBER_TYPE_MAP[queue.rubberType] ||
-                        queue.rubberTypeName ||
-                        queue.rubberType}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Recorder</p>
-                    <p>{queue.recorder}</p>
-                  </div>
-                </div>
 
-                <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">
-                    Booking: {queue.bookingCode}
-                  </span>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0"
-                    onClick={() => handleShowTicket(queue)}
-                  >
-                    <FileText className="h-3 w-3 mr-1" />
-                    Ticket
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Code</p>
+                      <p className="font-medium">{queue.supplierCode}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Supplier</p>
+                      <p className="truncate" title={queue.supplierName}>
+                        {queue.supplierName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Truck</p>
+                      <p>
+                        {[queue.truckType, queue.truckRegister].filter(Boolean).join(' ') || '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Type</p>
+                      <p>
+                        {RUBBER_TYPE_MAP[queue.rubberType] ||
+                          queue.rubberTypeName ||
+                          queue.rubberType}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Recorder</p>
+                      <p>{queue.recorder}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      Booking: {queue.bookingCode}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0"
+                      onClick={() => handleShowTicket(queue)}
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      Ticket
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -511,7 +532,7 @@ export default function BookingQueue() {
 
       {/* Ticket Dialog */}
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-xl">
           {selectedTicket &&
             (() => {
               const date = new Date(selectedTicket.date);

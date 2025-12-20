@@ -70,6 +70,7 @@ export class UsersService {
                 position: true,
                 role: true,
                 status: true,
+                avatar: true,
                 createdAt: true,
                 updatedAt: true,
             } as any,
@@ -85,6 +86,33 @@ export class UsersService {
     async findByEmail(email: string): Promise<any> {
         return this.prisma.user.findUnique({
             where: { email },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                role: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                department: true,
+                position: true,
+                status: true,
+                avatar: true,
+                createdAt: true,
+                updatedAt: true,
+            } as any,
+        });
+    }
+
+    async findByEmailOrUsername(identifier: string): Promise<any> {
+        return this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { username: identifier }
+                ]
+            },
             select: {
                 id: true,
                 email: true,

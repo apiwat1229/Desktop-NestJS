@@ -1,5 +1,6 @@
 import { Layers, Plus, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../components/AdminLayout';
 import {
   AlertDialog,
@@ -12,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { DataTable } from '../../components/ui/data-table';
+import { Spinner } from '../../components/ui/spinner';
 import { useToast } from '../../components/ui/use-toast';
 import { rubberTypesApi } from '../../lib/api';
 import { RubberType, useRubberTypeColumns } from './rubber-types/columns';
@@ -22,6 +24,7 @@ export default function RubberTypesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<RubberType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const { toast } = useToast();
 
@@ -131,11 +134,30 @@ export default function RubberTypesPage() {
     onDelete: handleDelete,
   });
 
+  const stats = React.useMemo(() => {
+    return {
+      total: data.length,
+      active: data.filter((item) => item.is_active).length,
+      inactive: data.filter((item) => !item.is_active).length,
+    };
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="h-[calc(100vh-100px)] w-full flex items-center justify-center">
+          <Spinner size="xl" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="p-6 w-full max-w-[1400px] mx-auto space-y-8">
         {/* Header Card */}
         <div className="bg-card rounded-xl border border-border shadow-sm p-4 md:p-6 flex flex-col xl:flex-row items-center justify-between gap-6 transition-all hover:shadow-md">
+          {/* Left: Title & Icon */}
           <div className="flex items-center gap-4 w-full xl:w-auto">
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl transition-transform hover:scale-105">
               <Layers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -150,6 +172,31 @@ export default function RubberTypesPage() {
             </div>
           </div>
 
+          {/* Center: Stats Widget */}
+          <div className="hidden md:flex items-center bg-background/50 rounded-xl border border-border p-1 shadow-sm">
+            <div className="px-6 py-2 flex flex-col items-center min-w-[100px] border-r border-border/50 last:border-0">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Total
+              </span>
+              <span className="text-lg font-bold text-foreground">{stats.total}</span>
+            </div>
+            <div className="w-px h-8 bg-border"></div>
+            <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-green-600">
+                Active
+              </span>
+              <span className="text-lg font-bold text-green-600">{stats.active}</span>
+            </div>
+            <div className="w-px h-8 bg-border"></div>
+            <div className="px-6 py-2 flex flex-col items-center min-w-[100px]">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-destructive">
+                Inactive
+              </span>
+              <span className="text-lg font-bold text-destructive">{stats.inactive}</span>
+            </div>
+          </div>
+
+          {/* Right: Action Button */}
           <button
             onClick={handleOpenCreate}
             className="w-full xl:w-auto inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5 h-11 px-8"
@@ -168,21 +215,33 @@ export default function RubberTypesPage() {
 
         {/* Create / Edit Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-background rounded-lg shadow-lg w-full max-w-lg overflow-hidden border border-border">
-              <div className="px-6 py-4 border-b border-border flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {editingItem ? 'Edit Rubber Type' : 'Add New Rubber Type'}
-                </h3>
+          <div className="fixed inset-0 z-50 w-screen h-screen grid place-items-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-background rounded-xl shadow-2xl border border-border w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 relative">
+              <div className="flex items-center justify-between p-6 border-b border-border bg-muted/10">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    {editingItem ? (
+                      <Layers className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Plus className="w-5 h-5 text-primary" />
+                    )}
+                    {editingItem ? 'Edit Rubber Type' : 'Add New Rubber Type'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {editingItem
+                      ? 'Update rubber type details.'
+                      : 'Add a new rubber type to the system.'}
+                  </p>
+                </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded-full"
                 >
                   ✕
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">
                     Code <span className="text-destructive">*</span>
@@ -215,25 +274,28 @@ export default function RubberTypesPage() {
                   </label>
                   <textarea
                     rows={3}
-                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground resize-none"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-card/50">
                   <input
                     type="checkbox"
                     id="is_active"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="rounded border-gray-300 text-primary shadow-sm focus:ring-primary"
+                    className="rounded border-gray-300 text-primary shadow-sm focus:ring-primary w-4 h-4"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-foreground">
-                    Active
+                  <label
+                    htmlFor="is_active"
+                    className="text-sm font-medium text-foreground cursor-pointer select-none"
+                  >
+                    Active (Enabled)
                   </label>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                <div className="flex justify-end gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
@@ -243,7 +305,7 @@ export default function RubberTypesPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors shadow-sm"
+                    className="px-6 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors shadow-lg shadow-primary/20"
                   >
                     {editingItem ? 'Save Changes' : 'Create Rubber Type'}
                   </button>
@@ -267,7 +329,12 @@ export default function RubberTypesPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

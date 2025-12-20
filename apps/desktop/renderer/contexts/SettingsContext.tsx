@@ -75,7 +75,7 @@ interface SettingsProviderProps {
 
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('light');
-  const [fontSize, setFontSize] = useState(14);
+  const [fontSize, setFontSize] = useState(15);
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [borderRadius, setBorderRadius] = useState(8);
   const [fontFamily, setFontFamily] = useState('Bai Jamjuree');
@@ -107,6 +107,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
 
     // Apply font size
     root.style.setProperty('--base-font-size', `${fontSize}px`);
+    // Force global font size scaling on HTML element
+    root.style.fontSize = `${fontSize}px`;
     localStorage.setItem('fontSize', fontSize.toString());
 
     // Apply primary color (Hex for simple usage)
@@ -127,6 +129,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
 
     // Apply font family
     root.style.setProperty('--font-family', fontFamily);
+    // Force global font family on HTML element
+    root.style.fontFamily = fontFamily;
     localStorage.setItem('fontFamily', fontFamily);
   }, [theme, fontSize, primaryColor, borderRadius, fontFamily]);
 

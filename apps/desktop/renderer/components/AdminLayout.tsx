@@ -1,9 +1,10 @@
-import { Activity, Layers, LayoutDashboard, Truck, Users } from 'lucide-react';
+import { Activity, Bell, Layers, LayoutDashboard, Truck, Users } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AnimatedBackground from './AnimatedBackground';
 import Navbar from './Navbar';
+import { Spinner } from './ui/spinner';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -45,7 +46,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <AnimatedBackground />
-        <div className="text-foreground text-xl relative z-10">{t('common.loading')}</div>
+        <div className="relative z-10">
+          <Spinner size="xl" />
+        </div>
       </div>
     );
   }
@@ -57,6 +60,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: t('admin.sidebar.users'), path: '/admin/users' },
     { icon: Truck, label: t('admin.sidebar.suppliers'), path: '/admin/suppliers' },
     { icon: Layers, label: t('admin.sidebar.rubberTypes'), path: '/admin/rubber-types' },
+    { icon: Bell, label: t('admin.sidebar.notifications'), path: '/admin/notifications' },
   ];
 
   return (

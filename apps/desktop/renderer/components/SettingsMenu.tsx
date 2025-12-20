@@ -1,11 +1,15 @@
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../contexts/SettingsContext';
+import { useNotificationStore } from '../stores/notificationStore';
 
 interface SettingsMenuProps {
   onClose: () => void;
 }
 
 export default function SettingsMenu({ onClose }: SettingsMenuProps) {
+  const [isFontExpanded, setIsFontExpanded] = useState(false);
   const {
     theme,
     fontSize,
@@ -19,6 +23,15 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
     setFontFamily,
   } = useSettings();
   const { t } = useTranslation();
+  const { addNotification } = useNotificationStore();
+
+  const handleTestNotification = () => {
+    addNotification({
+      title: t('notifications.testTitle'),
+      message: t('notifications.testMessage'),
+      type: 'success',
+    });
+  };
 
   const colors = [
     '#3B82F6', // Blue
@@ -47,6 +60,9 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
     <div className="absolute right-0 mt-2 w-80 max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-800 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl p-6 z-[60] animate-in fade-in zoom-in duration-200 origin-top-right">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('settings.title')}</h2>
+        <button onClick={handleTestNotification} className="text-xs text-primary hover:underline">
+          Test Notify
+        </button>
       </div>
 
       <div className="space-y-6">
@@ -191,25 +207,36 @@ export default function SettingsMenu({ onClose }: SettingsMenuProps) {
 
         {/* Font Family */}
         <div>
-          <span className="block text-sm font-medium text-gray-700 mb-4">
-            {t('settings.fontFamily')}
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {fonts.map((font) => (
-              <button
-                key={font}
-                onClick={() => setFontFamily(font)}
-                className={`px-3 py-2.5 rounded-lg text-sm transition-all text-left ${
-                  fontFamily === font
-                    ? 'bg-blue-50 text-blue-600 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-                style={{ fontFamily: font }}
-              >
-                {font}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setIsFontExpanded(!isFontExpanded)}
+            className="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 hover:opacity-80 transition-opacity"
+          >
+            <span>{t('settings.fontFamily')}</span>
+            {isFontExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+
+          {isFontExpanded && (
+            <div className="grid grid-cols-2 gap-2 animate-in slide-in-from-top-2 duration-200">
+              {fonts.map((font) => (
+                <button
+                  key={font}
+                  onClick={() => setFontFamily(font)}
+                  className={`px-3 py-2.5 rounded-lg text-sm transition-all text-left ${
+                    fontFamily === font
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'
+                  }`}
+                  style={{ fontFamily: font }}
+                >
+                  {font}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Admin Panel Link */}

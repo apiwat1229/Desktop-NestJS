@@ -224,11 +224,11 @@ export default function Index() {
                 </svg>
               </div>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="apiwat.s@ytrc.co.th"
+                placeholder="username or email"
                 required
               />
             </div>

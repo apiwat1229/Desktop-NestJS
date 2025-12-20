@@ -114,6 +114,30 @@
     "queue": "Queue"
   },
   "admin": {
+    "notifications": {
+      "title": "Notification Management",
+      "subtitle": "Create, view, and manage system notifications.",
+      "create": "Create",
+      "createNew": "Create New Notification",
+      "type": "Type",
+      "message": "Message",
+      "titleLabel": "Title",
+      "createDescription": "Create a new notification to be sent to all users.",
+      "titlePlaceholder": "Enter notification title",
+      "messagePlaceholder": "Enter notification message",
+      "notificationCreated": "Notification has been created successfully.",
+      "notificationDeleted": "Notification has been deleted successfully.",
+      "search": "Search by title...",
+      "date": "Date",
+      "status": "Status",
+      "read": "Read",
+      "unread": "Unread",
+      "markAsRead": "Mark as read",
+      "deleteTitle": "Delete Notification?",
+      "deleteDescription": "This action cannot be undone. This will permanently delete the notification.",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete"
+    },
     "sidebar": {
       "main": "Main",
       "system": "System",
@@ -121,7 +145,33 @@
       "users": "Users",
       "suppliers": "Suppliers",
       "rubberTypes": "Rubber Types",
+      "notifications": "Notifications",
       "analytics": "Analytics"
+    },
+    "userProfile": {
+      "title": "User Profile",
+      "subtitle": "Manage your personal information and security settings.",
+      "general": "General Info",
+      "security": "Security",
+      "avatar": "Profile Picture",
+      "uploadAvatar": "Upload New Picture",
+      "personalInfo": "Personal Information",
+      "displayName": "Display Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "username": "Username",
+      "department": "Department",
+      "position": "Position",
+      "role": "Role",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "Profile updated successfully.",
+      "passwordUpdateSuccess": "Password updated successfully.",
+      "passwordMismatch": "New passwords do not match."
     },
     "dashboard": {
       "title": "Dashboard",
@@ -287,6 +337,15 @@
     "roundness": "Roundness",
     "fontFamily": "Font Family",
     "adminPanel": "Admin Panel"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "empty": "No notifications",
+    "newNotification": "New Notification",
+    "testTitle": "Test Notification",
+    "testMessage": "This is a test notification to verify the system."
   },
   "system": {
     "pageNotFound": "Page not found",
