@@ -1,8 +1,19 @@
-import { Bell, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Bell, CheckCircle2, Plus, Settings, Trash2 } from 'lucide-react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AdminLayout from '../../../components/AdminLayout';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../../components/ui/alert-dialog';
 import { Button } from '../../../components/ui/button';
 import { DataTable } from '../../../components/ui/data-table';
 import {
@@ -149,6 +160,11 @@ export default function NotificationManagement() {
 
           {/* Right: Action Buttons */}
           <div className="flex items-center gap-2 w-full xl:w-auto">
+            <Link href="/admin/notification-settings">
+              <Button variant="outline" size="icon" title={t('admin.settings', 'Settings')}>
+                <Settings className="w-4 h-4" />
+              </Button>
+            </Link>
             <Button variant="outline" onClick={markAllAsRead} disabled={notifications.length === 0}>
               <CheckCircle2 className="w-4 h-4 mr-2" />
               {t('notifications.markAllRead')}

@@ -27,9 +27,14 @@ function genBookingCode(date: Date, queueNo: number): string {
     return `${yy}${mm}${dd}${q}`;
 }
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 @Injectable()
 export class BookingsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService
+    ) { }
 
     async create(data: any) {
         const { date, startTime, endTime, supplierId, supplierCode, supplierName, truckType, truckRegister, rubberType, recorder } = data;
@@ -126,6 +131,15 @@ export class BookingsService {
             console.error('Error creating booking:', error);
             throw new BadRequestException('Failed to create booking. Please check the data and try again.');
         }
+
+        // Trigger Notification
+        await this.triggerNotification('Booking', 'CREATE', {
+            title: 'New Booking Created',
+            message: `Booking ${bookingCode} created for ${supplierName} at ${slot}`,
+            actionUrl: `/bookings/${bookingCode}`,
+        });
+
+        return { queueNo, bookingCode };
     }
 
     async findAll(date?: string, slot?: string) {
@@ -160,7 +174,7 @@ export class BookingsService {
     async update(id: string, data: any) {
         await this.findOne(id); // Check if exists
 
-        return this.prisma.booking.update({
+        const result = await this.prisma.booking.update({
             where: { id },
             data: {
                 supplierId: data.supplierId,
@@ -172,14 +186,88 @@ export class BookingsService {
                 recorder: data.recorder,
             },
         });
+
+        // Trigger Notification
+        await this.triggerNotification('Booking', 'UPDATE', {
+            title: 'Booking Updated',
+            message: `Booking with ID ${id} has been updated.`,
+            actionUrl: `/bookings`, // TODO: use code
+        });
+
+        return result;
     }
 
     async remove(id: string) {
         await this.findOne(id); // Check if exists
 
-        return this.prisma.booking.delete({
+        const result = await this.prisma.booking.delete({
             where: { id },
         });
+
+        // Trigger Notification
+        await this.triggerNotification('Booking', 'DELETE', {
+            title: 'Booking Cancelled',
+            message: `Booking with ID ${id} has been cancelled/deleted.`,
+        });
+
+        return result;
+    }
+
+    private async triggerNotification(sourceApp: string, actionType: string, payload: { title: string; message: string; actionUrl?: string }) {
+        try {
+            // 1. Get Settings for this event
+            const settings = await this.prisma.notificationSetting.findUnique({
+                where: {
+                    sourceApp_actionType: { sourceApp, actionType }
+                }
+            });
+
+            if (!settings || !settings.isActive) {
+                console.log(`Notification skipped for ${sourceApp}:${actionType} (Disabled or Not Configured)`);
+                return;
+            }
+
+            const recipientRoles = (settings.recipientRoles as unknown as string[]) || [];
+
+            // 2. Find Users with these Roles
+            if (recipientRoles.length > 0) {
+                // Fetch role names first since User.role stores names/codes, not IDs (based on schema)
+                // Or if User.role stores IDs? Schema default "staff_1" implies codes.
+                // Let's try to map IDs to Names if possible, or assume IDs are matching if recently refactored.
+                // SAFEST: Fetch Roles by IDs, get their names, then query Users.
+                const roles = await this.prisma.role.findMany({
+                    where: { id: { in: recipientRoles } },
+                    select: { name: true }
+                });
+                const roleNames = roles.map(r => r.name);
+
+                const users = await this.prisma.user.findMany({
+                    where: {
+                        role: { in: roleNames }
+                    },
+                    select: { id: true }
+                });
+
+                // 3. Send Notification to each user
+                for (const user of users) {
+                    await this.notificationsService.create({
+                        userId: user.id,
+                        title: payload.title,
+                        message: payload.message,
+                        type: 'INFO',
+                        sourceApp,
+                        actionType,
+                        actionUrl: payload.actionUrl
+                    });
+                }
+            }
+
+            console.log(`Notification sent for ${sourceApp}:${actionType} to ${recipientRoles.length} roles.`);
+
+        } catch (error) {
+            console.error('Error triggering notification:', error);
+            // Don't fail the main request just because notification failed
+        }
     }
 
     async getStats(date: string) {

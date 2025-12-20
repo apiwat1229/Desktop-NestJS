@@ -40,7 +40,28 @@ model User {
   updatedAt DateTime @updatedAt
   posts     Post[]
 
+  // Notification System Relations
+  notifications     Notification[]
+  approvalRequests  ApprovalRequest[] @relation("Requester")
+  approverRequests  ApprovalRequest[] @relation("Approver")
+  
+  // App Permissions
+  appPermissions    UserAppPermission[]
+
   @@map("users")
+}
+
+model UserAppPermission {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appName   String   // "BOOKING", "INVENTORY"
+  actions   Json     // ["read", "create"]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, appName])
+  @@map("user_app_permissions")
 }
 
 enum UserStatus {
@@ -221,5 +242,105 @@ model Role {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("roles")
+}
+
+// ==========================================
+// Notification & Approval System
+// ==========================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  title       String
+  message     String
+  type        NotificationType @default(INFO)
+  status      NotificationStatus @default(UNREAD)
+  
+  // Recipient
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  sourceApp   String   // e.g., "BOOKING", "USER_MANAGEMENT"
+  actionType  String   // e.g., "CREATE", "UPDATE", "APPROVAL_REQUEST"
+  entityId    String?  // ID of the related entity
+  actionUrl   String?  // Link to relevant page
+  metadata    Json?    // Extra data
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+model NotificationSetting {
+  id          String   @id @default(uuid())
+  
+  // Event Definition
+  sourceApp   String   // e.g., "BOOKING"
+  actionType  String   // e.g., "CREATE", "DELETE", "REQUEST_EDIT"
+  
+  // Configuration
+  isActive    Boolean  @default(true)
+  
+  // Recipients Configuration
+  recipientRoles Json  @default("[]") // Array of Role IDs
+  recipientUsers Json  @default("[]") // Array of User IDs (optional overrides)
+  
+  channels     Json    @default("[\"IN_APP\"]") // ["IN_APP", "EMAIL", "LINE"]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([sourceApp, actionType])
+  @@map("notification_settings")
+}
+
+model ApprovalRequest {
+  id          String   @id @default(uuid())
+  
+  // Request Info
+  sourceApp   String   // "BOOKING"
+  actionType  String   // "UPDATE", "DELETE"
+  entityId    String   // ID of the thing changing
+  
+  // Changes
+  reason      String?
+  changes     Json?    // { field: "rubberType", old: "A", new: "B" }
+  
+  // Workflow
+  status      ApprovalStatus @default(PENDING)
+  
+  requesterId String   @map("requester_id")
+  requester   User     @relation("Requester", fields: [requesterId], references: [id])
+  
+  approverId  String?  @map("approver_id")
+  approver    User?    @relation("Approver", fields: [approverId], references: [id])
+  
+  submittedAt DateTime @default(now()) @map("submitted_at")
+  actedAt     DateTime? @map("acted_at")
+  
+  comment     String? // Approver's comment
+
+  @@map("approval_requests")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }
 

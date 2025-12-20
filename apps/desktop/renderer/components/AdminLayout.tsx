@@ -1,4 +1,12 @@
-import { Activity, Bell, Layers, LayoutDashboard, Shield, Truck } from 'lucide-react';
+import {
+  Activity,
+  Bell,
+  ClipboardCheck,
+  Layers,
+  LayoutDashboard,
+  Shield,
+  Truck,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -109,6 +117,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       label: t('admin.sidebar.notifications'),
       path: '/admin/notifications',
       show: can('read', 'notifications'),
+    },
+    {
+      icon: ClipboardCheck, // Make sure to import ClipboardCheck
+      label: t('admin.sidebar.approvals', 'Approvals'), // effective fall back
+      path: '/admin/approvals',
+      show: can('read', 'approvals') || isAdmin, // Temporary: Allow all admins for now
     },
   ].filter((item) => item.show);
 

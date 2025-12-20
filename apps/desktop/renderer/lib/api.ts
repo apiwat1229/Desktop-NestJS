@@ -177,3 +177,23 @@ export const bookingsApi = {
     },
 };
 
+// Access Control API
+export const accessControlApi = {
+    getApps: async () => {
+        const response = await api.get('/access-control/apps');
+        return response.data;
+    },
+    getAppUsers: async (appName: string) => {
+        const response = await api.get(`/access-control/apps/${appName}/users`);
+        return response.data;
+    },
+    assignPermission: async (appName: string, userId: string, actions: string[]) => {
+        const response = await api.post(`/access-control/apps/${appName}/users`, { userId, actions });
+        return response.data;
+    },
+    removePermission: async (appName: string, userId: string) => {
+        const response = await api.delete(`/access-control/apps/${appName}/users/${userId}`);
+        return response.data;
+    },
+};
+

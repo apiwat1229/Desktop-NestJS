@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/authStore';
 import { useLanguageStore } from '../stores/languageStore';
-import NotificationPopover from './NotificationPopover';
+import NotificationCenter from './NotificationCenter';
 import ProfileMenu from './ProfileMenu';
 import SettingsMenu from './SettingsMenu';
 
@@ -219,7 +219,7 @@ export default function Navbar() {
         </div>
 
         {/* Notifications */}
-        <NotificationPopover />
+        <NotificationCenter />
 
         {/* Settings */}
         <div className="relative" ref={settingsRef}>
