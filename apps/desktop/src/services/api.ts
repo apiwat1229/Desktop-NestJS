@@ -3,7 +3,7 @@ import router from '../router';
 import { storage } from '../services/storage';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api', // Point to NestJS backend
+    baseURL: 'http://localhost:2530/api', // Point to NestJS backend
     headers: {
         'Content-Type': 'application/json',
     },

@@ -24,6 +24,19 @@ const routes = [
         meta: { requiresGuest: true }
     },
     {
+        path: '/admin',
+        name: 'AdminPanel',
+        component: () => import('@/components/layout/MainLayout.vue'),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                name: 'AdminDashboard',
+                component: () => import('../views/admin/Dashboard.vue'),
+            }
+        ]
+    },
+    {
         path: '/change-password',
         name: 'ChangePassword',
         component: () => import('../views/ChangePassword.vue'),

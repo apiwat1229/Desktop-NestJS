@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsSheet from '@/components/settings/SettingsSheet.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar/index';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +11,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/auth';
-import { ArrowLeft, ArrowRight, Bell, Home, LogOut, RotateCw, User } from 'lucide-vue-next';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  RotateCw,
+  User,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -35,6 +45,7 @@ const userInitials = () => {
 const pageTitle = computed(() => {
   const name = route.name?.toString() || '';
   if (name === 'Home') return 'Dashboard';
+  if (name === 'AdminDashboard') return 'Admin Panel';
   return name;
 });
 </script>
@@ -77,6 +88,8 @@ const pageTitle = computed(() => {
     </div>
 
     <div class="flex items-center gap-4">
+      <SettingsSheet />
+
       <Button variant="ghost" size="icon" class="rounded-full">
         <Bell class="w-5 h-5 text-muted-foreground" />
       </Button>
@@ -105,6 +118,12 @@ const pageTitle = computed(() => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          <DropdownMenuItem v-if="authStore.user?.role === 'admin'" @click="router.push('/admin')">
+            <LayoutDashboard class="mr-2 h-4 w-4" />
+            <span>Admin Panel</span>
+          </DropdownMenuItem>
+
           <DropdownMenuItem>
             <User class="mr-2 h-4 w-4" />
             <span>Profile</span>

@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { useThemeStore } from '@/stores/theme';
 import { Fingerprint, Globe, Key, Lock, Server, Shield } from 'lucide-vue-next';
+import { computed } from 'vue';
+
+const themeStore = useThemeStore();
+
+const iconClass = computed(() => {
+  const color = themeStore.colors[themeStore.themeColor];
+  return color?.colorClass || 'text-zinc-500';
+});
 
 const floatingIcons = [
   { icon: Shield, top: '10%', left: '8%', rotate: -15, size: 120, delay: 0 },
@@ -12,11 +21,14 @@ const floatingIcons = [
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[-1] bg-gray-50 overflow-hidden pointer-events-none">
+  <div
+    class="fixed inset-0 z-[-1] bg-gray-50 dark:bg-zinc-950 overflow-hidden pointer-events-none transition-colors duration-300"
+  >
     <div
       v-for="(item, index) in floatingIcons"
       :key="index"
-      class="absolute opacity-[0.06] text-blue-500 float-icon"
+      class="absolute opacity-[0.06] float-icon transition-colors duration-300"
+      :class="iconClass"
       :style="{
         top: item.top,
         left: item.left,

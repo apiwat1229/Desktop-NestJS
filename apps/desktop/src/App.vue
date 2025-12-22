@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useThemeStore } from '@/stores/theme';
 import GlobalBackground from './components/layout/GlobalBackground.vue';
+
+const themeStore = useThemeStore();
 </script>
 
 <template>

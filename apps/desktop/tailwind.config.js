@@ -9,6 +9,11 @@ export default {
     './app/**/*.{ts,tsx,vue}',
     './src/**/*.{ts,tsx,vue}',
   ],
+  safelist: [
+    {
+      pattern: /(bg|text)-(zinc|slate|stone|red|rose|orange|green|blue|yellow|violet|cyan)-(500|600|900|950)/,
+    },
+  ],
   theme: {
     container: {
       center: true,

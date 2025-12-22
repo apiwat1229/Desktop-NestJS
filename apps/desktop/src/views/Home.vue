@@ -23,9 +23,11 @@ const logout = () => {
     <h1 class="text-3xl font-bold mb-4 font-sans">Dashboard</h1>
     <p class="mb-4">Welcome, {{ authStore.user?.email }}</p>
 
-    <div class="bg-white p-4 rounded shadow mb-4">
+    <div class="bg-card text-card-foreground p-4 rounded shadow mb-4 border border-border">
       <h2 class="font-bold mb-2">User Profile (/auth/me)</h2>
-      <pre class="bg-gray-100 p-2 rounded text-sm overflow-auto">{{ authStore.user }}</pre>
+      <pre class="bg-muted text-muted-foreground p-2 rounded text-sm overflow-auto">{{
+        authStore.user
+      }}</pre>
     </div>
 
     <Button @click="logout">Logout</Button>
