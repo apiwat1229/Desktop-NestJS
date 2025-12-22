@@ -39,4 +39,9 @@ export const masterApi = {
         const response = await api.get(`/master/districts/${districtId}/subdistricts`);
         return response.data;
     },
+
+    getRubberTypes: async (): Promise<any[]> => {
+        const response = await api.get('/master/rubber-types');
+        return response.data;
+    },
 };

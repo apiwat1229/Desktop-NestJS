@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import {
   Select,
   SelectContent,
@@ -36,6 +38,7 @@ const searchQuery = ref('');
 const provinces = ref<Province[]>([]);
 const districts = ref<District[]>([]);
 const subdistricts = ref<Subdistrict[]>([]);
+const rubberTypes = ref<any[]>([]);
 
 // Filters
 const filterProvince = ref<string>('all');
@@ -120,7 +123,7 @@ const fetchData = async () => {
 const fetchMasterData = async () => {
   try {
     provinces.value = await masterApi.getProvinces();
-    // rubberTypes.value = await masterApi.getRubberTypes(); // Uncomment if available
+    rubberTypes.value = await masterApi.getRubberTypes();
   } catch (error) {
     console.error('Failed to fetch master data:', error);
   }
@@ -251,6 +254,35 @@ watch(
   }
 );
 
+// --- Helpers ---
+const formatPhone = (phone?: string) => {
+  if (!phone) return '-';
+  const clean = phone.replace(/\D/g, '');
+  if (clean.length === 10) {
+    return `${clean.slice(0, 3)}-${clean.slice(3, 7)}-${clean.slice(7)}`;
+  } else if (clean.length === 9) {
+    return `${clean.slice(0, 2)}-${clean.slice(2, 5)}-${clean.slice(5)}`;
+  }
+  return phone;
+};
+
+const getRubberTypeColor = (code: string) => {
+  // Simple deterministic color generation based on code
+  const colors = [
+    'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100',
+    'bg-green-100 text-green-800 border-green-200 hover:bg-green-100',
+    'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100',
+    'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-100',
+    'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100',
+    'bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-100',
+  ];
+  let hash = 0;
+  for (let i = 0; i < code.length; i++) {
+    hash = code.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
 // --- Columns ---
 const columns: ColumnDef<Supplier>[] = [
   {
@@ -289,7 +321,28 @@ const columns: ColumnDef<Supplier>[] = [
   {
     accessorKey: 'phone',
     header: 'Phone',
-    cell: ({ row }) => h('div', row.getValue('phone') || '-'),
+    cell: ({ row }) => h('div', formatPhone(row.getValue('phone'))),
+  },
+  {
+    accessorKey: 'rubberTypeCodes',
+    header: 'Rubber Types',
+    cell: ({ row }) => {
+      const codes = (row.getValue('rubberTypeCodes') as string[]) || [];
+      if (!codes.length) return h('span', { class: 'text-muted-foreground' }, '-');
+
+      return h(
+        'div',
+        { class: 'flex flex-wrap gap-1' },
+        codes.map((code) => {
+          const rt = rubberTypes.value.find((r) => r.code === code);
+          return h(
+            Badge,
+            { variant: 'outline', class: getRubberTypeColor(code) },
+            () => rt?.name || code
+          );
+        })
+      );
+    },
   },
   {
     accessorKey: 'status',
@@ -407,12 +460,23 @@ onMounted(() => {
       <div class="flex items-center gap-2">
         <Select v-model="filterProvince">
           <SelectTrigger class="w-[180px]">
-            <SelectValue placeholder="Filter Province" />
+            <SelectValue placeholder="All Provinces" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Provinces</SelectItem>
             <SelectItem v-for="p in provinces" :key="p.id" :value="p.id.toString()">
               {{ p.name_th }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="filterRubberType">
+          <SelectTrigger class="w-[180px]">
+            <SelectValue placeholder="All Rubber Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Rubber Types</SelectItem>
+            <SelectItem v-for="rt in rubberTypes" :key="rt.id" :value="rt.code">
+              {{ rt.name }}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -535,6 +599,15 @@ onMounted(() => {
           <!-- Business Info -->
           <TabsContent value="business" class="space-y-4 py-4">
             <div class="grid grid-cols-2 gap-4">
+              <div class="col-span-2 space-y-2">
+                <Label>Rubber Types</Label>
+                <MultiSelect
+                  :options="rubberTypes.map((rt) => ({ label: rt.name, value: rt.code }))"
+                  :model-value="formData.rubberTypeCodes"
+                  @update:model-value="(v) => (formData.rubberTypeCodes = v)"
+                  placeholder="Select Rubber Types"
+                />
+              </div>
               <div class="space-y-2">
                 <Label>Tax ID</Label>
                 <Input v-model="formData.taxId" />
