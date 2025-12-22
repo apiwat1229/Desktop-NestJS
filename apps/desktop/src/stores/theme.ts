@@ -5,7 +5,16 @@ import { storage } from '../services/storage';
 export const useThemeStore = defineStore('theme', () => {
     const themeColor = ref(storage.get('theme_color') || 'zinc');
     const fontSize = ref(storage.get('font_size') || 'medium');
+    const fontFamily = ref(storage.get('font_family') || 'baiJamjuree');
     const isDark = ref(storage.get('is_dark') || false);
+
+    const fontFamilies: Record<string, string> = {
+        baiJamjuree: '"Bai Jamjuree", sans-serif',
+        sarabun: '"Sarabun", sans-serif',
+        kanit: '"Kanit", sans-serif',
+        prompt: '"Prompt", sans-serif',
+        notoSansThai: '"Noto Sans Thai", sans-serif',
+    };
 
     // Define color palettes (HSL values without hsl())
     // Based on Shadcn UI themes
@@ -82,6 +91,12 @@ export const useThemeStore = defineStore('theme', () => {
         const size = fontSizes[fontSize.value] || fontSizes.medium;
         root.style.fontSize = size;
 
+        // Apply Font Family
+        const family = fontFamilies[fontFamily.value] || fontFamilies.baiJamjuree;
+        root.style.setProperty('--font-sans', family);
+        root.style.fontFamily = family; // Set directly on html for global effect
+
+
         // Apply Dark Mode (Using class)
         if (isDark.value) {
             document.documentElement.classList.add('dark');
@@ -101,6 +116,12 @@ export const useThemeStore = defineStore('theme', () => {
         applyTheme();
     });
 
+    watch(fontFamily, (val) => {
+        storage.set('font_family', val);
+        applyTheme();
+    });
+
+
     watch(isDark, (val) => {
         storage.set('is_dark', val);
         applyTheme();
@@ -112,6 +133,7 @@ export const useThemeStore = defineStore('theme', () => {
     return {
         themeColor,
         fontSize,
+        fontFamily,
         colors,
         isDark,
         toggleDark: () => (isDark.value = !isDark.value),

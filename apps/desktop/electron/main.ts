@@ -27,12 +27,30 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win: BrowserWindow | null
 
 function createWindow() {
+  const bounds = store.get('windowBounds') as { width: number; height: number; x: number; y: number } | undefined;
+
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },
+    ...bounds,
   })
+
+  // Save window state
+  win.on('resize', () => {
+    if (win) {
+      const { width, height } = win.getBounds();
+      store.set('windowBounds', { ...store.get('windowBounds') as object, width, height });
+    }
+  });
+
+  win.on('move', () => {
+    if (win) {
+      const { x, y } = win.getBounds();
+      store.set('windowBounds', { ...store.get('windowBounds') as object, x, y });
+    }
+  });
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {

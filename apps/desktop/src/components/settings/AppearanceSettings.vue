@@ -24,6 +24,18 @@ const fontSizes = [
   { name: 'Large', value: 'large', class: 'text-lg' },
   { name: 'XL', value: 'xl', class: 'text-xl' },
 ];
+
+const fontFamilies = [
+  { name: 'Bai Jamjuree', value: 'baiJamjuree', style: { fontFamily: 'Bai Jamjuree, sans-serif' } },
+  { name: 'Sarabun', value: 'sarabun', style: { fontFamily: 'Sarabun, sans-serif' } },
+  { name: 'Kanit', value: 'kanit', style: { fontFamily: 'Kanit, sans-serif' } },
+  { name: 'Prompt', value: 'prompt', style: { fontFamily: 'Prompt, sans-serif' } },
+  {
+    name: 'Noto Sans Thai',
+    value: 'notoSansThai',
+    style: { fontFamily: 'Noto Sans Thai, sans-serif' },
+  },
+];
 </script>
 
 <template>
@@ -68,16 +80,33 @@ const fontSizes = [
       </div>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-4">
+      <div class="font-medium">Font Family</div>
+      <RadioGroup
+        :model-value="themeStore.fontFamily"
+        @update:model-value="(v: string) => (themeStore.fontFamily = v)"
+        class="grid grid-cols-2 gap-4"
+      >
+        <div v-for="font in fontFamilies" :key="font.value" class="flex items-center space-x-2">
+          <RadioGroupItem :id="font.value" :value="font.value" />
+          <Label :for="font.value" :style="font.style" class="cursor-pointer">
+            {{ font.name }}
+          </Label>
+        </div>
+      </RadioGroup>
+    </div>
+
+    <div class="space-y-4">
       <div class="font-medium">Font Size</div>
-      <RadioGroup v-model="themeStore.fontSize" class="flex flex-col space-y-2">
+      <RadioGroup
+        :model-value="themeStore.fontSize"
+        @update:model-value="(v: string) => (themeStore.fontSize = v)"
+        class="grid grid-cols-2 gap-4"
+      >
         <div v-for="size in fontSizes" :key="size.value" class="flex items-center space-x-2">
           <RadioGroupItem :id="size.value" :value="size.value" />
-          <Label :for="size.value" :class="size.class">
-            {{ size.name }} -
-            <span class="text-muted-foreground text-xs"
-              >The quick brown fox jumps over the lazy dog.</span
-            >
+          <Label :for="size.value" :class="size.class" class="cursor-pointer">
+            {{ size.name }}
           </Label>
         </div>
       </RadioGroup>

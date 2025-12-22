@@ -52,7 +52,7 @@ const pageTitle = computed(() => {
 
 <template>
   <header
-    class="h-16 border-b border-border bg-card/80 backdrop-blur px-6 flex items-center justify-between sticky top-0 z-10"
+    class="h-14 border-b border-border bg-card/80 backdrop-blur px-6 flex items-center justify-between sticky top-0 z-10"
   >
     <div class="flex items-center gap-4">
       <!-- Navigation Controls -->
