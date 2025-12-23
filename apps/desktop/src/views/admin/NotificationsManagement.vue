@@ -325,6 +325,10 @@ const handleDelete = async () => {
 // Broadcast functions
 const handleSendBroadcast = async () => {
   try {
+    console.log(
+      '[Frontend] Sending Broadcast payload:',
+      JSON.parse(JSON.stringify(broadcastForm.value))
+    );
     await notificationsApi.broadcast(broadcastForm.value);
     toast.success(t('admin.notifications.notificationCreated'));
     isBroadcastDialogOpen.value = false;
@@ -345,6 +349,11 @@ const resetBroadcastForm = () => {
     recipientUsers: [],
     recipientGroups: [],
   };
+};
+
+const handleOpenBroadcastDialog = () => {
+  resetBroadcastForm();
+  isBroadcastDialogOpen.value = true;
 };
 
 // Group functions
@@ -454,19 +463,14 @@ onMounted(() => {
           <div class="flex items-center gap-2">
             <Button
               v-if="activeTab === 'broadcast'"
-              @click="isBroadcastDialogOpen = true"
+              @click="handleOpenBroadcastDialog"
               class="gap-2"
             >
               <Send class="w-4 h-4" />
               {{ t('admin.notifications.sendManualBroadcast') }}
             </Button>
 
-            <Button
-              v-if="activeTab === 'groups'"
-              @click="handleCreateGroup"
-              variant="outline"
-              class="gap-2"
-            >
+            <Button v-if="activeTab === 'groups'" @click="handleCreateGroup" class="gap-2">
               <Plus class="w-4 h-4" />
               {{ t('admin.notifications.newGroup') }}
             </Button>

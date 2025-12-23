@@ -9,22 +9,27 @@ export class NotificationsController {
 
     @Get()
     findAll(@Request() req: any) {
-        return this.notificationsService.findAll(req.user.id);
+        return this.notificationsService.findAll(req.user.userId);
     }
 
     @Get('unread')
     findUnread(@Request() req: any) {
-        return this.notificationsService.findUnread(req.user.id);
+        return this.notificationsService.findUnread(req.user.userId);
     }
 
     @Put(':id/read')
     markAsRead(@Param('id') id: string, @Request() req: any) {
-        return this.notificationsService.markAsRead(id, req.user.id);
+        return this.notificationsService.markAsRead(id, req.user.userId);
+    }
+
+    @Delete(':id')
+    delete(@Param('id') id: string, @Request() req: any) {
+        return this.notificationsService.delete(id, req.user.userId);
     }
 
     @Put('read-all')
     markAllAsRead(@Request() req: any) {
-        return this.notificationsService.markAllAsRead(req.user.id);
+        return this.notificationsService.markAllAsRead(req.user.userId);
     }
 
     @Get('settings')
@@ -43,7 +48,7 @@ export class NotificationsController {
     }, @Request() req: any) {
         return this.notificationsService.broadcast({
             ...body,
-            senderId: req.user?.id
+            senderId: req.user?.userId
         });
     }
 

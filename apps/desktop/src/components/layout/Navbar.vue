@@ -17,7 +17,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { notificationsApi } from '@/services/notifications';
+import { socketService } from '@/services/socket';
 import { useAuthStore } from '@/stores/auth';
+import type { NotificationDto } from '@my-app/types';
+import { formatDistanceToNow } from 'date-fns';
 import {
   ArrowLeft,
   ArrowRight,
@@ -29,7 +33,7 @@ import {
   Settings,
   User,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -64,6 +68,68 @@ const { locale } = useI18n();
 const toggleLanguage = () => {
   locale.value = locale.value === 'en' ? 'th' : 'en';
 };
+
+// --- Notifications Logic ---
+const unreadNotifications = ref<NotificationDto[]>([]);
+const unreadCount = computed(() => unreadNotifications.value.length);
+// let pollingInterval: NodeJS.Timeout;
+
+const fetchUnreadNotifications = async () => {
+  if (!authStore.isAuthenticated) return;
+  try {
+    const res = await notificationsApi.getUnread();
+    unreadNotifications.value = res.data || [];
+  } catch (error) {
+    console.error('Failed to fetch unread notifications', error);
+  }
+};
+
+const handleMarkAsRead = async (id: string) => {
+  try {
+    await notificationsApi.markAsRead(id);
+    unreadNotifications.value = unreadNotifications.value.filter((n) => n.id !== id);
+  } catch (error) {
+    console.error('Failed to mark as read', error);
+  }
+};
+
+const handleViewAll = () => {
+  router.push('/my-notifications');
+};
+
+onMounted(() => {
+  fetchUnreadNotifications();
+  socketService.connect();
+
+  // Ensure we join the room if user data loads late
+  // Logic moved to SocketService.connect() 'connect' listener to avoid race conditions
+  /* if (authStore.user?.id) {
+    socketService.joinRoom(authStore.user.id);
+  } */
+
+  socketService.on('notification', (newNotification: any) => {
+    console.log('[Navbar] Received socket notification:', newNotification);
+    // Add new notification to list
+    if (!unreadNotifications.value.some((n) => n.id === newNotification.id)) {
+      unreadNotifications.value.unshift(newNotification);
+      // Optional: Add audible alert here
+    }
+  });
+});
+
+watch(
+  () => authStore.user,
+  (newUser: any) => {
+    if (newUser?.id) {
+      socketService.joinRoom(newUser.id);
+    }
+  }
+);
+
+onUnmounted(() => {
+  // if (pollingInterval) clearInterval(pollingInterval);
+  socketService.off('notification');
+});
 </script>
 
 <template>
@@ -107,9 +173,58 @@ const toggleLanguage = () => {
       <!-- Language Switcher -->
 
       <!-- Bell Notification -->
-      <Button variant="ghost" size="icon" class="h-8 w-8">
-        <Bell class="w-5 h-5 text-muted-foreground" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="ghost" size="icon" class="relative h-8 w-8">
+            <Bell class="w-5 h-5 text-muted-foreground" />
+            <span
+              v-if="unreadCount > 0"
+              class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-600 ring-2 ring-background"
+            >
+            </span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-80 p-0" align="end">
+          <div class="flex items-center justify-between p-4 border-b">
+            <h4 class="font-semibold leading-none">Notifications</h4>
+            <span class="text-xs text-muted-foreground" v-if="unreadCount > 0">
+              {{ unreadCount }} unread
+            </span>
+          </div>
+
+          <div class="max-h-[300px] overflow-y-auto">
+            <div v-if="unreadCount === 0" class="p-8 text-center text-muted-foreground">
+              <Bell class="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p class="text-sm">No new notifications</p>
+            </div>
+
+            <template v-else>
+              <DropdownMenuItem
+                v-for="notification in unreadNotifications.slice(0, 5)"
+                :key="notification.id"
+                class="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-muted/50"
+                @click="handleMarkAsRead(notification.id)"
+              >
+                <div class="flex items-start justify-between w-full gap-2">
+                  <span class="font-medium text-sm line-clamp-1">{{ notification.title }}</span>
+                  <span class="text-[10px] text-muted-foreground whitespace-nowrap">
+                    {{ formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) }}
+                  </span>
+                </div>
+                <p class="text-xs text-muted-foreground line-clamp-2">
+                  {{ notification.message }}
+                </p>
+              </DropdownMenuItem>
+            </template>
+          </div>
+
+          <div class="p-2 border-t bg-muted/20">
+            <Button variant="ghost" size="sm" class="w-full text-xs" @click="handleViewAll">
+              View all notifications
+            </Button>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <!-- User Profile -->
       <DropdownMenu>

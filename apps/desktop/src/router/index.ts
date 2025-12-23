@@ -34,6 +34,11 @@ const routes = [
                 name: 'Settings',
                 component: () => import('../views/Placeholder.vue'),
             },
+            {
+                path: 'my-notifications',
+                name: 'MyNotifications',
+                component: () => import('../views/MyNotifications.vue'),
+            },
         ]
     },
     {

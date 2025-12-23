@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsGateway: NotificationsGateway
+    ) { }
+
+    // ... (existing code, ensure create method also emits if used elsewhere)
 
     async create(data: {
         userId: string;
@@ -17,40 +23,122 @@ export class NotificationsService {
         actionUrl?: string;
         metadata?: any;
     }) {
-        return this.prisma.notification.create({
+        const notification = await this.prisma.notification.create({
             data: {
                 ...data,
                 metadata: data.metadata || {},
             },
         });
+
+        // Emit real-time event
+        this.notificationsGateway.sendNotificationToUser(data.userId, notification);
+
+        return notification;
     }
 
-    async findAll(userId: string) {
-        return this.prisma.notification.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
+    // ...
 
-    async findUnread(userId: string) {
-        return this.prisma.notification.findMany({
-            where: { userId, status: 'UNREAD' },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
+    async broadcast(data: {
+        title: string;
+        message: string;
+        type?: NotificationType;
+        recipientRoles?: string[];
+        recipientUsers?: string[];
+        recipientGroups?: string[];
+        senderId?: string;
+    }) {
+        console.log('>>>>>>>> BROADCAST CALLED <<<<<<<<');
+        console.log('Data:', JSON.stringify(data, null, 2));
 
-    async markAsRead(id: string, userId: string) {
-        return this.prisma.notification.update({
-            where: { id, userId },
-            data: { status: 'READ' },
-        });
-    }
+        // 1. Find target users
+        const whereConditions: any[] = [];
 
-    async markAllAsRead(userId: string) {
-        return this.prisma.notification.updateMany({
-            where: { userId, status: 'UNREAD' },
-            data: { status: 'READ' },
+        if (data.recipientUsers && data.recipientUsers.length > 0) {
+            console.log(`Explicit Users Targeted: ${data.recipientUsers.length}`);
+            whereConditions.push({ id: { in: data.recipientUsers } });
+        }
+
+        if (data.recipientRoles && data.recipientRoles.length > 0) {
+            console.log(`Roles Targeted: ${data.recipientRoles.join(', ')}`);
+            whereConditions.push({ role: { in: data.recipientRoles } });
+        }
+
+        if (data.recipientGroups && data.recipientGroups.length > 0) {
+            console.log(`Groups Targeted: ${data.recipientGroups.join(', ')}`);
+            const groups = await this.prisma.notificationGroup.findMany({
+                where: { id: { in: data.recipientGroups } },
+                include: { members: { select: { id: true } } }
+            });
+
+            const groupUserIds = groups.flatMap(g => g.members.map(m => m.id));
+            if (groupUserIds.length > 0) {
+                console.log(`Found ${groupUserIds.length} users in groups`);
+                whereConditions.push({ id: { in: groupUserIds } });
+            }
+        }
+
+        // Strict: If explicit targets are requested but none found in DB, return 0.
+        // Prevent accidental "broadcast to all" if logic was flawed (though current logic requires non-empty array to push to whereConditions).
+        // If data.recipientUsers was passed but came back empty, whereConditions stays empty.
+
+        // If NO recipients specified at all, return error/empty.
+        const hasTargets =
+            (data.recipientUsers?.length || 0) > 0 ||
+            (data.recipientRoles?.length || 0) > 0 ||
+            (data.recipientGroups?.length || 0) > 0;
+
+        if (!hasTargets) {
+            console.log('No recipients specified in request.');
+            return { count: 0, message: 'No recipients specified.' };
+        }
+
+        if (whereConditions.length === 0) {
+            console.log('Target criteria provided but no matching users found.');
+            return { count: 0, message: 'No matching users found.' };
+        }
+
+        const users = await this.prisma.user.findMany({
+            where: { OR: whereConditions },
+            select: { id: true, username: true, email: true }
         });
+
+        console.log(`Final Target List (${users.length}):`);
+        users.forEach(u => console.log(` - [${u.id}] ${u.username} (${u.email})`));
+
+        // Deduplicate user IDs
+        const uniqueUserIds = [...new Set(users.map(u => u.id))];
+
+        if (uniqueUserIds.length === 0) {
+            return { count: 0, message: 'No matching users found.' };
+        }
+
+        if (uniqueUserIds.length === 0) {
+            return { count: 0, message: 'No matching users found.' };
+        }
+
+        // 2. Create notifications individually to get IDs for real-time emission
+
+        // REFACTOR: Create one-by-one to get IDs for real-time compliance.
+        let createdCount = 0;
+        for (const userId of uniqueUserIds) {
+            const notif = await this.prisma.notification.create({
+                data: {
+                    title: data.title,
+                    message: data.message,
+                    type: data.type || NotificationType.INFO,
+                    userId: userId,
+                    sourceApp: 'ADMIN_BROADCAST',
+                    actionType: 'MANUAL_BROADCAST',
+                    metadata: { senderId: data.senderId }
+                }
+            });
+            console.log(`[Broadcast] Creating notification for User: ${userId}`);
+            this.notificationsGateway.sendNotificationToUser(userId, notif);
+            createdCount++;
+        }
+
+        console.log(`[Broadcast] Completed. Sent to ${createdCount} users.`);
+        return { count: createdCount, message: `Broadcasted to ${createdCount} users.` };
     }
 
     async getSettings() {
@@ -88,82 +176,44 @@ export class NotificationsService {
             },
         });
     }
-    async broadcast(data: {
-        title: string;
-        message: string;
-        type?: NotificationType;
-        recipientRoles?: string[];
-        recipientUsers?: string[];
-        recipientGroups?: string[];
-        senderId?: string;
-    }) {
-        console.log('>>>>>>>> BROADCAST CALLED <<<<<<<<');
-        console.log('Data:', JSON.stringify(data, null, 2));
-
-        // 1. Find target users
-        const whereConditions: any[] = [];
-
-        if (data.recipientUsers && data.recipientUsers.length > 0) {
-            console.log(`Explicit Users Targeted: ${data.recipientUsers.length}`);
-            whereConditions.push({ id: { in: data.recipientUsers } });
-        }
-
-        if (data.recipientRoles && data.recipientRoles.length > 0) {
-            console.log(`Roles Targeted: ${data.recipientRoles.join(', ')}`);
-            whereConditions.push({ role: { in: data.recipientRoles } });
-        }
-
-        if (data.recipientGroups && data.recipientGroups.length > 0) {
-            console.log(`Groups Targeted: ${data.recipientGroups.join(', ')}`);
-            const groups = await this.prisma.notificationGroup.findMany({
-                where: { name: { in: data.recipientGroups } },
-                include: { members: { select: { id: true } } }
-            });
-
-            const groupUserIds = groups.flatMap(g => g.members.map(m => m.id));
-            if (groupUserIds.length > 0) {
-                console.log(`Found ${groupUserIds.length} users in groups`);
-                whereConditions.push({ id: { in: groupUserIds } });
-            }
-        }
-
-        if (whereConditions.length === 0) {
-            console.log('No targets found');
-            return { count: 0, message: 'No recipients specified.' };
-        }
-
-        const users = await this.prisma.user.findMany({
-            where: { OR: whereConditions },
-            select: { id: true, username: true, email: true } // Log username/email
+    async findAll(userId: string) {
+        console.log(`[findAll] Fetching notifications for userId: ${userId}`);
+        const results = await this.prisma.notification.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
         });
-
-        console.log(`Final Target List (${users.length}):`);
-        users.forEach(u => console.log(` - [${u.id}] ${u.username} (${u.email})`));
-
-        // Deduplicate user IDs
-        const uniqueUserIds = [...new Set(users.map(u => u.id))];
-
-        if (uniqueUserIds.length === 0) {
-            return { count: 0, message: 'No matching users found.' };
+        console.log(`[findAll] Found ${results.length} notifications for ${userId}`);
+        if (results.length > 0) {
+            console.log(`[findAll] Sample ID: ${results[0].id} | Title: ${results[0].title}`);
         }
+        return results;
+    }
 
-        // 2. Create notifications in batch
-        // Prisma createMany is supported for Postgres
-        const notifications = uniqueUserIds.map(userId => ({
-            title: data.title,
-            message: data.message,
-            type: data.type || NotificationType.INFO,
-            userId: userId,
-            sourceApp: 'ADMIN_BROADCAST',
-            actionType: 'MANUAL_BROADCAST',
-            metadata: { senderId: data.senderId }
-        }));
-
-        await this.prisma.notification.createMany({
-            data: notifications as any // Type assertion if needed for strict checking
+    async findUnread(userId: string) {
+        return this.prisma.notification.findMany({
+            where: { userId, status: 'UNREAD' },
+            orderBy: { createdAt: 'desc' },
         });
+    }
 
-        return { count: uniqueUserIds.length, message: `Broadcasted to ${uniqueUserIds.length} users.` };
+    async markAsRead(id: string, userId: string) {
+        return this.prisma.notification.update({
+            where: { id, userId },
+            data: { status: 'READ' },
+        });
+    }
+
+    async delete(id: string, userId: string) {
+        return this.prisma.notification.delete({
+            where: { id, userId },
+        });
+    }
+
+    async markAllAsRead(userId: string) {
+        return this.prisma.notification.updateMany({
+            where: { userId, status: 'UNREAD' },
+            data: { status: 'READ' },
+        });
     }
 
     async getBroadcastHistory() {
@@ -190,7 +240,7 @@ export class NotificationsService {
 
         // Group by metadata.senderId + createdAt to find unique broadcasts
         const grouped = broadcasts.reduce((acc: any, notif: any) => {
-            const key = `${notif.title}-${notif.message}-${notif.type}-${new Date(notif.createdAt).toISOString().slice(0, 16)}`;
+            const key = `${notif.title} -${notif.message} -${notif.type} -${new Date(notif.createdAt).toISOString().slice(0, 16)} `;
             if (!acc[key]) {
                 acc[key] = {
                     id: notif.id,
@@ -260,7 +310,7 @@ export class NotificationsService {
                 const result = await this.deleteBroadcast(id);
                 totalCount += (result.count || 0);
             } catch (error) {
-                console.warn(`Failed to delete broadcast ${id}:`, error);
+                console.warn(`Failed to delete broadcast ${id}: `, error);
                 // Continue with others
             }
         }
