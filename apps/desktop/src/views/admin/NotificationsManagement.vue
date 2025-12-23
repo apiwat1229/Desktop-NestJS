@@ -53,9 +53,13 @@ import type {
 import type { ColumnDef } from '@tanstack/vue-table';
 import { format } from 'date-fns';
 import {
+  AlertCircle,
+  AlertTriangle,
   Bell,
   Briefcase,
+  CheckCircle2,
   Edit2,
+  Info,
   Layers,
   Lock,
   MoreHorizontal,
@@ -332,6 +336,17 @@ const handleDelete = async () => {
 
 // Broadcast functions
 const handleSendBroadcast = async () => {
+  // Validate that at least one recipient is selected
+  const hasRecipients =
+    (broadcastForm.value.recipientUsers?.length ?? 0) > 0 ||
+    (broadcastForm.value.recipientRoles?.length ?? 0) > 0 ||
+    (broadcastForm.value.recipientGroups?.length ?? 0) > 0;
+
+  if (!hasRecipients) {
+    toast.error('กรุณาเลือกผู้รับการแจ้งเตือนอย่างน้อย 1 ช่อง (Users, Roles หรือ Groups)');
+    return;
+  }
+
   try {
     console.log(
       '[Frontend] Sending Broadcast payload:',
@@ -848,8 +863,6 @@ onMounted(() => {
           <!-- Right Column: Preview -->
           <div class="space-y-4">
             <div class="sticky top-0 space-y-4">
-              <h3 class="text-sm font-semibold">ตัวอย่างการแจ้งเตือน</h3>
-
               <!-- Type Selection -->
               <div class="space-y-2">
                 <Label>{{ t('admin.notifications.type') }}</Label>
@@ -881,50 +894,78 @@ onMounted(() => {
                 </p>
               </div>
 
+              <!-- Preview Label -->
+              <h3 class="text-sm font-semibold">ตัวอย่างการแจ้งเตือน</h3>
+
               <!-- Preview Card -->
-              <Card
+              <!-- Preview Card (Styled like Sonner Toast) -->
+              <div
+                class="flex w-full items-start gap-4 rounded-md border bg-white p-4 shadow-lg transition-all duration-200"
                 :class="[
-                  'transition-all duration-200 border-2',
-                  broadcastForm.type === 'ERROR' ? 'border-red-500' : '',
-                  broadcastForm.type === 'SUCCESS' ? 'border-green-500' : '',
-                  broadcastForm.type === 'WARNING' ? 'border-yellow-500' : '',
-                  broadcastForm.type === 'INFO' ? 'border-blue-500' : '',
-                  broadcastForm.type === 'REQUEST' ? 'border-purple-500' : '',
-                  broadcastForm.type === 'APPROVE' ? 'border-teal-500' : '',
+                  broadcastForm.type === 'ERROR' ? 'border-red-500/20' : '',
+                  broadcastForm.type === 'SUCCESS' ? 'border-green-500/20' : '',
+                  broadcastForm.type === 'WARNING' ? 'border-yellow-500/20' : '',
+                  broadcastForm.type === 'INFO' ? 'border-blue-500/20' : '',
+                  broadcastForm.type === 'REQUEST' ? 'border-purple-500/20' : '',
+                  broadcastForm.type === 'APPROVE' ? 'border-teal-500/20' : '',
                 ]"
               >
-                <CardHeader class="pb-3">
-                  <div class="flex items-start justify-between">
-                    <div>
-                      <CardTitle class="text-base">
-                        {{ broadcastForm.title || 'ชื่อการแจ้งเตือน' }}
-                      </CardTitle>
-                      <p class="text-xs text-muted-foreground mt-1">
-                        {{ new Date().toLocaleString('th-TH') }}
-                      </p>
-                    </div>
-                    <Badge
-                      :class="[
-                        broadcastForm.type === 'INFO' ? 'bg-blue-500 hover:bg-blue-600' : '',
-                        broadcastForm.type === 'SUCCESS' ? 'bg-green-500 hover:bg-green-600' : '',
-                        broadcastForm.type === 'WARNING'
-                          ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                          : '',
-                        broadcastForm.type === 'ERROR' ? 'bg-red-500 hover:bg-red-600' : '',
-                        broadcastForm.type === 'REQUEST' ? 'bg-purple-500 hover:bg-purple-600' : '',
-                        broadcastForm.type === 'APPROVE' ? 'bg-teal-500 hover:bg-teal-600' : '',
-                      ]"
-                    >
-                      {{ broadcastForm.type }}
-                    </Badge>
+                <!-- Icon -->
+                <div class="mt-0.5">
+                  <CheckCircle2
+                    v-if="broadcastForm.type === 'SUCCESS' || broadcastForm.type === 'APPROVE'"
+                    :class="[
+                      'h-5 w-5',
+                      broadcastForm.type === 'SUCCESS' ? 'text-green-600' : 'text-teal-600',
+                    ]"
+                  />
+                  <AlertCircle
+                    v-else-if="broadcastForm.type === 'ERROR'"
+                    class="h-5 w-5 text-red-600"
+                  />
+                  <AlertTriangle
+                    v-else-if="broadcastForm.type === 'WARNING'"
+                    class="h-5 w-5 text-yellow-600"
+                  />
+                  <Info v-else class="h-5 w-5 text-blue-600" />
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 grid gap-1">
+                  <div
+                    class="font-semibold"
+                    :class="[
+                      broadcastForm.type === 'SUCCESS' ? 'text-green-600' : '',
+                      broadcastForm.type === 'APPROVE' ? 'text-teal-600' : '',
+                      broadcastForm.type === 'ERROR' ? 'text-red-600' : '',
+                      broadcastForm.type === 'WARNING' ? 'text-yellow-600' : '',
+                      broadcastForm.type === 'INFO' ? 'text-blue-600' : '',
+                      broadcastForm.type === 'REQUEST' ? 'text-purple-600' : '',
+                    ]"
+                  >
+                    {{ broadcastForm.title || 'ชื่อการแจ้งเตือน' }}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p class="text-sm text-muted-foreground whitespace-pre-wrap">
+                  <div class="text-sm text-gray-600 break-words">
                     {{ broadcastForm.message || 'ข้อความการแจ้งเตือนจะแสดงที่นี่...' }}
-                  </p>
-                </CardContent>
-              </Card>
+                  </div>
+                </div>
+
+                <!-- Action Button -->
+                <Button
+                  size="sm"
+                  :class="[
+                    'h-8 px-3 text-xs font-medium text-white hover:opacity-90 transition-opacity',
+                    broadcastForm.type === 'SUCCESS' ? 'bg-green-600' : '',
+                    broadcastForm.type === 'APPROVE' ? 'bg-teal-600' : '',
+                    broadcastForm.type === 'ERROR' ? 'bg-red-600' : '',
+                    broadcastForm.type === 'WARNING' ? 'bg-yellow-600' : '',
+                    broadcastForm.type === 'INFO' ? 'bg-blue-600' : '',
+                    broadcastForm.type === 'REQUEST' ? 'bg-purple-600' : '',
+                  ]"
+                >
+                  View
+                </Button>
+              </div>
 
               <!-- Preview Info -->
               <div class="mt-4 p-3 bg-muted rounded-lg text-xs space-y-1">

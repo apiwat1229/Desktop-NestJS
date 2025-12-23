@@ -78,3 +78,76 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Sonner Toast Icon Colors */
+[data-sonner-toast] [data-icon] svg {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+/* Force white background for all toast types */
+[data-sonner-toast] {
+  background-color: white !important;
+  border: 2px solid hsl(var(--border)) !important;
+}
+
+/* Success & Approve - Green */
+[data-sonner-toast][data-type='success'] [data-icon],
+[data-sonner-toast][data-type='success'] [data-icon] svg {
+  color: rgb(22 163 74) !important; /* green-600 */
+}
+
+/* Error - Red */
+[data-sonner-toast][data-type='error'] [data-icon],
+[data-sonner-toast][data-type='error'] [data-icon] svg {
+  color: rgb(220 38 38) !important; /* red-600 */
+}
+
+/* Warning - Yellow */
+[data-sonner-toast][data-type='warning'] [data-icon],
+[data-sonner-toast][data-type='warning'] [data-icon] svg {
+  color: rgb(202 138 4) !important; /* yellow-600 */
+}
+
+/* Info - Blue */
+[data-sonner-toast][data-type='info'] [data-icon],
+[data-sonner-toast][data-type='info'] [data-icon] svg {
+  color: rgb(37 99 235) !important; /* blue-600 */
+}
+
+/* Force Button Colors by Toast Type */
+[data-sonner-toast][data-type='success'] button,
+[data-sonner-toast][data-type='success'] [data-button] {
+  background-color: rgb(22 163 74) !important; /* green-600 */
+}
+[data-sonner-toast][data-type='success'] button:hover,
+[data-sonner-toast][data-type='success'] [data-button]:hover {
+  background-color: rgb(21 128 61) !important; /* green-700 */
+}
+
+[data-sonner-toast][data-type='error'] button,
+[data-sonner-toast][data-type='error'] [data-button] {
+  background-color: rgb(220 38 38) !important; /* red-600 */
+}
+[data-sonner-toast][data-type='error'] button:hover,
+[data-sonner-toast][data-type='error'] [data-button]:hover {
+  background-color: rgb(185 28 28) !important; /* red-700 */
+}
+
+[data-sonner-toast][data-type='warning'] button,
+[data-sonner-toast][data-type='warning'] [data-button] {
+  background-color: rgb(202 138 4) !important; /* yellow-600 */
+}
+[data-sonner-toast][data-type='warning'] button:hover,
+[data-sonner-toast][data-type='warning'] [data-button]:hover {
+  background-color: rgb(161 98 7) !important; /* yellow-700 */
+}
+
+[data-sonner-toast][data-type='info'] button,
+[data-sonner-toast][data-type='info'] [data-button] {
+  background-color: rgb(37 99 235) !important; /* blue-600 */
+}
+[data-sonner-toast][data-type='info'] button:hover,
+[data-sonner-toast][data-type='info'] [data-button]:hover {
+  background-color: rgb(29 78 216) !important; /* blue-700 */
+}

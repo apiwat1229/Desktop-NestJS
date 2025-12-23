@@ -116,32 +116,63 @@ onMounted(() => {
 
       // Show Toast with type-based styling
       const getToastStyles = (type: string) => {
-        const colorClasses = {
-          SUCCESS: 'text-green-600',
-          APPROVE: 'text-teal-600',
-          ERROR: 'text-red-600',
-          WARNING: 'text-yellow-600',
-          INFO: 'text-blue-600',
-          REQUEST: 'text-purple-600',
+        const styles = {
+          SUCCESS: {
+            textColor: 'text-green-600',
+            iconColor: '!text-green-600',
+            buttonBg: 'bg-green-600',
+            buttonHover: 'hover:bg-green-700',
+          },
+          APPROVE: {
+            textColor: 'text-teal-600',
+            iconColor: '!text-teal-600',
+            buttonBg: 'bg-teal-600',
+            buttonHover: 'hover:bg-teal-700',
+          },
+          ERROR: {
+            textColor: 'text-red-600',
+            iconColor: '!text-red-600',
+            buttonBg: 'bg-red-600',
+            buttonHover: 'hover:bg-red-700',
+          },
+          WARNING: {
+            textColor: 'text-yellow-600',
+            iconColor: '!text-yellow-600',
+            buttonBg: 'bg-yellow-600',
+            buttonHover: 'hover:bg-yellow-700',
+          },
+          INFO: {
+            textColor: 'text-blue-600',
+            iconColor: '!text-blue-600',
+            buttonBg: 'bg-blue-600',
+            buttonHover: 'hover:bg-blue-700',
+          },
+          REQUEST: {
+            textColor: 'text-purple-600',
+            iconColor: '!text-purple-600',
+            buttonBg: 'bg-purple-600',
+            buttonHover: 'hover:bg-purple-700',
+          },
         };
-        return colorClasses[type as keyof typeof colorClasses] || colorClasses.INFO;
+        return styles[type as keyof typeof styles] || styles.INFO;
       };
 
-      const colorClass = getToastStyles(newNotification.type);
+      const style = getToastStyles(newNotification.type);
 
       const toastOptions = {
         description: newNotification.message,
         duration: 5000, // 5 seconds
+        unstyled: false, // Keep Sonner's base styling
         action: {
           label: 'View',
           onClick: () => router.push('/my-notifications'),
         },
         classNames: {
           toast: 'bg-white border-2 shadow-lg',
-          title: `font-semibold ${colorClass}`,
+          title: `font-semibold ${style.textColor}`,
           description: 'text-gray-600',
-          actionButton: `${colorClass} bg-transparent hover:bg-gray-100 border ${colorClass.replace('text-', 'border-')}`,
-          icon: 'w-6 h-6', // Larger icon
+          actionButton: `${style.buttonBg} ${style.buttonHover} text-white border-0 font-medium !important`,
+          icon: `w-6 h-6 ${style.iconColor}`,
         },
       };
 

@@ -9,7 +9,7 @@ const themeStore = useThemeStore();
 <template>
   <GlobalBackground />
   <router-view />
-  <Toaster richColors position="top-center" />
+  <Toaster richColors position="top-center" :duration="5000" />
 </template>
 
 <style>
