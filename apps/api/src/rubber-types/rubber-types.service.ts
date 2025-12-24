@@ -16,8 +16,16 @@ export class RubberTypesService {
         });
     }
 
-    async findAll() {
+    async findAll(includeDeleted = false) {
+        const where: any = {};
+
+        // TODO: Uncomment after running migration
+        // if (!includeDeleted) {
+        //     where.deletedAt = null;
+        // }
+
         return this.prisma.rubberType.findMany({
+            where,
             orderBy: { code: 'asc' },
         });
     }
@@ -43,6 +51,32 @@ export class RubberTypesService {
     async remove(id: string) {
         return this.prisma.rubberType.delete({
             where: { id },
+        });
+    }
+
+    /**
+     * Soft delete rubber type
+     */
+    async softDelete(id: string, userId: string) {
+        return this.prisma.rubberType.update({
+            where: { id },
+            data: {
+                deletedAt: new Date(),
+                deletedBy: userId,
+            } as any, // Type assertion until Prisma regenerates
+        });
+    }
+
+    /**
+     * Restore soft deleted rubber type
+     */
+    async restore(id: string) {
+        return this.prisma.rubberType.update({
+            where: { id },
+            data: {
+                deletedAt: null,
+                deletedBy: null,
+            } as any, // Type assertion until Prisma regenerates
         });
     }
 }

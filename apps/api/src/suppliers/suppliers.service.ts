@@ -36,8 +36,16 @@ export class SuppliersService {
         });
     }
 
-    async findAll() {
+    async findAll(includeDeleted = false) {
+        const where: any = {};
+
+        // TODO: Uncomment after running migration
+        // if (!includeDeleted) {
+        //     where.deletedAt = null;
+        // }
+
         const suppliers = await this.prisma.supplier.findMany({
+            where,
             orderBy: { createdAt: 'desc' },
             include: {
                 province: true,
@@ -92,6 +100,32 @@ export class SuppliersService {
     async remove(id: string) {
         return this.prisma.supplier.delete({
             where: { id },
+        });
+    }
+
+    /**
+     * Soft delete supplier
+     */
+    async softDelete(id: string, userId: string) {
+        return this.prisma.supplier.update({
+            where: { id },
+            data: {
+                deletedAt: new Date(),
+                deletedBy: userId,
+            } as any, // Type assertion until Prisma regenerates
+        });
+    }
+
+    /**
+     * Restore soft deleted supplier
+     */
+    async restore(id: string) {
+        return this.prisma.supplier.update({
+            where: { id },
+            data: {
+                deletedAt: null,
+                deletedBy: null,
+            } as any, // Type assertion until Prisma regenerates
         });
     }
 }

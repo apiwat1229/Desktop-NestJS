@@ -218,7 +218,56 @@ export class ApprovalsService {
             actionUrl: `/approvals/${request.id}`,
         });
 
+        // Apply the approved changes
+        await this.applyApprovedChanges(updated);
+
         return updated;
+    }
+
+    /**
+     * Apply approved changes to the actual resource
+     */
+    private async applyApprovedChanges(request: any) {
+        try {
+            const { entityType, entityId, actionType, proposedData } = request;
+
+            if (actionType === 'UPDATE') {
+                // Apply update based on entity type
+                if (entityType === 'Supplier') {
+                    await this.prisma.supplier.update({
+                        where: { id: entityId },
+                        data: proposedData,
+                    });
+                } else if (entityType === 'RubberType') {
+                    await this.prisma.rubberType.update({
+                        where: { id: entityId },
+                        data: proposedData,
+                    });
+                }
+            } else if (actionType === 'DELETE') {
+                // Apply soft delete based on entity type
+                if (entityType === 'Supplier') {
+                    await this.prisma.supplier.update({
+                        where: { id: entityId },
+                        data: {
+                            deletedAt: new Date(),
+                            deletedBy: request.approverId,
+                        } as any, // Type assertion until Prisma regenerates
+                    });
+                } else if (entityType === 'RubberType') {
+                    await this.prisma.rubberType.update({
+                        where: { id: entityId },
+                        data: {
+                            deletedAt: new Date(),
+                            deletedBy: request.approverId,
+                        } as any, // Type assertion until Prisma regenerates
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('[ApprovalsService] Failed to apply approved changes:', error);
+            // Log error but don't throw - approval is already recorded
+        }
     }
 
     /**

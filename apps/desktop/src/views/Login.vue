@@ -3,13 +3,12 @@ import ChangePasswordDialog from '@/components/auth/ChangePasswordDialog.vue';
 import LoginForm from '@/components/LoginForm.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { storage } from '../services/storage';
 import { useAuthStore } from '../stores/auth';
 
-const savedEmail = storage.get('saved_email');
 const loginError = ref('');
 const showChangePasswordDialog = ref(false);
 const tempToken = ref('');
@@ -18,12 +17,25 @@ const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null);
 const authStore = useAuthStore();
 const router = useRouter();
 
-// Set saved email if exists
-if (savedEmail && loginFormRef.value) {
-  loginFormRef.value.setEmail(savedEmail);
-}
+// Load saved email on mount
+onMounted(() => {
+  const savedEmail = storage.get('saved_email');
+  const rememberMe = storage.get('remember_me');
 
-async function handleLogin({ email, password }: { email: string; password: string }) {
+  if (savedEmail && rememberMe === 'true' && loginFormRef.value) {
+    loginFormRef.value.setEmail(savedEmail);
+  }
+});
+
+async function handleLogin({
+  email,
+  password,
+  rememberMe,
+}: {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}) {
   if (loginFormRef.value) {
     loginFormRef.value.setLoading(true);
   }
@@ -31,6 +43,16 @@ async function handleLogin({ email, password }: { email: string; password: strin
 
   try {
     await authStore.login({ email, password }, true);
+
+    // Handle Remember Me
+    if (rememberMe) {
+      storage.set('saved_email', email);
+      storage.set('remember_me', 'true');
+    } else {
+      storage.delete('saved_email');
+      storage.delete('remember_me');
+    }
+
     toast.success('Login successful');
     router.push('/');
   } catch (err: any) {

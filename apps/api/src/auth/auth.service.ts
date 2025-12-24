@@ -80,11 +80,20 @@ export class AuthService {
         // Update last login
         await this.usersService.updateLastLogin(user.id);
 
-        const payload = { email: user.email, sub: user.id, role: user.role };
+        // Get permissions from role (preferred) or user (fallback)
+        const permissions = user.roleRecord?.permissions || user.permissions || [];
+
+        const payload = {
+            email: user.email,
+            sub: user.id,
+            role: user.role,
+            permissions: permissions
+        };
         return {
             accessToken: this.jwtService.sign(payload),
             user: {
                 ...user,
+                permissions, // Include merged permissions
                 createdAt: user.createdAt.toISOString(),
                 updatedAt: user.updatedAt.toISOString(),
             } as any,
@@ -100,7 +109,12 @@ export class AuthService {
         });
 
         const { password, ...userWithoutPassword } = user;
-        const payload = { email: user.email, sub: user.id, role: user.role };
+        const payload = {
+            email: user.email,
+            sub: user.id,
+            role: user.role,
+            permissions: user.permissions || []
+        };
 
         return {
             accessToken: this.jwtService.sign(payload),

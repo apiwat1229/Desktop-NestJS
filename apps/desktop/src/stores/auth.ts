@@ -16,6 +16,33 @@ export const useAuthStore = defineStore('auth', {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:2530';
             return `${apiUrl}${state.user.avatar}`;
         },
+        /**
+         * Get user's permissions array
+         */
+        userPermissions: (state): string[] => {
+            return state.user?.permissions || [];
+        },
+        /**
+         * Check if user has a specific permission
+         */
+        hasPermission: (state) => (permission: string): boolean => {
+            const permissions = state.user?.permissions || [];
+            return permissions.includes(permission);
+        },
+        /**
+         * Check if user has ANY of the specified permissions
+         */
+        hasAnyPermission: (state) => (permissions: string[]): boolean => {
+            const userPermissions = state.user?.permissions || [];
+            return permissions.some(p => userPermissions.includes(p));
+        },
+        /**
+         * Check if user has ALL of the specified permissions
+         */
+        hasAllPermissions: (state) => (permissions: string[]): boolean => {
+            const userPermissions = state.user?.permissions || [];
+            return permissions.every(p => userPermissions.includes(p));
+        },
     },
     actions: {
         setTempToken(token: string) {
