@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
@@ -44,6 +54,10 @@ const isModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 const itemToDelete = ref<string | null>(null);
 const editingItem = ref<User | null>(null);
+
+// Bulk Delete State
+const isBulkDeleteDialogOpen = ref(false);
+const usersToDelete = ref<User[]>([]);
 
 const { t } = useI18n();
 
@@ -257,6 +271,33 @@ const handleUnlock = async (userId: string) => {
   }
 };
 
+const handleBulkDelete = async (selectedRows: User[]) => {
+  if (selectedRows.length === 0) return;
+
+  // Store selected users and open confirmation dialog
+  usersToDelete.value = selectedRows;
+  isBulkDeleteDialogOpen.value = true;
+};
+
+const confirmBulkDelete = async () => {
+  if (usersToDelete.value.length === 0) return;
+
+  try {
+    // Delete all selected users
+    await Promise.all(usersToDelete.value.map((user) => usersApi.delete(user.id)));
+    toast.success(`Successfully deleted ${usersToDelete.value.length} user(s)`);
+
+    // Close dialog and reset state
+    isBulkDeleteDialogOpen.value = false;
+    usersToDelete.value = [];
+
+    await fetchData();
+  } catch (error) {
+    console.error('Failed to delete users:', error);
+    toast.error('Failed to delete selected users');
+  }
+};
+
 // --- Columns ---
 const columns: ColumnDef<User>[] = [
   {
@@ -386,47 +427,53 @@ onMounted(() => {
 <template>
   <div class="p-6 space-y-8 max-w-[1600px] mx-auto">
     <!-- Header / Stats -->
-    <div
-      class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 rounded-xl border border-border bg-card shadow-sm relative overflow-hidden"
-    >
+    <div class="p-6 rounded-xl border border-border bg-card shadow-sm relative overflow-hidden">
       <div class="absolute top-1/2 right-12 -translate-y-1/2 pointer-events-none opacity-5">
         <Users class="w-64 h-64" />
       </div>
-      <div class="md:col-span-2 flex items-center gap-6 z-10">
-        <div
-          class="p-4 bg-primary/10 rounded-xl text-primary flex items-center justify-center h-16 w-16"
-        >
-          <Users class="h-8 w-8" />
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-foreground">
-            {{ t('admin.users.title') }}
-          </h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            {{ t('admin.users.subtitle') }}
-          </p>
-        </div>
-      </div>
-      <div class="md:col-span-2 flex items-center justify-between gap-8 z-10 pl-8 border-l">
-        <div class="text-center">
-          <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-            {{ t('admin.status.total') }}
+
+      <div class="flex items-center justify-between gap-6 relative z-10">
+        <!-- Title Section -->
+        <div class="flex items-center gap-6">
+          <div
+            class="p-4 bg-primary/10 rounded-xl text-primary flex items-center justify-center h-16 w-16"
+          >
+            <Users class="h-8 w-8" />
           </div>
-          <div class="text-3xl font-bold">{{ stats.total }}</div>
-        </div>
-        <div class="text-center">
-          <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
-            {{ t('admin.status.active') }}
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">
+              {{ t('admin.users.title') }}
+            </h1>
+            <p class="text-sm text-muted-foreground mt-1">
+              {{ t('admin.users.subtitle') }}
+            </p>
           </div>
-          <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
         </div>
-        <div class="text-center">
-          <div class="text-xs font-bold text-orange-500 uppercase tracking-wider mb-1">
-            {{ t('admin.status.suspended') }}
+
+        <!-- Stats Section -->
+        <div class="flex items-center gap-8">
+          <div class="text-center">
+            <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              {{ t('admin.status.total') }}
+            </div>
+            <div class="text-3xl font-bold">{{ stats.total }}</div>
           </div>
-          <div class="text-3xl font-bold text-orange-500">{{ stats.suspended }}</div>
+          <div class="text-center">
+            <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
+              {{ t('admin.status.active') }}
+            </div>
+            <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-xs font-bold text-orange-500 uppercase tracking-wider mb-1">
+              {{ t('admin.status.suspended') }}
+            </div>
+            <div class="text-3xl font-bold text-orange-500">{{ stats.suspended }}</div>
+          </div>
         </div>
-        <div class="ml-auto">
+
+        <!-- Add Button -->
+        <div class="flex-shrink-0">
           <Button @click="handleOpenCreate" size="lg" class="shadow-lg shadow-primary/20">
             <Plus class="mr-2 h-5 w-5" />
             {{ t('admin.users.addUser') }}
@@ -468,7 +515,12 @@ onMounted(() => {
     </div>
 
     <!-- Data Display -->
-    <DataTable :columns="columns" :data="filteredData" enable-selection />
+    <DataTable
+      :columns="columns"
+      :data="filteredData"
+      enable-selection
+      @delete-selected="handleBulkDelete"
+    />
 
     <!-- Create/Edit Modal -->
     <Dialog v-model:open="isModalOpen">
@@ -633,5 +685,27 @@ onMounted(() => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <!-- Bulk Delete Confirmation AlertDialog -->
+    <AlertDialog v-model:open="isBulkDeleteDialogOpen">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Multiple Users?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete <strong>{{ usersToDelete.length }}</strong> user(s)?
+            This action cannot be undone and will permanently remove these users from the system.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="isBulkDeleteDialogOpen = false">Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            @click="confirmBulkDelete"
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Delete {{ usersToDelete.length }} User(s)
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

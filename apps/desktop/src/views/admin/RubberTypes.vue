@@ -227,47 +227,51 @@ onMounted(() => {
 <template>
   <div class="p-6 space-y-8 max-w-[1600px] mx-auto">
     <!-- Header / Stats -->
-    <div
-      class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 rounded-xl border border-border bg-card shadow-sm relative overflow-hidden"
-    >
+    <div class="p-6 rounded-xl border border-border bg-card shadow-sm relative overflow-hidden">
       <div class="absolute top-1/2 right-12 -translate-y-1/2 pointer-events-none opacity-5">
         <Layers class="w-64 h-64" />
       </div>
 
-      <!-- Title Section -->
-      <div class="md:col-span-2 flex items-center gap-6 z-10">
-        <div
-          class="p-4 bg-primary/10 rounded-xl text-primary flex items-center justify-center h-16 w-16"
-        >
-          <Layers class="h-8 w-8" />
+      <div class="flex items-center justify-between gap-6 relative z-10">
+        <!-- Title Section -->
+        <div class="flex items-center gap-6">
+          <div
+            class="p-4 bg-primary/10 rounded-xl text-primary flex items-center justify-center h-16 w-16"
+          >
+            <Layers class="h-8 w-8" />
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Rubber Types</h1>
+            <p class="text-sm text-muted-foreground mt-1">
+              Manage rubber type classifications and codes.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-foreground">Rubber Types</h1>
-          <p class="text-sm text-muted-foreground mt-1">
-            Manage rubber type classifications and codes.
-          </p>
-        </div>
-      </div>
 
-      <!-- Stats -->
-      <div class="md:col-span-2 flex items-center justify-between gap-8 z-10 pl-8 border-l">
-        <div class="text-center">
-          <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-            Total
+        <!-- Stats Section -->
+        <div class="flex items-center gap-8">
+          <div class="text-center">
+            <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              Total
+            </div>
+            <div class="text-3xl font-bold">{{ stats.total }}</div>
           </div>
-          <div class="text-3xl font-bold">{{ stats.total }}</div>
-        </div>
-        <div class="text-center">
-          <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Active</div>
-          <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
-        </div>
-        <div class="text-center">
-          <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-            Inactive
+          <div class="text-center">
+            <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
+              Active
+            </div>
+            <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
           </div>
-          <div class="text-3xl font-bold text-muted-foreground">{{ stats.inactive }}</div>
+          <div class="text-center">
+            <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              Inactive
+            </div>
+            <div class="text-3xl font-bold text-muted-foreground">{{ stats.inactive }}</div>
+          </div>
         </div>
-        <div class="ml-auto">
+
+        <!-- Add Button -->
+        <div class="flex-shrink-0">
           <Button @click="handleOpenCreate" size="lg" class="shadow-lg shadow-primary/20">
             <Plus class="mr-2 h-5 w-5" />
             Add New
