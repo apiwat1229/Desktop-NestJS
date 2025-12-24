@@ -88,6 +88,7 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+  PENDING
 }
 
 model Post {
@@ -247,21 +248,6 @@ model Booking {
   @@index([date, slot])
   @@index([bookingCode])
   @@map("bookings")
-}
-
-// Role Management
-model Role {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  permissions Json?     // Stores permission matrix: { "users": { "orders": ["read", "write"] } }
-  color       String?  // UI color class like 'bg-blue-600'
-  icon        String?  // Icon name string
-  
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("roles")
 }
 
 // ==========================================

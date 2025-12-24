@@ -231,19 +231,10 @@ export class BookingsService {
 
             // 2. Find Users with these Roles
             if (recipientRoles.length > 0) {
-                // Fetch role names first since User.role stores names/codes, not IDs (based on schema)
-                // Or if User.role stores IDs? Schema default "staff_1" implies codes.
-                // Let's try to map IDs to Names if possible, or assume IDs are matching if recently refactored.
-                // SAFEST: Fetch Roles by IDs, get their names, then query Users.
-                const roles = await this.prisma.role.findMany({
-                    where: { id: { in: recipientRoles } },
-                    select: { name: true }
-                });
-                const roleNames = roles.map(r => r.name);
-
+                // recipientRoles now contains role names/codes directly (e.g., 'admin', 'manager')
                 const users = await this.prisma.user.findMany({
                     where: {
-                        role: { in: roleNames }
+                        role: { in: recipientRoles }
                     },
                     select: { id: true }
                 });

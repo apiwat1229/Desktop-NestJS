@@ -2,6 +2,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+// NOTE: Role table has been removed from the schema.
+// System now uses User.role field directly with predefined role codes.
+// This service is kept for backward compatibility but all methods are disabled.
+
 const DEFAULT_ROLES = [
     {
         id: 'admin',
@@ -53,76 +57,48 @@ export class RolesService implements OnModuleInit {
     constructor(private prisma: PrismaService) { }
 
     async onModuleInit() {
-        await this.seedDefaults();
+        // Seeding disabled - roles are now hardcoded in User.role field
+        // await this.seedDefaults();
     }
 
     async seedDefaults() {
-        console.log('Seeding default roles...');
-        for (const role of DEFAULT_ROLES) {
-            await this.prisma.role.upsert({
-                where: { name: role.name },
-                update: {}, // Don't overwrite existing changes
-                create: {
-                    id: role.id,
-                    name: role.name,
-                    description: role.description,
-                    color: role.color,
-                    icon: role.icon,
-                    permissions: role.permissions,
-                }
-            });
-        }
-        console.log('Roles seeded.');
+        console.log('Role seeding skipped - Role table has been removed');
+        // Role table no longer exists
+        // for (const role of DEFAULT_ROLES) {
+        //     await this.prisma.role.upsert({
+        //         where: { name: role.name },
+        //         update: {},
+        //         create: {
+        //             id: role.id,
+        //             name: role.name,
+        //             description: role.description,
+        //             color: role.color,
+        //             icon: role.icon,
+        //             permissions: role.permissions,
+        //         }
+        //     });
+        // }
     }
 
     async findAll() {
-        return this.prisma.role.findMany({
-            orderBy: { name: 'asc' } // Or specific order
-        });
+        // Return hardcoded roles for backward compatibility
+        return DEFAULT_ROLES;
     }
 
     async findOne(id: string) {
-        return this.prisma.role.findUnique({ where: { id } });
+        // Return hardcoded role for backward compatibility
+        return DEFAULT_ROLES.find(r => r.id === id) || null;
     }
 
     async update(id: string, data: any) {
-        return this.prisma.role.update({
-            where: { id },
-            data
-        });
+        throw new Error('Role updates are not supported - roles are now hardcoded');
     }
 
     async create(data: any) {
-        // Check if role with same name already exists
-        const existing = await this.prisma.role.findUnique({
-            where: { name: data.name }
-        });
-
-        if (existing) {
-            throw new Error('Role with this name already exists');
-        }
-
-        return this.prisma.role.create({
-            data: {
-                name: data.name,
-                description: data.description || '',
-                color: data.color || 'bg-slate-500',
-                icon: data.icon || 'User',
-                permissions: data.permissions || {},
-            }
-        });
+        throw new Error('Role creation is not supported - roles are now hardcoded');
     }
 
     async remove(id: string) {
-        // Check if any users have this role
-        const usersWithRole = await this.prisma.user.count({
-            where: { role: id }
-        });
-
-        if (usersWithRole > 0) {
-            throw new Error(`Cannot delete role: ${usersWithRole} user(s) are assigned to this role`);
-        }
-
-        return this.prisma.role.delete({ where: { id } });
+        throw new Error('Role deletion is not supported - roles are now hardcoded');
     }
 }

@@ -2,6 +2,7 @@ import { LoginDto, RegisterDto } from '@my-app/types';
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { SignupDto } from './dto/signup.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -20,6 +21,12 @@ export class AuthController {
     @Post('register')
     async register(@Body() registerDto: RegisterDto) {
         return this.authService.register(registerDto);
+    }
+
+    @Post('signup')
+    @HttpCode(HttpStatus.CREATED)
+    async signup(@Body() signupDto: SignupDto) {
+        return this.authService.signup(signupDto);
     }
 
     @UseGuards(JwtAuthGuard)

@@ -30,9 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { rolesApi } from '@/services/roles';
 import { usersApi, type User } from '@/services/users';
-import type { RoleDto } from '@my-app/types';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { ArrowUpDown, Edit, Plus, Search, Trash2, Unlock, Users } from 'lucide-vue-next';
 import { computed, h, onMounted, ref } from 'vue';
@@ -41,7 +39,6 @@ import { toast } from 'vue-sonner';
 
 // --- State ---
 const users = ref<User[]>([]);
-const roles = ref<RoleDto[]>([]);
 const isLoading = ref(true);
 const searchQuery = ref('');
 
@@ -55,21 +52,78 @@ const isDeleteModalOpen = ref(false);
 const itemToDelete = ref<string | null>(null);
 const editingItem = ref<User | null>(null);
 
+// Multi-Step Form State
+const currentTab = ref<'basic' | 'work' | 'security'>('basic');
+const errors = ref<Record<string, string>>({});
+
 // Bulk Delete State
 const isBulkDeleteDialogOpen = ref(false);
 const usersToDelete = ref<User[]>([]);
 
 const { t } = useI18n();
 
-// --- Constants ---
-// Dynamic role options from API
-const ROLE_OPTIONS = computed(() =>
-  roles.value.map((role) => ({
-    value: role.id,
-    label: role.name,
-  }))
-);
+// --- Validation Functions ---
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
+const validateBasicInfo = (): boolean => {
+  errors.value = {};
+
+  if (!formData.value.username?.trim()) {
+    errors.value.username = t('validation.required');
+  }
+
+  if (!formData.value.email?.trim()) {
+    errors.value.email = t('validation.required');
+  } else if (!isValidEmail(formData.value.email)) {
+    errors.value.email = t('validation.invalidEmail');
+  }
+
+  if (!formData.value.firstName?.trim()) {
+    errors.value.firstName = t('validation.required');
+  }
+
+  if (!formData.value.lastName?.trim()) {
+    errors.value.lastName = t('validation.required');
+  }
+
+  return Object.keys(errors.value).length === 0;
+};
+
+const validateWorkInfo = (): boolean => {
+  errors.value = {};
+
+  if (!formData.value.role) {
+    errors.value.role = t('validation.required');
+  }
+
+  return Object.keys(errors.value).length === 0;
+};
+
+// --- Tab Navigation ---
+const goToNextTab = () => {
+  if (currentTab.value === 'basic') {
+    if (validateBasicInfo()) {
+      currentTab.value = 'work';
+    }
+  } else if (currentTab.value === 'work') {
+    if (validateWorkInfo()) {
+      currentTab.value = 'security';
+    }
+  }
+};
+
+const goToPreviousTab = () => {
+  if (currentTab.value === 'security') {
+    currentTab.value = 'work';
+  } else if (currentTab.value === 'work') {
+    currentTab.value = 'basic';
+  }
+};
+
+// --- Constants ---
 const DEPARTMENT_OPTIONS = computed(() => [
   t('admin.departments.qa'),
   t('admin.departments.it'),
@@ -100,9 +154,33 @@ const POSITION_OPTIONS = computed(() => [
   t('admin.positions.op'),
 ]);
 
-const getRoleLabel = (roleVal: string) => {
-  const found = ROLE_OPTIONS.value.find((r) => r.value === roleVal);
-  return found ? found.label : roleVal;
+// System Role Mapping Functions
+const formatSystemRole = (role: string): string => {
+  const roleMap: Record<string, string> = {
+    admin: 'ADMIN',
+    md: 'MD',
+    gm: 'GM',
+    manager: 'MANAGER',
+    asst_mgr: 'ASST. MANAGER',
+    senior_sup: 'SENIOR SUPERVISOR',
+    supervisor: 'SUPERVISOR',
+    senior_staff_2: 'SENIOR STAFF 2',
+    senior_staff_1: 'SENIOR STAFF 1',
+    staff_2: 'STAFF 2',
+    staff_1: 'STAFF 1',
+    op_leader: 'OP LEADER',
+  };
+  return roleMap[role?.toLowerCase()] || role?.toUpperCase() || '-';
+};
+
+const getSystemRoleBadgeVariant = (
+  role: string
+): 'default' | 'destructive' | 'secondary' | 'outline' => {
+  const lowerRole = role?.toLowerCase();
+  if (lowerRole === 'admin') return 'destructive';
+  if (['md', 'gm'].includes(lowerRole)) return 'default';
+  if (['manager', 'asst_mgr'].includes(lowerRole)) return 'secondary';
+  return 'outline';
 };
 
 // Form Data
@@ -158,18 +236,10 @@ const filteredData = computed(() => {
 });
 
 // --- Actions ---
-const fetchRoles = async () => {
-  try {
-    roles.value = await rolesApi.getAll();
-  } catch (error) {
-    console.error('Failed to fetch roles:', error);
-  }
-};
-
 const fetchData = async () => {
   try {
     isLoading.value = true;
-    await Promise.all([usersApi.getAll(), fetchRoles()]).then(([usersData]) => {
+    await usersApi.getAll().then((usersData) => {
       users.value = usersData;
     });
   } catch (error) {
@@ -181,6 +251,8 @@ const fetchData = async () => {
 };
 
 const handleOpenCreate = () => {
+  currentTab.value = 'basic';
+  errors.value = {};
   editingItem.value = null;
   formData.value = {
     email: '',
@@ -199,6 +271,8 @@ const handleOpenCreate = () => {
 };
 
 const handleOpenEdit = (item: User) => {
+  currentTab.value = 'basic';
+  errors.value = {};
   editingItem.value = item;
   formData.value = { ...item };
   isModalOpen.value = true;
@@ -332,14 +406,55 @@ const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => h('div', row.getValue('email')),
   },
+  // System Role Column
   {
     accessorKey: 'role',
-    header: t('admin.users.role'),
+    header: ({ column }) => {
+      return h(
+        Button,
+        {
+          variant: 'ghost',
+          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        },
+        () => [t('admin.users.systemRole'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+      );
+    },
     cell: ({ row }) => {
-      const roleVal = row.getValue('role') as string;
-      const label = getRoleLabel(roleVal);
-      // Use different color variants if needed, or simple outline
-      return h(Badge, { variant: 'outline' }, () => label);
+      const role = row.getValue('role') as string;
+      return h(
+        Badge,
+        {
+          variant: getSystemRoleBadgeVariant(role),
+          class: 'font-medium',
+        },
+        () => formatSystemRole(role)
+      );
+    },
+  },
+  // Notification Groups Column
+  {
+    accessorKey: 'notificationGroups',
+    header: t('admin.users.notifyRoles'),
+    cell: ({ row }) => {
+      const groups = (row.original as any).notificationGroups || [];
+      if (groups.length === 0) {
+        return h('span', { class: 'text-muted-foreground text-sm' }, '-');
+      }
+      return h(
+        'div',
+        { class: 'flex flex-wrap gap-1' },
+        groups.map((group: any) =>
+          h(
+            Badge,
+            {
+              key: group.id,
+              variant: 'outline',
+              class: 'text-xs',
+            },
+            () => group.name
+          )
+        )
+      );
     },
   },
   {
@@ -495,9 +610,18 @@ onMounted(() => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{{ t('admin.users.allRoles') }}</SelectItem>
-            <SelectItem v-for="option in ROLE_OPTIONS" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </SelectItem>
+            <SelectItem value="admin">ADMIN</SelectItem>
+            <SelectItem value="md">MD</SelectItem>
+            <SelectItem value="gm">GM</SelectItem>
+            <SelectItem value="manager">MANAGER</SelectItem>
+            <SelectItem value="asst_mgr">ASST. MANAGER</SelectItem>
+            <SelectItem value="senior_sup">SENIOR SUPERVISOR</SelectItem>
+            <SelectItem value="supervisor">SUPERVISOR</SelectItem>
+            <SelectItem value="senior_staff_2">SENIOR STAFF 2</SelectItem>
+            <SelectItem value="senior_staff_1">SENIOR STAFF 1</SelectItem>
+            <SelectItem value="staff_2">STAFF 2</SelectItem>
+            <SelectItem value="staff_1">STAFF 1</SelectItem>
+            <SelectItem value="op_leader">OP LEADER</SelectItem>
           </SelectContent>
         </Select>
         <Select v-model="filterStatus">
@@ -532,7 +656,7 @@ onMounted(() => {
           <DialogDescription>{{ t('admin.users.fillDetails') }}</DialogDescription>
         </DialogHeader>
 
-        <Tabs default-value="basic" class="w-full">
+        <Tabs v-model="currentTab" class="w-full">
           <TabsList class="grid w-full grid-cols-3">
             <TabsTrigger value="basic">{{ t('admin.users.basicInfo') }}</TabsTrigger>
             <TabsTrigger value="work">{{ t('admin.users.workInfo') }}</TabsTrigger>
@@ -543,20 +667,59 @@ onMounted(() => {
           <TabsContent value="basic" class="space-y-4 py-4">
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">
-                <Label>{{ t('admin.users.username') }}</Label>
-                <Input v-model="formData.username" placeholder="jdoe" />
+                <Label>
+                  {{ t('admin.users.username') }}
+                  <span class="text-destructive">*</span>
+                </Label>
+                <Input
+                  v-model="formData.username"
+                  placeholder="jdoe"
+                  :class="{ 'border-destructive': errors.username }"
+                />
+                <p v-if="errors.username" class="text-xs text-destructive">
+                  {{ errors.username }}
+                </p>
               </div>
               <div class="space-y-2">
-                <Label>{{ t('common.email') }}</Label>
-                <Input v-model="formData.email" type="email" placeholder="john@example.com" />
+                <Label>
+                  {{ t('common.email') }}
+                  <span class="text-destructive">*</span>
+                </Label>
+                <Input
+                  v-model="formData.email"
+                  type="email"
+                  placeholder="john@example.com"
+                  :class="{ 'border-destructive': errors.email }"
+                />
+                <p v-if="errors.email" class="text-xs text-destructive">
+                  {{ errors.email }}
+                </p>
               </div>
               <div class="space-y-2">
-                <Label>{{ t('admin.userProfile.firstName') }}</Label>
-                <Input v-model="formData.firstName" />
+                <Label>
+                  {{ t('admin.userProfile.firstName') }}
+                  <span class="text-destructive">*</span>
+                </Label>
+                <Input
+                  v-model="formData.firstName"
+                  :class="{ 'border-destructive': errors.firstName }"
+                />
+                <p v-if="errors.firstName" class="text-xs text-destructive">
+                  {{ errors.firstName }}
+                </p>
               </div>
               <div class="space-y-2">
-                <Label>{{ t('admin.userProfile.lastName') }}</Label>
-                <Input v-model="formData.lastName" />
+                <Label>
+                  {{ t('admin.userProfile.lastName') }}
+                  <span class="text-destructive">*</span>
+                </Label>
+                <Input
+                  v-model="formData.lastName"
+                  :class="{ 'border-destructive': errors.lastName }"
+                />
+                <p v-if="errors.lastName" class="text-xs text-destructive">
+                  {{ errors.lastName }}
+                </p>
               </div>
               <div class="col-span-2 space-y-2">
                 <Label>{{ t('admin.userProfile.displayName') }}</Label>
@@ -573,21 +736,43 @@ onMounted(() => {
                 <Input v-model="formData.employeeId" placeholder="EMP-001" />
               </div>
               <div class="space-y-2">
-                <Label>{{ t('admin.users.role') }}</Label>
+                <Label>
+                  {{ t('admin.users.systemRole') }}
+                  <span class="text-destructive">*</span>
+                </Label>
                 <Select v-model="formData.role">
-                  <SelectTrigger
-                    ><SelectValue :placeholder="t('admin.users.selectRole')"
-                  /></SelectTrigger>
+                  <SelectTrigger :class="{ 'border-destructive': errors.role }">
+                    <SelectValue placeholder="Select system role" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem
-                      v-for="option in ROLE_OPTIONS"
-                      :key="option.value"
-                      :value="option.value"
-                    >
-                      {{ option.label }}
-                    </SelectItem>
+                    <SelectItem value="admin">ADMIN</SelectItem>
+                    <SelectItem value="md">MD (Managing Director)</SelectItem>
+                    <SelectItem value="gm">GM (General Manager)</SelectItem>
+                    <SelectItem value="manager">MANAGER</SelectItem>
+                    <SelectItem value="asst_mgr">ASST. MANAGER</SelectItem>
+                    <SelectItem value="senior_sup">SENIOR SUPERVISOR</SelectItem>
+                    <SelectItem value="supervisor">SUPERVISOR</SelectItem>
+                    <SelectItem value="senior_staff_2">SENIOR STAFF 2</SelectItem>
+                    <SelectItem value="senior_staff_1">SENIOR STAFF 1</SelectItem>
+                    <SelectItem value="staff_2">STAFF 2</SelectItem>
+                    <SelectItem value="staff_1">STAFF 1</SelectItem>
+                    <SelectItem value="op_leader">OP LEADER</SelectItem>
                   </SelectContent>
                 </Select>
+                <p v-if="errors.role" class="text-xs text-destructive">
+                  {{ errors.role }}
+                </p>
+              </div>
+              <div class="space-y-2 col-span-2">
+                <Label
+                  >{{ t('admin.users.notifyRoles') }}
+                  <span class="text-xs text-muted-foreground"
+                    >({{ t('common.optional') }})</span
+                  ></Label
+                >
+                <p class="text-xs text-muted-foreground">
+                  Notification groups can be managed in the Notifications > Groups page
+                </p>
               </div>
               <div class="space-y-2">
                 <Label>{{ t('admin.userProfile.department') }}</Label>
@@ -632,11 +817,23 @@ onMounted(() => {
                   </SelectContent>
                 </Select>
               </div>
-              <div v-if="!editingItem" class="space-y-2">
-                <Label>{{ t('auth.password') }}</Label>
-                <Input v-model="formData.password" type="password" placeholder="••••••" />
+              <div class="space-y-2">
+                <Label>
+                  {{ t('auth.password') }}
+                  <span v-if="editingItem" class="text-xs text-muted-foreground ml-1"
+                    >({{ t('common.optional') }})</span
+                  >
+                </Label>
+                <Input
+                  v-model="formData.password"
+                  type="password"
+                  :placeholder="editingItem ? t('admin.users.leaveBlankToKeep') : '••••••'"
+                />
+                <p v-if="editingItem" class="text-xs text-muted-foreground">
+                  {{ t('admin.users.passwordHint') }}
+                </p>
               </div>
-              <div class="flex items-center space-x-2 mt-8">
+              <div class="flex items-center space-x-2 mt-8 col-span-2">
                 <input
                   type="checkbox"
                   id="forcePwd"
@@ -663,7 +860,21 @@ onMounted(() => {
 
         <DialogFooter>
           <Button variant="outline" @click="isModalOpen = false">{{ t('common.cancel') }}</Button>
-          <Button @click="handleSubmit">{{ t('common.saveChanges') }}</Button>
+
+          <!-- Previous Button (not shown on first tab) -->
+          <Button v-if="currentTab !== 'basic'" variant="outline" @click="goToPreviousTab">
+            {{ t('common.previous') }}
+          </Button>
+
+          <!-- Next Button (shown on first two tabs) -->
+          <Button v-if="currentTab !== 'security'" @click="goToNextTab">
+            {{ t('common.next') }}
+          </Button>
+
+          <!-- Save Button (only on last tab) -->
+          <Button v-if="currentTab === 'security'" @click="handleSubmit">
+            {{ editingItem ? t('common.saveChanges') : t('common.create') }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

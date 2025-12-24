@@ -112,6 +112,31 @@ export class AuthService {
         };
     }
 
+    async signup(signupDto: any) {
+        // Check if email already exists
+        const existingUser = await this.usersService.findByEmailOrUsername(signupDto.email);
+
+        if (existingUser) {
+            throw new ForbiddenException('Email already registered');
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+
+        // Create user with PENDING status and no role
+        const user = await this.usersService.createPendingUser({
+            email: signupDto.email,
+            firstName: signupDto.firstName,
+            lastName: signupDto.lastName,
+            password: hashedPassword,
+        });
+
+        return {
+            message: 'Account created successfully. Please wait for admin approval.',
+            userId: user.id,
+        };
+    }
+
     async changePassword(userId: string, oldPass: string, newPass: string) {
         // 1. Get user to get current password hash
         const user = await this.usersService.findOne(userId); // findOne typically returns user without password if select is used?

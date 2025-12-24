@@ -48,6 +48,18 @@ const routes = [
         meta: { requiresGuest: true }
     },
     {
+        path: '/signup',
+        name: 'Signup',
+        component: () => import('../views/Signup.vue'),
+        meta: { requiresGuest: true }
+    },
+    {
+        path: '/pending-approval',
+        name: 'PendingApproval',
+        component: () => import('../views/PendingApproval.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
         path: '/admin',
         name: 'AdminPanel',
         component: () => import('@/components/layout/MainLayout.vue'),

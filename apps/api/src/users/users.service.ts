@@ -38,6 +38,25 @@ export class UsersService {
         });
     }
 
+    async createPendingUser(data: {
+        email: string;
+        firstName: string;
+        lastName: string;
+        password: string;
+    }) {
+        return this.prisma.user.create({
+            data: {
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                password: data.password,
+                status: 'PENDING',
+                role: null, // No role assigned yet
+                forceChangePassword: false,
+            },
+        });
+    }
+
     async findAll() {
         return this.prisma.user.findMany({
             select: {
@@ -54,6 +73,14 @@ export class UsersService {
                 avatar: true,
                 createdAt: true,
                 updatedAt: true,
+                notificationGroups: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                        icon: true,
+                    },
+                },
             } as any,
         });
     }
@@ -76,6 +103,14 @@ export class UsersService {
                 createdAt: true,
                 updatedAt: true,
                 permissions: true,
+                notificationGroups: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                        icon: true,
+                    },
+                },
                 hod: {
                     select: {
                         id: true,

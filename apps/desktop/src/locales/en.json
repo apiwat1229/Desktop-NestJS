@@ -34,7 +34,14 @@
     "email": "Email",
     "username": "Username",
     "password": "Password",
-    "users": "users"
+    "users": "users",
+    "optional": "Optional",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address"
   },
   "navbar": {
     "home": "Home",
@@ -364,7 +371,11 @@
       "deleteDesc": "Are you sure you want to delete this user? This action cannot be undone.",
       "fetchError": "Failed to fetch users",
       "saveError": "Failed to save user",
-      "deleteError": "Failed to delete user"
+      "deleteError": "Failed to delete user",
+      "leaveBlankToKeep": "Leave blank to keep current password",
+      "passwordHint": "Leave blank if you don't want to change the password",
+      "systemRole": "System Role",
+      "notifyRoles": "Notify Groups"
     },
     "status": {
       "active": "Active",
