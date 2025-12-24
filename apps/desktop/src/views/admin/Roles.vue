@@ -70,94 +70,6 @@ const ICON_MAP: Record<string, any> = {
   Lock,
 };
 
-// Initial Mock Roles (Fallback)
-const INITIAL_ROLES = [
-  {
-    id: 'admin',
-    name: 'Administrator',
-    description: 'Full system access and configuration',
-    icon: 'Shield',
-    color: 'bg-blue-600',
-  },
-  {
-    id: 'md',
-    name: 'Managing Director',
-    description: 'Executive oversight and approval',
-    icon: 'Briefcase',
-    color: 'bg-purple-600',
-  },
-  {
-    id: 'gm',
-    name: 'General Manager',
-    description: 'General management and strategy',
-    icon: 'Briefcase',
-    color: 'bg-purple-500',
-  },
-  {
-    id: 'manager',
-    name: 'Manager',
-    description: 'Departmental management',
-    icon: 'Briefcase',
-    color: 'bg-orange-500',
-  },
-  {
-    id: 'asst_mgr',
-    name: 'Assistant Manager',
-    description: 'Support departmental management',
-    icon: 'Briefcase',
-    color: 'bg-orange-400',
-  },
-  {
-    id: 'senior_sup',
-    name: 'Senior Supervisor',
-    description: 'Senior team supervision',
-    icon: 'Users',
-    color: 'bg-indigo-500',
-  },
-  {
-    id: 'supervisor',
-    name: 'Supervisor',
-    description: 'Team supervision and operations',
-    icon: 'Users',
-    color: 'bg-indigo-400',
-  },
-  {
-    id: 'senior_staff_2',
-    name: 'Senior Staff 2',
-    description: 'Advanced operational tasks',
-    icon: 'User',
-    color: 'bg-green-500',
-  },
-  {
-    id: 'senior_staff_1',
-    name: 'Senior Staff 1',
-    description: 'Advanced operational tasks',
-    icon: 'User',
-    color: 'bg-green-500',
-  },
-  {
-    id: 'staff_2',
-    name: 'Staff 2',
-    description: 'Standard operations',
-    icon: 'User',
-    color: 'bg-emerald-500',
-  },
-  {
-    id: 'staff_1',
-    name: 'Staff 1',
-    description: 'Standard operations',
-    icon: 'User',
-    color: 'bg-emerald-500',
-  },
-  {
-    id: 'op_leader',
-    name: 'Operator Leader',
-    description: 'Line leadership',
-    icon: 'Layers',
-    color: 'bg-slate-500',
-  },
-];
-
 const PERMISSION_MODULES = [
   { id: 'users', label: 'User Management' },
   { id: 'roles', label: 'Roles & Permissions' },
@@ -313,33 +225,23 @@ const unassignedUsersCount = computed(
 // --- Methods ---
 
 const fetchData = async () => {
+  isLoading.value = true;
+
   try {
-    isLoading.value = true;
-    const [usersData, rolesData] = await Promise.all([
-      usersApi.getAll(),
-      rolesApi.getAll().catch(() => []),
-    ]);
+    // Fetch roles and users from backend
+    const [rolesData, usersData] = await Promise.all([rolesApi.getAll(), usersApi.getAll()]);
+
+    // Map roles with user counts from backend
+    roles.value = rolesData.map((role) => ({
+      ...role,
+      usersCount: (role as any).userCount || 0,
+      avatars: [],
+    }));
+
     users.value = usersData;
-
-    // Merge API roles with INITIAL_ROLES logic
-    const baseRoles = rolesData.length > 0 ? rolesData : INITIAL_ROLES;
-
-    // Map users count
-    roles.value = baseRoles
-      .map((role: any) => {
-        const roleUsers = usersData.filter((u: any) => u.role === role.id);
-
-        return {
-          ...role,
-          usersCount: roleUsers.length,
-          avatars: roleUsers.map((u: User) => u.avatar || ''),
-          permissions: role.permissions || {},
-        };
-      })
-      .sort((a: any, b: any) => a.name.localeCompare(b.name));
   } catch (error) {
-    console.error('Failed to fetch data', error);
-    toast.error(t('common.errorLoading'));
+    console.error('Failed to load roles:', error);
+    toast.error('Failed to load roles');
   } finally {
     isLoading.value = false;
   }
@@ -464,18 +366,61 @@ const handleAssignUserToRole = async (userId: string) => {
   }
 };
 
-// Start Delete Logic (Placeholder)
+// Start Delete Logic
 const handleDeleteRole = async () => {
-  if (!deleteId.value) return;
+  // Capture the ID before anything else
+  const roleIdToDelete = deleteId.value;
+
+  if (!roleIdToDelete) {
+    deleteId.value = null; // Close dialog
+    return;
+  }
+
   try {
-    await rolesApi.delete(deleteId.value);
-    toast.success(t('common.success'));
-    fetchData();
-  } catch (error) {
-    console.error(error);
-    toast.error('Failed to delete role');
+    await rolesApi.delete(roleIdToDelete);
+    toast.success('Role deleted successfully');
+
+    // Refresh data
+    await fetchData();
+  } catch (error: any) {
+    console.error('Failed to delete role:', error);
+    const errorMessage = error.response?.data?.message || 'Failed to delete role';
+    toast.error(errorMessage);
   } finally {
+    // Always close dialog
+    // We set deleteId to null to close the dialog
     deleteId.value = null;
+
+    // RADIX UI / SHADCN FIX:
+    // The library sometimes fails to clean up 'pointer-events: none' and 'overflow: hidden'
+    // from the body if the dialog is unmounted too quickly.
+    // We wait for a moment (to let animations finish/library try its cleanup) and then force reset.
+    setTimeout(() => {
+      // Force cleanup body styles
+      document.body.style.pointerEvents = 'auto';
+      document.body.style.overflow = 'auto'; // or 'visible' or ''
+      document.body.removeAttribute('data-scroll-locked');
+
+      // Also check html element just in case
+      document.documentElement.style.pointerEvents = 'auto';
+      document.documentElement.style.overflow = 'auto';
+
+      // Nuclear option: Remove style attribute if it only contains locking styles
+      // (Use with caution, but usually safe for body in SPAs)
+      const currentBodyStyle = document.body.getAttribute('style');
+      if (
+        currentBodyStyle &&
+        (currentBodyStyle.includes('pointer-events: none') ||
+          currentBodyStyle.includes('overflow: hidden'))
+      ) {
+        document.body.setAttribute(
+          'style',
+          currentBodyStyle
+            .replace(/pointer-events:\s*none;?/g, '')
+            .replace(/overflow:\s*hidden;?/g, '')
+        );
+      }
+    }, 300); // Increased to 300ms to allow Radix animation/cleanup to complete/fail
   }
 };
 
@@ -861,14 +806,14 @@ onMounted(() => {
     </Dialog>
 
     <!-- Delete Confirmation Modal -->
-    <AlertDialog :open="!!deleteId" @update:open="if (!$event) deleteId = null;">
+    <AlertDialog :open="!!deleteId">
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{{ t('admin.roles.deleteConfirm') }}</AlertDialogTitle>
           <AlertDialogDescription>{{ t('admin.roles.deleteMessage') }}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="deleteId = null">{{ t('common.cancel') }}</AlertDialogCancel>
+          <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
           <AlertDialogAction
             class="bg-red-600 hover:bg-red-700 focus:ring-red-600 border-0 text-white"
             @click="handleDeleteRole"
