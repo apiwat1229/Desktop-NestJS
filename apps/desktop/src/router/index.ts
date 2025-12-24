@@ -86,7 +86,12 @@ const routes = [
             {
                 path: 'approvals',
                 name: 'Approvals',
-                component: () => import('../views/Placeholder.vue'),
+                component: () => import('../views/approvals/ApprovalsList.vue'),
+            },
+            {
+                path: 'approvals/:id',
+                name: 'ApprovalDetail',
+                component: () => import('../views/approvals/ApprovalDetail.vue'),
             },
             {
                 path: 'analytics',

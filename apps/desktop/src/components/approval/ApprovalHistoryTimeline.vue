@@ -1,0 +1,119 @@
+<script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Ban,
+  CheckCircle2,
+  Clock,
+  Plus,
+  Slash,
+  XCircle,
+} from 'lucide-vue-next';
+
+const props = defineProps<{
+  history: any[];
+}>();
+
+const actionConfig: Record<string, { label: string; icon: any; color: string }> = {
+  CREATED: { label: 'สร้างคำขอ', icon: Plus, color: 'text-blue-600' },
+  APPROVED: { label: 'อนุมัติ', icon: CheckCircle2, color: 'text-green-600' },
+  REJECTED: { label: 'ปฏิเสธ', icon: XCircle, color: 'text-red-600' },
+  RETURNED: { label: 'ส่งคืนแก้ไข', icon: ArrowLeft, color: 'text-blue-600' },
+  CANCELLED: { label: 'ยกเลิก', icon: Ban, color: 'text-gray-600' },
+  VOIDED: { label: 'ทำเป็นโมฆะ', icon: Slash, color: 'text-red-600' },
+  EXPIRED: { label: 'หมดอายุ', icon: AlertTriangle, color: 'text-orange-600' },
+  DELETED: { label: 'ลบ', icon: XCircle, color: 'text-gray-600' },
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+const getConfig = (action: string) => {
+  return actionConfig[action] || { label: action, icon: Clock, color: 'text-gray-600' };
+};
+</script>
+
+<template>
+  <div class="space-y-4">
+    <div v-if="history.length === 0" class="text-center py-8 text-muted-foreground">
+      ไม่มีประวัติการทำรายการ
+    </div>
+
+    <!-- Timeline -->
+    <div v-else class="relative space-y-6">
+      <!-- Timeline line -->
+      <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+
+      <!-- Timeline items -->
+      <div v-for="(log, index) in history" :key="log.id" class="relative pl-12">
+        <!-- Timeline dot -->
+        <div
+          class="absolute left-0 w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center"
+          :class="getConfig(log.action).color"
+        >
+          <component :is="getConfig(log.action).icon" class="w-4 h-4" />
+        </div>
+
+        <!-- Timeline content -->
+        <Card>
+          <CardContent class="pt-4">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h4 class="font-semibold" :class="getConfig(log.action).color">
+                  {{ getConfig(log.action).label }}
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  {{ formatDate(log.createdAt) }}
+                </p>
+              </div>
+              <Badge variant="outline">
+                {{ log.actorRole }}
+              </Badge>
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-sm">
+                <span class="font-medium">ผู้ดำเนินการ:</span>
+                {{ log.actorName }}
+              </p>
+
+              <p v-if="log.remark" class="text-sm">
+                <span class="font-medium">หมายเหตุ:</span>
+                {{ log.remark }}
+              </p>
+
+              <!-- Show changes if available -->
+              <div v-if="log.oldValue || log.newValue" class="mt-3 pt-3 border-t">
+                <p class="text-xs font-medium text-muted-foreground mb-2">การเปลี่ยนแปลง:</p>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div v-if="log.oldValue && Object.keys(log.oldValue).length > 0">
+                    <p class="font-medium text-muted-foreground mb-1">ก่อน:</p>
+                    <pre class="bg-muted p-2 rounded text-xs overflow-auto">{{
+                      JSON.stringify(log.oldValue, null, 2)
+                    }}</pre>
+                  </div>
+                  <div v-if="log.newValue && Object.keys(log.newValue).length > 0">
+                    <p class="font-medium text-muted-foreground mb-1">หลัง:</p>
+                    <pre class="bg-muted p-2 rounded text-xs overflow-auto">{{
+                      JSON.stringify(log.newValue, null, 2)
+                    }}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </div>
+</template>
