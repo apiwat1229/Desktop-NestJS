@@ -46,4 +46,10 @@ export class UsersController {
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
+
+    @Patch(':id/unlock')
+    @Roles(Role.ADMIN)
+    async unlockUser(@Param('id') id: string) {
+        return this.usersService.unlockUser(id);
+    }
 }

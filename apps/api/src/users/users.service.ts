@@ -246,4 +246,26 @@ export class UsersService {
             data,
         });
     }
+
+    /**
+     * Unlock a locked user account
+     */
+    async unlockUser(id: string) {
+        await this.findOne(id); // Check if exists
+
+        return this.prisma.user.update({
+            where: { id },
+            data: {
+                status: 'ACTIVE',
+                failedLoginAttempts: 0,
+            },
+            select: {
+                id: true,
+                email: true,
+                displayName: true,
+                status: true,
+                failedLoginAttempts: true,
+            } as any,
+        });
+    }
 }

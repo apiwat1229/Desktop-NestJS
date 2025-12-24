@@ -61,5 +61,10 @@ export const usersApi = {
     delete: async (id: string) => {
         const response = await api.delete(`/users/${id}`);
         return response.data;
+    },
+
+    unlock: async (id: string) => {
+        const response = await api.patch<User>(`/users/${id}/unlock`);
+        return response.data;
     }
 };

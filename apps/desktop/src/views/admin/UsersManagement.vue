@@ -24,7 +24,7 @@ import { rolesApi } from '@/services/roles';
 import { usersApi, type User } from '@/services/users';
 import type { RoleDto } from '@my-app/types';
 import type { ColumnDef } from '@tanstack/vue-table';
-import { ArrowUpDown, Edit, Plus, Search, Trash2, Users } from 'lucide-vue-next';
+import { ArrowUpDown, Edit, Plus, Search, Trash2, Unlock, Users } from 'lucide-vue-next';
 import { computed, h, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -246,6 +246,17 @@ const confirmDelete = async () => {
   }
 };
 
+const handleUnlock = async (userId: string) => {
+  try {
+    await usersApi.unlock(userId);
+    toast.success('User account unlocked successfully');
+    await fetchData();
+  } catch (error) {
+    console.error('Failed to unlock user:', error);
+    toast.error('Failed to unlock user account');
+  }
+};
+
 // --- Columns ---
 const columns: ColumnDef<User>[] = [
   {
@@ -338,6 +349,20 @@ const columns: ColumnDef<User>[] = [
           },
           () => h(Edit, { class: 'h-4 w-4' })
         ),
+        // Show unlock button if user is suspended
+        item.status === 'SUSPENDED'
+          ? h(
+              Button,
+              {
+                variant: 'ghost',
+                size: 'icon',
+                class: 'h-8 w-8 text-orange-500 hover:text-orange-600',
+                onClick: () => handleUnlock(item.id),
+                title: 'Unlock Account',
+              },
+              () => h(Unlock, { class: 'h-4 w-4' })
+            )
+          : null,
         h(
           Button,
           {
@@ -567,6 +592,18 @@ onMounted(() => {
                   class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
                 />
                 <Label for="forcePwd">{{ t('admin.users.forcePasswordChange') }}</Label>
+              </div>
+
+              <!-- Unlock Button for Suspended Users -->
+              <div v-if="editingItem && editingItem.status === 'SUSPENDED'" class="col-span-2">
+                <Button
+                  @click="handleUnlock(editingItem.id)"
+                  variant="outline"
+                  class="w-full border-orange-500 text-orange-500 hover:bg-orange-50"
+                >
+                  <Unlock class="mr-2 h-4 w-4" />
+                  Unlock Account
+                </Button>
               </div>
             </div>
           </TabsContent>

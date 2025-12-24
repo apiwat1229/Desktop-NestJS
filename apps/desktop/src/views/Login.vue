@@ -20,6 +20,9 @@ const password = ref('');
 const showPassword = ref(false);
 const loading = ref(false);
 const rememberMe = ref(true);
+const loginError = ref('');
+const showChangePasswordDialog = ref(false);
+const tempToken = ref('');
 console.log('[Login] Initial rememberMe:', rememberMe.value);
 
 const authStore = useAuthStore();
@@ -27,20 +30,41 @@ const router = useRouter();
 
 async function handleLogin() {
   loading.value = true;
+  loginError.value = '';
   try {
     await authStore.login({ email: email.value, password: password.value }, rememberMe.value);
     toast.success('Login successful');
     router.push('/');
   } catch (err: any) {
+    console.error('Login failed:', err);
+
+    // Handle force password change
     if (err.response?.data?.code === 'MUST_CHANGE_PASSWORD') {
-      router.push('/change-password');
+      tempToken.value = err.response.data.tempToken;
+      showChangePasswordDialog.value = true;
       return;
     }
-    console.error('Login Error:', err);
-    toast.error(err.response?.data?.message || err.message || 'Login failed');
+
+    // Handle account locked
+    if (err.response?.data?.message?.includes('locked')) {
+      loginError.value =
+        'Your account has been locked due to multiple failed login attempts. Please contact IT support.';
+      toast.error(loginError.value);
+      return;
+    }
+
+    // Handle other errors
+    loginError.value = err.response?.data?.message || err.message || 'Login failed';
+    toast.error(loginError.value);
   } finally {
     loading.value = false;
   }
+}
+
+function handlePasswordChangeSuccess() {
+  showChangePasswordDialog.value = false;
+  toast.success('Password changed successfully! You are now logged in.');
+  router.push('/');
 }
 </script>
 
@@ -54,6 +78,12 @@ async function handleLogin() {
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <CardContent>
+        <!-- Error Alert -->
+        <Alert v-if="loginError" variant="destructive" class="mb-4">
+          <AlertCircle class="h-4 w-4" />
+          <AlertDescription>{{ loginError }}</AlertDescription>
+        </Alert>
+
         <form @submit.prevent="handleLogin" class="space-y-5">
           <div class="space-y-2">
             <Label for="email">Email</Label>
@@ -150,6 +180,13 @@ async function handleLogin() {
         </form>
       </CardContent>
     </Card>
+
+    <!-- Change Password Dialog -->
+    <ChangePasswordDialog
+      :open="showChangePasswordDialog"
+      :temp-token="tempToken"
+      @success="handlePasswordChangeSuccess"
+    />
   </div>
 </template>
 

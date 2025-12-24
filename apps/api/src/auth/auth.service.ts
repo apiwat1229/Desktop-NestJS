@@ -2,13 +2,15 @@ import { AuthResponse, LoginDto, RegisterDto } from '@my-app/types';
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { NotificationsService } from '../notifications/notifications.service';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private notificationsService: NotificationsService
     ) { }
 
     async validateUser(identifier: string, password: string): Promise<any> {
@@ -42,14 +44,16 @@ export class AuthService {
         if (!isMatch) {
             // Increment failed attempts
             const attempts = (user.failedLoginAttempts || 0) + 1;
-            const shouldLock = attempts >= 10;
+            const shouldLock = attempts >= 5;
 
             await this.usersService.updateLoginAttempts(user.id, attempts, shouldLock);
 
             if (shouldLock) {
-                throw new UnauthorizedException('Account locked due to too many failed attempts.');
+                // Notify IT group
+                await this.notifyITGroup(user);
+                throw new UnauthorizedException('Account has been locked due to multiple failed login attempts. Please contact IT support.');
             }
-            const remaining = 10 - attempts;
+            const remaining = 5 - attempts;
             throw new UnauthorizedException(`Password incorrect. ${remaining} attempts remaining.`);
         }
 
@@ -143,5 +147,39 @@ export class AuthService {
         });
 
         return { message: 'Password changed successfully' };
+    }
+
+    /**
+     * Notify IT group when account is locked
+     */
+    private async notifyITGroup(user: any) {
+        try {
+            // Get IT group members
+            const itGroup = await this.notificationsService.getGroupMembers('IT');
+
+            if (!itGroup || itGroup.length === 0) {
+                console.warn('[Auth] IT group not found or has no members');
+                return;
+            }
+
+            // Send notification to each IT member
+            for (const member of itGroup) {
+                await this.notificationsService.create({
+                    userId: member.id,
+                    title: 'Account Locked - Security Alert',
+                    message: `User account ${user.email} (${user.displayName || 'N/A'}) has been locked due to 5 failed login attempts.`,
+                    type: 'WARNING',
+                    sourceApp: 'AUTH',
+                    actionType: 'ACCOUNT_LOCKED',
+                    entityId: user.id,
+                    actionUrl: `/admin/users`,
+                });
+            }
+
+            console.log(`[Auth] Notified ${itGroup.length} IT members about locked account: ${user.email}`);
+        } catch (error) {
+            console.error('[Auth] Failed to notify IT group:', error);
+            // Don't throw - notification failure shouldn't prevent lock
+        }
     }
 }

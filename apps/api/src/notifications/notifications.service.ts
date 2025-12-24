@@ -375,4 +375,25 @@ export class NotificationsService {
             where: { id }
         });
     }
+
+    /**
+     * Get members of a notification group by name
+     */
+    async getGroupMembers(groupName: string) {
+        const group = await this.prisma.notificationGroup.findFirst({
+            where: { name: groupName },
+            include: {
+                members: {
+                    select: {
+                        id: true,
+                        email: true,
+                        displayName: true,
+                        role: true
+                    }
+                }
+            }
+        });
+
+        return group?.members || [];
+    }
 }

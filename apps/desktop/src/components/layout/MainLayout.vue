@@ -9,7 +9,7 @@ const authStore = useAuthStore();
 const route = useRoute();
 
 const showSidebar = computed(() => {
-  return authStore.user?.role === 'admin' && route.path.startsWith('/admin');
+  return authStore.user?.role === 'ADMIN' && route.path.startsWith('/admin');
 });
 </script>
 

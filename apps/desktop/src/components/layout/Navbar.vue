@@ -350,7 +350,7 @@ onUnmounted(() => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem v-if="authStore.user?.role === 'admin'" @click="router.push('/admin')">
+          <DropdownMenuItem v-if="authStore.user?.role === 'ADMIN'" @click="router.push('/admin')">
             <LayoutDashboard class="mr-2 h-4 w-4" />
             <span>Admin Panel</span>
           </DropdownMenuItem>
