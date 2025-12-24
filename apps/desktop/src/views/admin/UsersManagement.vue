@@ -415,20 +415,23 @@ const columns: ColumnDef<User>[] = [
         {
           variant: 'ghost',
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+          class: 'w-full justify-center',
         },
         () => [t('admin.users.systemRole'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
       );
     },
     cell: ({ row }) => {
       const role = row.getValue('role') as string;
-      return h(
-        Badge,
-        {
-          variant: getSystemRoleBadgeVariant(role),
-          class: 'font-medium',
-        },
-        () => formatSystemRole(role)
-      );
+      return h('div', { class: 'flex justify-center' }, [
+        h(
+          Badge,
+          {
+            variant: getSystemRoleBadgeVariant(role),
+            class: 'font-bold px-1.5 py-0 h-5 min-w-[60px]',
+          },
+          () => formatSystemRole(role)
+        ),
+      ]);
     },
   },
   // Notification Groups Column
@@ -469,7 +472,7 @@ const columns: ColumnDef<User>[] = [
   },
   {
     accessorKey: 'status',
-    header: t('common.status'),
+    header: () => h('div', { class: 'text-center w-full' }, t('common.status')),
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       const colorClass =
@@ -479,13 +482,15 @@ const columns: ColumnDef<User>[] = [
             ? 'bg-orange-500/10 text-orange-500'
             : 'bg-muted text-muted-foreground';
 
-      return h(
-        'span',
-        {
-          class: `inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`,
-        },
-        status
-      );
+      return h('div', { class: 'flex justify-center' }, [
+        h(
+          'span',
+          {
+            class: `inline-flex items-center justify-center rounded-md px-1.5 py-0 text-[9px] font-bold uppercase tracking-wide h-5 min-w-[60px] ${colorClass}`,
+          },
+          status
+        ),
+      ]);
     },
   },
   {
@@ -600,8 +605,14 @@ onMounted(() => {
     <!-- Controls -->
     <div class="flex items-center justify-between gap-4">
       <div class="relative w-full max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input v-model="searchQuery" :placeholder="t('common.search')" class="pl-9" />
+        <Search
+          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10"
+        />
+        <Input
+          v-model="searchQuery"
+          :placeholder="t('common.search')"
+          class="pl-9 bg-background border-border shadow-sm rounded-[6px] hover:border-primary/50 focus:border-primary transition-all"
+        />
       </div>
       <div class="flex items-center gap-2">
         <Select v-model="filterRole">

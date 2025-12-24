@@ -325,13 +325,10 @@ onUnmounted(() => {
       <!-- User Profile -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="ghost" class="relative h-8 w-8">
-            <Avatar class="h-8 w-8 rounded-md">
-              <AvatarImage
-                :src="authStore.user?.avatar || ''"
-                :alt="authStore.user?.username || ''"
-              />
-              <AvatarFallback class="rounded-md">{{ userInitials() }}</AvatarFallback>
+          <Button variant="ghost" class="relative h-8 w-8 rounded-full">
+            <Avatar class="h-8 w-8 rounded-full">
+              <AvatarImage :src="authStore.userAvatarUrl" :alt="authStore.user?.username || ''" />
+              <AvatarFallback class="rounded-full">{{ userInitials() }}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -353,7 +350,7 @@ onUnmounted(() => {
             <span>Admin Panel</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem>
+          <DropdownMenuItem @click="router.push('/profile')">
             <User class="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>

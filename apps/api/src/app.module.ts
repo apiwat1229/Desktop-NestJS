@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AccessControlModule } from './access-control/access-control.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AppController } from './app.controller';
@@ -37,6 +39,10 @@ import { UsersModule } from './users/users.module';
         ApprovalsModule,
         AccessControlModule,
         NotificationGroupsModule,
+        ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), 'uploads'),
+            serveRoot: '/uploads',
+        }),
     ],
     controllers: [AppController],
     providers: [AppService],

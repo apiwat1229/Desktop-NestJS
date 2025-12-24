@@ -172,19 +172,21 @@ const columns: ColumnDef<RubberType>[] = [
   },
   {
     accessorKey: 'is_active',
-    header: 'Status',
+    header: () => h('div', { class: 'text-center w-full' }, 'Status'),
     cell: ({ row }) => {
       const isActive = row.getValue('is_active');
-      return h(
-        'span',
-        {
-          class: [
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-            isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground',
-          ].join(' '),
-        },
-        isActive ? 'Active' : 'Inactive'
-      );
+      return h('div', { class: 'flex justify-center' }, [
+        h(
+          'span',
+          {
+            class: [
+              'inline-flex items-center justify-center rounded-md px-1.5 py-0 text-[9px] font-bold uppercase tracking-wide h-5 min-w-[60px]',
+              isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground',
+            ].join(' '),
+          },
+          isActive ? 'Active' : 'Inactive'
+        ),
+      ]);
     },
   },
   {

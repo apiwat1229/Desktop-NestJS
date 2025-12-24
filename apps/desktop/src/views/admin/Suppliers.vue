@@ -368,14 +368,15 @@ const columns: ColumnDef<Supplier>[] = [
   },
   {
     accessorKey: 'rubberTypeCodes',
-    header: 'Rubber Types',
+    header: () => h('div', { class: 'text-center w-full' }, 'Rubber Types'),
     cell: ({ row }) => {
       const codes = (row.getValue('rubberTypeCodes') as string[]) || [];
-      if (!codes.length) return h('span', { class: 'text-muted-foreground' }, '-');
+      if (!codes.length)
+        return h('div', { class: 'text-center w-full text-muted-foreground' }, '-');
 
       return h(
         'div',
-        { class: 'flex flex-wrap gap-1' },
+        { class: 'flex flex-wrap gap-1 justify-center' },
         codes.map((code) => {
           const rt = rubberTypes.value.find((r) => r.code === code);
           return h(
@@ -389,7 +390,7 @@ const columns: ColumnDef<Supplier>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => h('div', { class: 'text-center w-full' }, 'Status'),
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       const colorClass =
@@ -399,13 +400,15 @@ const columns: ColumnDef<Supplier>[] = [
             ? 'bg-orange-500/10 text-orange-500'
             : 'bg-muted text-muted-foreground';
 
-      return h(
-        'span',
-        {
-          class: `inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${colorClass}`,
-        },
-        status
-      );
+      return h('div', { class: 'flex justify-center' }, [
+        h(
+          'span',
+          {
+            class: `inline-flex items-center justify-center rounded-md px-1.5 py-0 text-[9px] font-bold uppercase tracking-wide h-5 min-w-[60px] ${colorClass}`,
+          },
+          status
+        ),
+      ]);
     },
   },
   {

@@ -39,6 +39,11 @@ const routes = [
                 name: 'MyNotifications',
                 component: () => import('../views/MyNotifications.vue'),
             },
+            {
+                path: 'profile',
+                name: 'Profile',
+                component: () => import('../views/Profile.vue'),
+            },
         ]
     },
     {
@@ -117,6 +122,7 @@ const routes = [
         name: 'ChangePassword',
         component: () => import('../views/ChangePassword.vue'),
     },
+
     {
         path: '/error',
         name: 'Error',

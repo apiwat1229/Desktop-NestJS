@@ -100,8 +100,8 @@ const table = useVueTable({
 <template>
   <div class="space-y-4 relative">
     <!-- Table -->
-    <div class="relative">
-      <Table class="rounded-md border">
+    <div class="relative rounded-[6px] border overflow-hidden">
+      <Table class="w-full">
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
             <TableHead v-for="header in headerGroup.headers" :key="header.id">

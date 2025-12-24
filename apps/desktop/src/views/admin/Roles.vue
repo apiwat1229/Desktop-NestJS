@@ -235,25 +235,38 @@ const userColumns: ColumnDef<User>[] = [
   },
   {
     accessorKey: 'department',
-    header: 'Department',
+    header: () => h('div', { class: 'text-center w-full' }, 'Department'),
     cell: ({ row }) =>
-      h(Badge, { variant: 'outline', class: 'font-normal' }, () => row.original.department || '-'),
+      h('div', { class: 'flex justify-center' }, [
+        h(
+          Badge,
+          { variant: 'outline', class: 'font-normal' },
+          () => row.original.department || '-'
+        ),
+      ]),
   },
   {
     accessorKey: 'position',
-    header: 'Position',
+    header: () => h('div', { class: 'text-center w-full' }, 'Position'),
     cell: ({ row }) =>
-      h(Badge, { variant: 'outline', class: 'font-normal' }, () => row.original.position || '-'),
+      h('div', { class: 'flex justify-center' }, [
+        h(Badge, { variant: 'outline', class: 'font-normal' }, () => row.original.position || '-'),
+      ]),
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => h('div', { class: 'text-center w-full' }, 'Status'),
     cell: ({ row }) =>
-      h(
-        Badge,
-        { variant: row.original.status === 'ACTIVE' ? 'default' : 'secondary' },
-        () => row.original.status
-      ),
+      h('div', { class: 'flex justify-center' }, [
+        h(
+          Badge,
+          {
+            variant: row.original.status === 'ACTIVE' ? 'default' : 'secondary',
+            class: 'h-5 min-w-[60px]',
+          },
+          () => row.original.status
+        ),
+      ]),
   },
   {
     id: 'actions',
@@ -476,19 +489,14 @@ onMounted(() => {
     <div class="space-y-6">
       <!-- Stats / Header Card -->
       <div
-        class="rounded-xl border border-border/60 bg-card/40 backdrop-blur-xl p-6 relative overflow-hidden shadow-sm"
+        class="rounded-xl border border-border/60 bg-card/40 backdrop-blur-xl p-4 relative overflow-hidden shadow-sm"
       >
         <div class="absolute top-1/2 right-12 -translate-y-1/2 pointer-events-none opacity-[0.03]">
           <Shield class="w-64 h-64 rotate-12" />
         </div>
 
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
           <div class="flex items-center gap-4 w-full md:w-auto">
-            <div
-              class="h-12 w-12 flex items-center justify-center bg-blue-100/50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 shadow-sm backdrop-blur-sm"
-            >
-              <Shield class="h-6 w-6" />
-            </div>
             <div>
               <h1 class="text-xl font-bold tracking-tight text-foreground">
                 {{ t('admin.roles.title') }}
@@ -524,7 +532,7 @@ onMounted(() => {
             <!-- Add Role Button -->
             <Button
               @click="handleCreateRole"
-              class="h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
+              class="h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
             >
               <Plus class="w-4 h-4 mr-2" />
               {{ t('admin.roles.addRole') }}
@@ -550,16 +558,14 @@ onMounted(() => {
           />
 
           <CardContent class="p-0 z-10">
-            <div class="flex justify-between items-start mb-3">
-              <!-- Beautiful Icon Container with Gradient -->
-              <div
-                class="relative h-12 w-12 flex items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg"
-                :style="{
-                  background: `linear-gradient(135deg, ${getRoleGradient(role.color).from} 0%, ${getRoleGradient(role.color).to} 100%)`,
-                  boxShadow: `0 10px 25px -5px ${getRoleGradient(role.color).shadow}, 0 8px 10px -6px ${getRoleGradient(role.color).shadow}`,
-                }"
-              >
-                <component :is="getRoleIcon(role.icon)" class="w-6 h-6 text-white drop-shadow-md" />
+            <div class="flex justify-between items-start mb-2 gap-2">
+              <div>
+                <h3 class="font-bold text-base mb-0.5 text-foreground tracking-tight">
+                  {{ role.name }}
+                </h3>
+                <p class="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                  {{ role.description }}
+                </p>
               </div>
 
               <DropdownMenu>
@@ -567,7 +573,7 @@ onMounted(() => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    class="h-8 w-8 text-muted-foreground/60 hover:text-foreground hover:bg-foreground/5 rounded-full"
+                    class="h-8 w-8 text-foreground/60 hover:text-foreground hover:bg-accent rounded-full shrink-0 -mt-1 -mr-2 transition-colors"
                   >
                     <MoreHorizontal class="w-4 h-4" />
                   </Button>
@@ -595,13 +601,6 @@ onMounted(() => {
               </DropdownMenu>
             </div>
 
-            <h3 class="font-bold text-base mb-0.5 text-foreground tracking-tight">
-              {{ role.name }}
-            </h3>
-            <p class="text-[11px] text-muted-foreground line-clamp-2 h-7 mb-2 leading-relaxed">
-              {{ role.description }}
-            </p>
-
             <div
               class="flex items-center justify-between pt-2.5 border-t border-dashed border-border/40 mt-auto"
             >
@@ -624,9 +623,11 @@ onMounted(() => {
                 </div>
               </div>
 
-              <Badge variant="secondary" class="text-[10px] px-2 py-0.5 font-semibold">
+              <div
+                class="px-3 py-1 rounded-md bg-secondary/80 font-bold text-[10px] uppercase tracking-wider text-secondary-foreground"
+              >
                 {{ role.usersCount || 0 }} {{ t('common.users') }}
-              </Badge>
+              </div>
             </div>
           </CardContent>
         </div>

@@ -10,6 +10,12 @@ export const useAuthStore = defineStore('auth', {
     }),
     getters: {
         isAuthenticated: (state) => !!state.accessToken,
+        userAvatarUrl: (state) => {
+            if (!state.user?.avatar) return '';
+            if (state.user.avatar.startsWith('http')) return state.user.avatar;
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:2530';
+            return `${apiUrl}${state.user.avatar}`;
+        },
     },
     actions: {
         setTempToken(token: string) {

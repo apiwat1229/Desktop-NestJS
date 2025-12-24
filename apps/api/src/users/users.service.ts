@@ -215,6 +215,7 @@ export class UsersService {
             role,
             status,
             avatar,
+            pinCode,
         } = updateUserDto;
 
         const dataToUpdate: any = {
@@ -232,6 +233,10 @@ export class UsersService {
 
         if (password) {
             dataToUpdate.password = await bcrypt.hash(password, 10);
+        }
+
+        if (pinCode) {
+            dataToUpdate.pinCode = await bcrypt.hash(pinCode, 10);
         }
 
         return this.prisma.user.update({
@@ -301,6 +306,17 @@ export class UsersService {
                 status: true,
                 failedLoginAttempts: true,
             } as any,
+        });
+    }
+    async updateAvatar(id: string, avatarUrl: string) {
+        await this.findOne(id); // Check if exists
+        return this.prisma.user.update({
+            where: { id },
+            data: { avatar: avatarUrl },
+            select: {
+                id: true,
+                avatar: true,
+            },
         });
     }
 }
