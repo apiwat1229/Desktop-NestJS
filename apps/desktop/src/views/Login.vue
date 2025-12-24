@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import ChangePasswordDialog from '@/components/auth/ChangePasswordDialog.vue';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-vue-next';
+import { AlertCircle, Eye, EyeOff } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
