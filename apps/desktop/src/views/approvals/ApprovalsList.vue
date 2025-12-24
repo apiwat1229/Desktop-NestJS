@@ -2,6 +2,7 @@
 import ApprovalStatusBadge from '@/components/approval/ApprovalStatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import approvalsApi, { type ApprovalRequest } from '@/services/approvals';
 import { handleApiError } from '@/utils/errorHandler';
 import { h, onMounted, ref } from 'vue';
@@ -75,7 +75,7 @@ const columns = [
         Button,
         {
           size: 'sm',
-          onClick: () => router.push(`/approvals/${row.original.id}`),
+          onClick: () => router.push(`/admin/approvals/${row.original.id}`),
         },
         () => 'ดูรายละเอียด'
       ),
@@ -139,13 +139,13 @@ onMounted(() => {
             </Select>
           </div>
 
-          <!-- Show Deleted Toggle -->
+          <!-- Show Deleted Checkbox -->
           <div class="flex items-end gap-2">
             <div class="flex items-center gap-2">
-              <Switch
+              <Checkbox
                 :checked="filters.showDeleted"
                 @update:checked="
-                  (val) => {
+                  (val: boolean) => {
                     filters.showDeleted = val;
                     fetchApprovals();
                   }

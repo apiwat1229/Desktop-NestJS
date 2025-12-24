@@ -216,8 +216,6 @@ export class ApprovalsService {
             actionType: 'APPROVED',
             entityId: request.id,
             actionUrl: `/approvals/${request.id}`,
-            approvalRequestId: request.id,
-            approvalStatus: 'APPROVED',
         });
 
         return updated;
@@ -272,8 +270,6 @@ export class ApprovalsService {
             actionType: 'REJECTED',
             entityId: request.id,
             actionUrl: `/approvals/${request.id}`,
-            approvalRequestId: request.id,
-            approvalStatus: 'REJECTED',
         });
 
         return updated;
@@ -328,8 +324,6 @@ export class ApprovalsService {
             actionType: 'RETURNED',
             entityId: request.id,
             actionUrl: `/approvals/${request.id}`,
-            approvalRequestId: request.id,
-            approvalStatus: 'RETURNED',
         });
 
         return updated;
@@ -430,8 +424,6 @@ export class ApprovalsService {
             actionType: 'VOIDED',
             entityId: request.id,
             actionUrl: `/approvals/${request.id}`,
-            approvalRequestId: request.id,
-            approvalStatus: 'VOID',
         });
 
         return updated;
@@ -536,8 +528,6 @@ export class ApprovalsService {
                 actionType: 'APPROVAL_REQUEST',
                 entityId: request.id,
                 actionUrl: `/approvals/${request.id}`,
-                approvalRequestId: request.id,
-                approvalStatus: 'PENDING',
             });
         }
     }
@@ -599,8 +589,6 @@ export class ApprovalsService {
                 actionType: 'EXPIRED',
                 entityId: request.id,
                 actionUrl: `/approvals/${request.id}`,
-                approvalRequestId: request.id,
-                approvalStatus: 'EXPIRED',
             });
         }
 
