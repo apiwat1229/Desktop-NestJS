@@ -25,7 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
@@ -86,7 +85,7 @@ const deleteDialogOpen = ref(false);
 
 const editingBooking = ref<any>(null);
 const selectedTicket = ref<any>(null);
-const bookingToDelete = ref<string | null>(null);
+const bookingToDelete = ref<any>(null);
 
 // --- Helpers ---
 const selectedDateJS = computed(() => {
@@ -190,15 +189,15 @@ function handleEdit(booking: any) {
   sheetOpen.value = true;
 }
 
-function handleDeleteClick(id: string) {
-  bookingToDelete.value = id;
+function handleDeleteClick(booking: any) {
+  bookingToDelete.value = booking;
   deleteDialogOpen.value = true;
 }
 
 async function confirmDelete() {
   if (!bookingToDelete.value) return;
   try {
-    await bookingsApi.delete(bookingToDelete.value);
+    await bookingsApi.delete(bookingToDelete.value.id);
     toast.success('Booking deleted');
     fetchQueues();
   } catch (err) {
@@ -219,6 +218,15 @@ function handleShowTicket(booking: any) {
 watch([selectedDate, selectedSlot], () => {
   fetchQueues();
 });
+
+function handleBookingSuccess(booking?: any) {
+  fetchQueues();
+  // Auto-open ticket dialog disabled per user request
+  // if (booking && booking.bookingCode) {
+  //   selectedTicket.value = booking;
+  //   ticketDialogOpen.value = true;
+  // }
+}
 
 onMounted(() => {
   fetchQueues();
@@ -250,66 +258,74 @@ onMounted(() => {
 
     <!-- Filters/Selection -->
     <Card class="p-4">
-      <div class="flex gap-4 items-center flex-wrap">
-        <!-- Date Picker -->
-        <div class="flex flex-col gap-2">
-          <span class="text-sm text-muted-foreground">Select Date</span>
-          <Popover>
-            <PopoverTrigger as-child>
-              <Button
-                variant="outline"
-                class="w-[200px] justify-start text-left font-normal"
-                :class="!selectedDate && 'text-muted-foreground'"
+      <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
+        <!-- Left: Inputs -->
+        <div class="flex flex-col sm:flex-row gap-4 flex-1 w-full lg:w-auto">
+          <!-- Date Picker -->
+          <div class="flex flex-col gap-2 min-w-[200px]">
+            <span class="text-sm text-muted-foreground">Select Date</span>
+            <Popover>
+              <PopoverTrigger as-child>
+                <Button
+                  variant="outline"
+                  class="w-full justify-start text-left font-normal"
+                  :class="!selectedDate && 'text-muted-foreground'"
+                >
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{ selectedDate ? format(selectedDateJS, 'dd-MMM-yyyy') : 'Pick a date' }}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto p-0" align="start">
+                <Calendar
+                  v-model="selectedDate"
+                  class="rounded-md border shadow-sm"
+                  initial-focus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <!-- Time Slot Tabs -->
+          <div class="flex-1 flex flex-col gap-2 w-full">
+            <span class="text-sm text-muted-foreground">Time Slot</span>
+            <Tabs v-model="selectedSlot" class="w-full">
+              <TabsList
+                class="grid w-full h-auto flex-wrap gap-1 bg-muted p-1"
+                :style="{
+                  gridTemplateColumns: `repeat(${Math.min(availableSlots.length, 5)}, minmax(0, 1fr))`,
+                }"
               >
-                <CalendarIcon class="mr-2 h-4 w-4" />
-                {{ selectedDate ? format(selectedDateJS, 'dd-MMM-yyyy') : 'Pick a date' }}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent class="w-auto p-0" align="start">
-              <Calendar v-model="selectedDate" class="rounded-md border shadow-sm" initial-focus />
-            </PopoverContent>
-          </Popover>
+                <TabsTrigger
+                  v-for="slot in availableSlots"
+                  :key="slot.value"
+                  :value="slot.value"
+                  class="whitespace-nowrap px-2 py-1 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm"
+                >
+                  {{ slot.label }}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
-        <!-- Time Slot Tabs -->
-        <div class="flex-1 flex flex-col gap-2">
-          <span class="text-sm text-muted-foreground">Time Slot</span>
-          <Tabs v-model="selectedSlot" class="w-full">
-            <TabsList
-              class="grid w-full"
-              :style="{ gridTemplateColumns: `repeat(${availableSlots.length}, minmax(0, 1fr))` }"
-            >
-              <TabsTrigger v-for="slot in availableSlots" :key="slot.value" :value="slot.value">
-                {{ slot.label }}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <!-- Right: Slot Info -->
+        <div class="flex flex-col items-end text-right border-l pl-6 min-w-[240px]">
+          <h3 class="text-lg font-semibold tracking-tight text-primary">
+            Time Slot {{ selectedSlot }}
+          </h3>
+          <p class="text-sm text-muted-foreground mt-1">
+            {{ format(selectedDateJS, 'dd-MMM-yyyy') }} • Queue
+            <span class="font-medium text-foreground">
+              {{ currentSlotConfig.start }}
+              <span v-if="currentSlotConfig.limit"
+                >- {{ currentSlotConfig.start + currentSlotConfig.limit - 1 }}</span
+              >
+              <span v-else>Upwards</span>
+            </span>
+          </p>
         </div>
       </div>
     </Card>
-
-    <!-- Slot Info -->
-    <div class="flex justify-between items-center">
-      <div>
-        <h3 class="text-xl font-semibold">Time Slot {{ selectedSlot }}</h3>
-        <p class="text-sm text-muted-foreground">
-          {{ format(selectedDateJS, 'dd-MMM-yyyy (EEE)') }} • Queue
-          {{ currentSlotConfig.start }}
-          <span v-if="currentSlotConfig.limit"
-            >- {{ currentSlotConfig.start + currentSlotConfig.limit - 1 }}</span
-          >
-          <span v-else>Upwards (Unlimited)</span>
-        </p>
-      </div>
-      <div>
-        <Badge v-if="!currentSlotConfig.limit" class="bg-green-600 hover:bg-green-700"
-          >Unlimited</Badge
-        >
-        <Badge v-else :variant="isSlotFull ? 'destructive' : 'default'">
-          {{ isSlotFull ? 'Full' : `Available ${currentSlotConfig.limit - queues.length} Queue` }}
-        </Badge>
-      </div>
-    </div>
 
     <!-- Stats -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -387,7 +403,7 @@ onMounted(() => {
                     variant="ghost"
                     size="icon"
                     class="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    @click="handleDeleteClick(queue.id)"
+                    @click="handleDeleteClick(queue)"
                   >
                     <Trash2 class="h-4 w-4" />
                   </Button>
@@ -435,7 +451,7 @@ onMounted(() => {
       :selectedSlot="selectedSlot"
       :nextQueueNo="nextQueueNo || 1"
       :editingBooking="editingBooking"
-      @success="fetchQueues"
+      @success="handleBookingSuccess"
     />
 
     <TicketDialog v-model:open="ticketDialogOpen" :ticket="selectedTicket" />
@@ -444,8 +460,13 @@ onMounted(() => {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete this booking? This action cannot be undone.
+          <AlertDialogDescription class="space-y-2">
+            <div v-if="bookingToDelete" class="bg-muted/50 p-3 rounded-md text-sm text-foreground">
+              <p><strong>Queue:</strong> {{ bookingToDelete.queueNo }}</p>
+              <p><strong>Code:</strong> {{ bookingToDelete.bookingCode }}</p>
+              <p><strong>Supplier:</strong> {{ bookingToDelete.supplierName }}</p>
+            </div>
+            <p>Are you sure you want to delete this booking? This action cannot be undone.</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

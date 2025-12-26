@@ -145,11 +145,9 @@ const handleCopyTicketImage = async () => {
 <template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="max-w-md">
-      <DialogHeader class="sr-only">
-        <DialogTitle>Ticket Preview</DialogTitle>
-        <DialogDescription>
-          Preview of the booking ticket details including code, supplier, and queue number.
-        </DialogDescription>
+      <DialogHeader>
+        <DialogTitle>Ticket Details</DialogTitle>
+        <DialogDescription> Preview of the booking ticket details. </DialogDescription>
       </DialogHeader>
 
       <div v-if="ticket" class="space-y-4">

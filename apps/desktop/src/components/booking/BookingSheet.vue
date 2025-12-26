@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -10,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -17,11 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { bookingsApi } from '@/services/bookings';
-import { rubberTypesApi } from '@/services/rubberTypes'; // Assuming exists, otherwise need to create or use generic api
+import { rubberTypesApi } from '@/services/rubberTypes';
 import { suppliersApi } from '@/services/suppliers';
 import { useAuthStore } from '@/stores/auth';
 import { format } from 'date-fns';
+import { Check, ChevronsUpDown } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -42,6 +53,7 @@ const authStore = useAuthStore();
 const loading = ref(false);
 const suppliers = ref<any[]>([]);
 const rubberTypes = ref<any[]>([]);
+const openSupplierCombo = ref(false);
 
 const form = ref({
   supplierId: '',
@@ -166,13 +178,14 @@ async function handleSubmit() {
   try {
     loading.value = true;
     if (isEditMode.value && props.editingBooking?.id) {
-      await bookingsApi.update(props.editingBooking.id, payload);
+      const updated = await bookingsApi.update(props.editingBooking.id, payload);
       toast.success('Updated successfully');
+      emit('success', updated);
     } else {
-      await bookingsApi.create(payload as any);
+      const created = await bookingsApi.create(payload as any);
       toast.success('Created successfully');
+      emit('success', created);
     }
-    emit('success');
     emit('update:open', false);
   } catch (err: any) {
     console.error('Save booking error:', err);
@@ -200,11 +213,11 @@ async function handleSubmit() {
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
             <Label>Start Time</Label>
-            <Input :value="startTime" readonly disabled />
+            <Input :model-value="startTime" readonly disabled />
           </div>
           <div class="space-y-2">
             <Label>End Time</Label>
-            <Input :value="endTime" readonly disabled />
+            <Input :model-value="endTime" readonly disabled />
           </div>
         </div>
 
@@ -212,28 +225,72 @@ async function handleSubmit() {
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
             <Label>Queue Number</Label>
-            <Input :value="displayQueueNo" readonly disabled />
+            <Input :model-value="displayQueueNo" readonly disabled />
           </div>
           <div class="space-y-2">
             <Label>Booking Code</Label>
-            <Input :value="displayBookingCode" readonly disabled />
+            <Input :model-value="displayBookingCode" readonly disabled />
           </div>
         </div>
 
         <!-- Supplier -->
         <div class="space-y-2">
           <Label>Supplier</Label>
-          <Select v-model="form.supplierId">
-            <SelectTrigger>
-              <SelectValue placeholder="Select Supplier" />
-            </SelectTrigger>
-            <SelectContent>
-              <!-- Simple select for now, ideally searchable -->
-              <SelectItem v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                {{ supplier.code }} - {{ supplier.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Popover v-model:open="openSupplierCombo">
+            <PopoverTrigger as-child>
+              <Button
+                variant="outline"
+                role="combobox"
+                :aria-expanded="openSupplierCombo"
+                class="w-full justify-between"
+              >
+                {{
+                  form.supplierId
+                    ? suppliers.find((framework) => framework.id === form.supplierId)?.code +
+                      ' - ' +
+                      suppliers.find((framework) => framework.id === form.supplierId)?.name
+                    : 'Select Supplier'
+                }}
+                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-[400px] p-0">
+              <Command
+                :filter-function="
+                  (list: any[], term: string) =>
+                    list.filter((i) => (i.code + i.name).toLowerCase().includes(term.toLowerCase()))
+                "
+              >
+                <CommandInput placeholder="Search supplier..." />
+                <CommandEmpty>No supplier found.</CommandEmpty>
+                <CommandList>
+                  <CommandGroup>
+                    <CommandItem
+                      v-for="framework in suppliers"
+                      :key="framework.id"
+                      :value="framework"
+                      @select="
+                        () => {
+                          form.supplierId = framework.id;
+                          openSupplierCombo = false;
+                        }
+                      "
+                    >
+                      <Check
+                        :class="
+                          cn(
+                            'mr-2 h-4 w-4',
+                            form.supplierId === framework.id ? 'opacity-100' : 'opacity-0'
+                          )
+                        "
+                      />
+                      {{ framework.code }} - {{ framework.name }}
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <!-- Truck Info -->

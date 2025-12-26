@@ -74,6 +74,26 @@ export class BookingsService {
             throw new BadRequestException('This time slot is full');
         }
 
+        // Check for duplicate booking (Same Supplier, Same Truck, Same Slot)
+        // If truckRegister is provided, ensuring same truck doesn't book twice.
+        // If no truckRegister, assumed to be same entity? Let's check strict duplicate only if truck register exists or just loose warning?
+        // Let's refine: Block if Same Supplier AND Same Truck Register. 
+        // If truckRegister is empty, maybe allow? Or block?
+        // Better: Find if there is a booking with same Supplier AND Same TruckRegister in this slot.
+        if (truckRegister) {
+            const duplicateBooking = dayBookings.find(b => b.supplierId === supplierId && b.slot === slot && b.truckRegister === truckRegister);
+            if (duplicateBooking) {
+                throw new BadRequestException(`This truck (${truckRegister}) already has a booking for this slot.`);
+            }
+        } else {
+            // If no truck register provided, maybe allow multiple? 
+            // Or check if there's a booking without truck register for this supplier?
+            // For now, let's just relax the check to rely on Truck Register uniqueness if provided.
+            // If the user wants to book multiple "unknown trucks", maybe we shouldn't block.
+            // But to be safe, if truckRegister is empty, we check if there is ANY booking for this supplier with empty truck register in this slot?
+            // Let's just remove the generic supplier check to allow same supplier multiple bookings (different trucks).
+        }
+
         // Calculate next queue number
         let queueNo: number;
         if (!slotConfig.limit) {
@@ -110,7 +130,7 @@ export class BookingsService {
         const bookingCode = genBookingCode(new Date(date), queueNo);
 
         try {
-            return await this.prisma.booking.create({
+            const createdBooking = await this.prisma.booking.create({
                 data: {
                     queueNo,
                     bookingCode,
@@ -127,19 +147,19 @@ export class BookingsService {
                     recorder,
                 },
             });
+
+            // Trigger Notification
+            await this.triggerNotification('Booking', 'CREATE', {
+                title: 'New Booking Created',
+                message: `Booking ${bookingCode} created for ${supplierName} at ${slot}`,
+                actionUrl: `/bookings/${bookingCode}`,
+            });
+
+            return createdBooking;
         } catch (error) {
             console.error('Error creating booking:', error);
             throw new BadRequestException('Failed to create booking. Please check the data and try again.');
         }
-
-        // Trigger Notification
-        await this.triggerNotification('Booking', 'CREATE', {
-            title: 'New Booking Created',
-            message: `Booking ${bookingCode} created for ${supplierName} at ${slot}`,
-            actionUrl: `/bookings/${bookingCode}`,
-        });
-
-        return { queueNo, bookingCode };
     }
 
     async findAll(date?: string, slot?: string) {
