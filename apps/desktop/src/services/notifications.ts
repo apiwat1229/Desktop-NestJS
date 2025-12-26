@@ -50,6 +50,7 @@ export const notificationsApi = {
         actionType: string;
         isActive?: boolean;
         recipientRoles?: string[];
+        recipientGroups?: string[];
         recipientUsers?: string[];
         channels?: string[];
     }) => api.put('/notifications/settings', data),

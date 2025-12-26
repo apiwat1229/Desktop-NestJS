@@ -1,41 +1,43 @@
 <script setup lang="ts">
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import MultiSelect from '@/components/ui/multi-select/MultiSelect.vue';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,32 +45,33 @@ import { notificationsApi } from '@/services/notifications';
 import { rolesApi } from '@/services/roles';
 import { usersApi } from '@/services/users';
 import type {
-  BroadcastDto,
-  CreateBroadcastDto,
-  CreateNotificationGroupDto,
-  NotificationGroupDto,
-  RoleDto,
-  UserDto,
+    BroadcastDto,
+    CreateBroadcastDto,
+    CreateNotificationGroupDto,
+    NotificationGroupDto,
+    NotificationSettingDto,
+    RoleDto,
+    UserDto,
 } from '@my-app/types';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { format } from 'date-fns';
 import {
-  AlertCircle,
-  AlertTriangle,
-  Bell,
-  Briefcase,
-  CheckCircle2,
-  Edit2,
-  Info,
-  Layers,
-  Lock,
-  MoreHorizontal,
-  Plus,
-  Send,
-  Settings,
-  Shield,
-  Trash2,
-  Users,
+    AlertCircle,
+    AlertTriangle,
+    Bell,
+    Briefcase,
+    CheckCircle2,
+    Edit2,
+    Info,
+    Layers,
+    Lock,
+    MoreHorizontal,
+    Plus,
+    Send,
+    Settings,
+    Shield,
+    Trash2,
+    Users,
 } from 'lucide-vue-next';
 import { computed, h, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -175,6 +178,58 @@ const groups = ref<NotificationGroupDto[]>([]);
 const roles = ref<RoleDto[]>([]);
 const users = ref<UserDto[]>([]);
 const loading = ref(false);
+
+// Settings
+const settings = ref<NotificationSettingDto[]>([]);
+const settingDefinitions = [
+  { sourceApp: 'Booking', actionType: 'CREATE', label: 'New Booking Created' },
+  { sourceApp: 'Booking', actionType: 'UPDATE', label: 'Booking Updated' },
+  { sourceApp: 'Booking', actionType: 'DELETE', label: 'Booking Cancelled' },
+];
+
+const fetchSettings = async () => {
+  try {
+    const res = await notificationsApi.getSettings();
+    settings.value = res.data || [];
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const getSetting = (sourceApp: string, actionType: string) => {
+  return (
+    settings.value.find((s) => s.sourceApp === sourceApp && s.actionType === actionType) || {
+      sourceApp,
+      actionType,
+      isActive: true,
+      recipientRoles: [],
+      recipientGroups: [],
+      recipientUsers: [],
+    }
+  );
+};
+
+const saveSetting = async (
+  sourceApp: string,
+  actionType: string,
+  isActive: any, // Checkbox checked value can be boolean or 'indeterminate'
+  roles: string[],
+  groups: string[]
+) => {
+  try {
+    await notificationsApi.updateSetting({
+      sourceApp,
+      actionType,
+      isActive: isActive === true,
+      recipientRoles: roles,
+      recipientGroups: groups,
+    });
+    toast.success('Setting updated');
+    fetchSettings();
+  } catch (err) {
+    toast.error('Failed to update setting');
+  }
+};
 
 // Delete confirmation
 const isDeleteDialogOpen = ref(false);
@@ -544,6 +599,7 @@ const formatDate = (date: Date | string) => {
 
 onMounted(() => {
   fetchData();
+  fetchSettings();
 });
 </script>
 
@@ -762,8 +818,80 @@ onMounted(() => {
             <CardTitle>{{ t('admin.notificationSettings.title') }}</CardTitle>
             <CardDescription>{{ t('admin.notificationSettings.subtitle') }}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p class="text-muted-foreground">Settings configuration coming soon...</p>
+          <CardContent class="space-y-6">
+            <div
+              v-for="def in settingDefinitions"
+              :key="def.sourceApp + def.actionType"
+              class="flex flex-col gap-4 border-b last:border-0 pb-6 last:pb-0"
+            >
+              <div class="flex items-center justify-between">
+                <div class="space-y-0.5">
+                  <Label class="text-base font-medium">{{ def.label }}</Label>
+                  <p class="text-sm text-muted-foreground">
+                    Source: {{ def.sourceApp }} | Event: {{ def.actionType }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Label>Active</Label>
+                  <Checkbox
+                    :checked="getSetting(def.sourceApp, def.actionType).isActive ?? true"
+                    @update:checked="
+                      (val: boolean) =>
+                        saveSetting(
+                          def.sourceApp,
+                          def.actionType,
+                          val,
+                          getSetting(def.sourceApp, def.actionType).recipientRoles as string[],
+                          getSetting(def.sourceApp, def.actionType).recipientGroups as string[]
+                        )
+                    "
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <Label class="text-xs">Notify Roles</Label>
+                  <MultiSelect
+                    :modelValue="
+                      (getSetting(def.sourceApp, def.actionType).recipientRoles as string[]) || []
+                    "
+                    @update:modelValue="
+                      (val) =>
+                        saveSetting(
+                          def.sourceApp,
+                          def.actionType,
+                          getSetting(def.sourceApp, def.actionType).isActive,
+                          val,
+                          getSetting(def.sourceApp, def.actionType).recipientGroups as string[]
+                        )
+                    "
+                    :options="roles.map((r) => ({ label: r.name, value: r.name }))"
+                    placeholder="Select Roles..."
+                  />
+                </div>
+                <div class="space-y-2">
+                  <Label class="text-xs">Notify Groups</Label>
+                  <MultiSelect
+                    :modelValue="
+                      (getSetting(def.sourceApp, def.actionType).recipientGroups as string[]) || []
+                    "
+                    @update:modelValue="
+                      (val) =>
+                        saveSetting(
+                          def.sourceApp,
+                          def.actionType,
+                          getSetting(def.sourceApp, def.actionType).isActive,
+                          getSetting(def.sourceApp, def.actionType).recipientRoles as string[],
+                          val
+                        )
+                    "
+                    :options="groups.map((g) => ({ label: g.name, value: g.id }))"
+                    placeholder="Select Groups..."
+                  />
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </TabsContent>
@@ -771,7 +899,7 @@ onMounted(() => {
 
     <!-- Broadcast Dialog -->
     <Dialog v-model:open="isBroadcastDialogOpen">
-      <DialogContent class="sm:max-w-5xl max-h-[90vh]">
+      <DialogContent class="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{{ t('admin.notifications.sendManualBroadcast') }}</DialogTitle>
           <DialogDescription>{{
@@ -801,150 +929,34 @@ onMounted(() => {
             <!-- Recipients Section -->
             <div class="space-y-4 border-t pt-4">
               <h3 class="text-sm font-semibold">{{ t('admin.notifications.recipients') }}</h3>
-
-              <!-- Individual Users -->
               <div class="space-y-2">
-                <Label>{{ t('admin.notifications.selectUsers') }}</Label>
-                <Select
-                  :model-value="
-                    broadcastForm.recipientUsers?.[broadcastForm.recipientUsers.length - 1] || ''
-                  "
-                  @update:model-value="
-                    (val: string) => {
-                      if (val && !broadcastForm.recipientUsers?.includes(val)) {
-                        broadcastForm.recipientUsers = [
-                          ...(broadcastForm.recipientUsers || []),
-                          val,
-                        ];
-                      }
-                    }
-                  "
-                >
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.notifications.selectUsersPlaceholder')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="user in users"
-                      :key="user.id"
-                      :value="user.id"
-                      :disabled="broadcastForm.recipientUsers?.includes(user.id)"
-                    >
-                      {{ user.displayName || user.email }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <!-- Selected Users Badges -->
-                <div
-                  v-if="broadcastForm.recipientUsers && broadcastForm.recipientUsers.length > 0"
-                  class="flex flex-wrap gap-2 mt-2"
-                >
-                  <Badge
-                    v-for="userId in broadcastForm.recipientUsers"
-                    :key="userId"
-                    variant="secondary"
-                    class="gap-1"
-                  >
-                    {{
-                      users.find((u) => u.id === userId)?.displayName ||
-                      users.find((u) => u.id === userId)?.email
-                    }}
-                    <button
-                      @click="
-                        broadcastForm.recipientUsers = broadcastForm.recipientUsers?.filter(
-                          (id) => id !== userId
-                        )
-                      "
-                      class="ml-1 hover:text-destructive"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                </div>
+                <Label>Recipients (Roles)</Label>
+                <MultiSelect
+                  v-model="broadcastForm.recipientRoles"
+                  :options="roles.map((r) => ({ label: r.name, value: r.name }))"
+                  placeholder="Select Roles..."
+                />
               </div>
-
-              <!-- Groups -->
               <div class="space-y-2">
-                <Label>{{ t('admin.notifications.selectGroups') }}</Label>
-                <Select
-                  :model-value="
-                    broadcastForm.recipientGroups?.[broadcastForm.recipientGroups.length - 1] || ''
-                  "
-                  @update:model-value="
-                    (val: string) => {
-                      if (val && !broadcastForm.recipientGroups?.includes(val)) {
-                        broadcastForm.recipientGroups = [
-                          ...(broadcastForm.recipientGroups || []),
-                          val,
-                        ];
-                      }
-                    }
-                  "
-                >
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.notifications.selectGroupsPlaceholder')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="group in groups"
-                      :key="group.id"
-                      :value="group.id"
-                      :disabled="broadcastForm.recipientGroups?.includes(group.id)"
-                    >
-                      {{ group.name }} ({{ group.memberIds?.length || 0 }} members)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <!-- Selected Groups Badges -->
-                <div
-                  v-if="broadcastForm.recipientGroups && broadcastForm.recipientGroups.length > 0"
-                  class="flex flex-wrap gap-2 mt-2"
-                >
-                  <Badge
-                    v-for="groupId in broadcastForm.recipientGroups"
-                    :key="groupId"
-                    variant="secondary"
-                    class="gap-1"
-                  >
-                    {{ groups.find((g) => g.id === groupId)?.name }}
-                    <button
-                      @click="
-                        broadcastForm.recipientGroups = broadcastForm.recipientGroups?.filter(
-                          (id) => id !== groupId
-                        )
-                      "
-                      class="ml-1 hover:text-destructive"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                </div>
+                <Label>Recipients (Groups)</Label>
+                <MultiSelect
+                  v-model="broadcastForm.recipientGroups"
+                  :options="groups.map((g) => ({ label: g.name, value: g.id }))"
+                  placeholder="Select Groups..."
+                />
               </div>
-
-              <!-- Summary -->
-              <div
-                v-if="
-                  (broadcastForm.recipientUsers && broadcastForm.recipientUsers.length > 0) ||
-                  (broadcastForm.recipientGroups && broadcastForm.recipientGroups.length > 0)
-                "
-                class="text-sm text-muted-foreground"
-              >
-                {{ t('admin.notifications.willSendTo') }}:
-                <span class="font-semibold">
-                  {{ broadcastForm.recipientUsers?.length || 0 }}
-                  {{ t('admin.notifications.users') }}
-                </span>
-                <span
-                  v-if="broadcastForm.recipientGroups && broadcastForm.recipientGroups.length > 0"
-                >
-                  ,
-                  <span class="font-semibold"
-                    >{{ broadcastForm.recipientGroups.length }}
-                    {{ t('admin.notifications.groups') }}</span
-                  >
-                </span>
+              <div class="space-y-2">
+                <Label>Recipients (Users)</Label>
+                <MultiSelect
+                  v-model="broadcastForm.recipientUsers"
+                  :options="
+                    users.map((u) => ({
+                      label: u.displayName || u.username || 'User',
+                      value: u.id,
+                    }))
+                  "
+                  placeholder="Select Users..."
+                />
               </div>
             </div>
           </div>
@@ -987,7 +999,6 @@ onMounted(() => {
               <h3 class="text-sm font-semibold">ตัวอย่างการแจ้งเตือน</h3>
 
               <!-- Preview Card -->
-              <!-- Preview Card (Styled like Sonner Toast) -->
               <div
                 class="flex w-full items-start gap-4 rounded-md border bg-white p-4 shadow-lg transition-all duration-200"
                 :class="[
@@ -1073,7 +1084,6 @@ onMounted(() => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
     <!-- Group Dialog -->
     <Dialog v-model:open="isGroupDialogOpen">
       <DialogContent>

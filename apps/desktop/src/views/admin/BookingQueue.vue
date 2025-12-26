@@ -31,6 +31,7 @@ import { Card } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRoute } from 'vue-router';
 
 // --- Constants ---
 const TIME_SLOTS: any[] = [
@@ -219,7 +220,7 @@ watch([selectedDate, selectedSlot], () => {
   fetchQueues();
 });
 
-function handleBookingSuccess(booking?: any) {
+function handleBookingSuccess(_booking?: any) {
   fetchQueues();
   // Auto-open ticket dialog disabled per user request
   // if (booking && booking.bookingCode) {
@@ -228,9 +229,70 @@ function handleBookingSuccess(booking?: any) {
   // }
 }
 
-onMounted(() => {
+// Use VueUse for persistence if available, or manual localStorage
+// Since we don't have vueuse explicit here, let's use manual local storage helper
+const STORAGE_KEY = 'booking_queue_slot_pref';
+
+onMounted(async () => {
+  // 1. Check for 'code' query param implies Deep Link
+  const route = useRoute();
+  const code = route.query.code as string;
+
+  if (code) {
+    try {
+      loading.value = true;
+      console.log(`[BookingQueue] Deep Linking for code: ${code}`);
+      // Fetch booking by code to get date/slot
+      // We use getAll with code filter
+      const bookings = await bookingsApi.getAll({ code });
+
+      if (bookings && bookings.length > 0) {
+        const booking = bookings[0];
+        console.log(`[BookingQueue] Found booking:`, booking);
+
+        // Set Date and Slot
+        selectedDate.value = fromDate(new Date(booking.date), getLocalTimeZone());
+        selectedSlot.value = booking.slot;
+
+        // Highlight/Scroll logic could go here
+
+        // We don't save persistence here because this is a specific overwrite
+      } else {
+        toast.error('Booking not found');
+      }
+    } catch (error) {
+      console.error('Deep link failed', error);
+      toast.error('Failed to load linked booking');
+    } finally {
+      loading.value = false;
+    }
+  } else {
+    // 2. Normal load: Check persistence
+    const savedSlot = localStorage.getItem(STORAGE_KEY);
+    if (savedSlot) {
+      selectedSlot.value = savedSlot;
+    }
+  }
+
+  // Always fetch queues after setting state
   fetchQueues();
 });
+
+// Watch slot to persist
+watch(selectedSlot, (newSlot) => {
+  localStorage.setItem(STORAGE_KEY, newSlot);
+});
+
+// Watch for date/slot changes (Existing watcher)
+// Note: We need to be careful not to double fetch if we set values in onMounted.
+// But existing watcher calls fetchQueues() on change.
+// In onMounted we manually called fetchQueues().
+// Let's rely on the watcher if we change values, but if we don't change (e.g. no deep link, no saved slot), we might need an initial fetch.
+// Actually, the existing code:
+// watch([selectedDate, selectedSlot], () => fetchQueues())
+// onMounted(() => fetchQueues())
+// This implies double fetch if onMounted changes values.
+// Ideally we remove the explicit fetchQueues in onMounted if we change values.
 </script>
 
 <template>

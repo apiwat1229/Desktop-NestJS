@@ -63,7 +63,12 @@ export class NotificationsService {
 
         if (data.recipientRoles && data.recipientRoles.length > 0) {
             console.log(`Roles Targeted: ${data.recipientRoles.join(', ')}`);
-            whereConditions.push({ role: { in: data.recipientRoles } });
+            whereConditions.push({
+                OR: [
+                    { role: { in: data.recipientRoles } },
+                    { roleRecord: { name: { in: data.recipientRoles } } }
+                ]
+            });
         }
 
         if (data.recipientGroups && data.recipientGroups.length > 0) {
@@ -397,3 +402,5 @@ export class NotificationsService {
         return group?.members || [];
     }
 }
+
+

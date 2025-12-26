@@ -11,8 +11,8 @@ export class BookingsController {
     }
 
     @Get()
-    findAll(@Query('date') date?: string, @Query('slot') slot?: string) {
-        return this.bookingsService.findAll(date, slot);
+    findAll(@Query('date') date?: string, @Query('slot') slot?: string, @Query('code') code?: string) {
+        return this.bookingsService.findAll(date, slot, code);
     }
 
     @Get('stats/:date')

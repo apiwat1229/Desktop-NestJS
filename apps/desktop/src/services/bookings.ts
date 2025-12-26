@@ -16,7 +16,7 @@ export interface CreateBookingDto {
 export interface UpdateBookingDto extends Partial<CreateBookingDto> { }
 
 export const bookingsApi = {
-    getAll: async (params?: { date?: string; slot?: string }) => {
+    getAll: async (params?: { date?: string; slot?: string; code?: string }) => {
         const response = await api.get('/bookings', { params });
         return response.data;
     },

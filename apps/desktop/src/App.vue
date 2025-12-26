@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { Toaster } from '@/components/ui/sonner';
 import { useThemeStore } from '@/stores/theme';
+import { onMounted, onUnmounted } from 'vue';
 import GlobalBackground from './components/layout/GlobalBackground.vue';
 
-const themeStore = useThemeStore();
+useThemeStore();
+
+onMounted(() => {
+  // socketService managed in Navbar
+});
+
+onUnmounted(() => {
+  // socketService managed in Navbar
+});
 </script>
 
 <template>

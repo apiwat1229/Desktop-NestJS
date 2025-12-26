@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { notificationsApi } from '@/services/notifications';
 import { socketService } from '@/services/socket';
 import type { NotificationDto } from '@my-app/types';
@@ -227,10 +228,32 @@ const notificationColumns: ColumnDef<NotificationDto>[] = [
     accessorKey: 'message',
     header: 'Message',
     cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'max-w-md truncate text-muted-foreground text-sm' },
-        row.original.message
+      // Simple formatter to bold key parts of the message
+      const formatMessage = (msg: string) => {
+        return msg
+          .replace(/(Booking \w+)/, '<span class="font-bold text-primary">$1</span>')
+          .replace(/\((.*?)\)/, '<span class="text-muted-foreground">($1)</span>')
+          .replace(/(at \d{2}:\d{2}-\d{2}:\d{2})/, '<span class="font-medium">$1</span>');
+      };
+
+      return h(TooltipProvider, { delayDuration: 0 }, () =>
+        h(Tooltip, {}, () => [
+          h(TooltipTrigger, { asChild: true }, () =>
+            h(
+              'div',
+              { class: 'max-w-md truncate text-muted-foreground text-sm cursor-help' },
+              row.original.message
+            )
+          ),
+          h(
+            TooltipContent,
+            {
+              class:
+                'max-w-prose p-4 text-sm leading-relaxed shadow-lg border-primary/20 bg-popover',
+            },
+            () => h('div', { innerHTML: formatMessage(row.original.message) })
+          ),
+        ])
       );
     },
   },

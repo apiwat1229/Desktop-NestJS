@@ -162,15 +162,16 @@ export class BookingsService {
         }
     }
 
-    async findAll(date?: string, slot?: string) {
+    async findAll(date?: string, slot?: string, code?: string) {
         const where: any = {};
 
-        if (date) {
-            where.date = new Date(date);
-        }
-
-        if (slot) {
-            where.slot = slot;
+        if (code) {
+            where.bookingCode = code;
+        } else {
+            // Only apply date/slot filter if code is NOT provided
+            // (or both, depending on logic, but likely code implies precise lookup)
+            if (date) where.date = date;
+            if (slot) where.slot = slot;
         }
 
         return this.prisma.booking.findMany({
@@ -210,15 +211,15 @@ export class BookingsService {
         // Trigger Notification
         await this.triggerNotification('Booking', 'UPDATE', {
             title: 'Booking Updated',
-            message: `Booking with ID ${id} has been updated.`,
-            actionUrl: `/bookings`, // TODO: use code
+            message: `Booking ${result.bookingCode} (${result.supplierName}) at ${result.slot} has been updated.`,
+            actionUrl: `/bookings?code=${result.bookingCode}`,
         });
 
         return result;
     }
 
     async remove(id: string) {
-        await this.findOne(id); // Check if exists
+        const booking = await this.findOne(id); // Check if exists
 
         const result = await this.prisma.booking.delete({
             where: { id },
@@ -227,7 +228,7 @@ export class BookingsService {
         // Trigger Notification
         await this.triggerNotification('Booking', 'DELETE', {
             title: 'Booking Cancelled',
-            message: `Booking with ID ${id} has been cancelled/deleted.`,
+            message: `Booking ${booking.bookingCode} (${booking.supplierName}) at ${booking.slot} has been cancelled.`,
         });
 
         return result;
@@ -248,32 +249,51 @@ export class BookingsService {
             }
 
             const recipientRoles = (settings.recipientRoles as unknown as string[]) || [];
+            const recipientGroups = (settings.recipientGroups as unknown as string[]) || [];
+
+            let targetUserIds: string[] = [];
 
             // 2. Find Users with these Roles
             if (recipientRoles.length > 0) {
-                // recipientRoles now contains role names/codes directly (e.g., 'admin', 'manager')
                 const users = await this.prisma.user.findMany({
                     where: {
-                        role: { in: recipientRoles }
+                        OR: [
+                            { role: { in: recipientRoles } },
+                            { roleRecord: { name: { in: recipientRoles } } }
+                        ]
                     },
                     select: { id: true }
                 });
-
-                // 3. Send Notification to each user
-                for (const user of users) {
-                    await this.notificationsService.create({
-                        userId: user.id,
-                        title: payload.title,
-                        message: payload.message,
-                        type: 'INFO',
-                        sourceApp,
-                        actionType,
-                        actionUrl: payload.actionUrl
-                    });
-                }
+                targetUserIds.push(...users.map(u => u.id));
             }
 
-            console.log(`Notification sent for ${sourceApp}:${actionType} to ${recipientRoles.length} roles.`);
+            // 3. Find Users in these Groups
+            if (recipientGroups.length > 0) {
+                const groups = await this.prisma.notificationGroup.findMany({
+                    where: { id: { in: recipientGroups } },
+                    include: { members: { select: { id: true } } }
+                });
+                const groupUserIds = groups.flatMap(g => g.members.map(m => m.id));
+                targetUserIds.push(...groupUserIds);
+            }
+
+            // Deduplicate
+            targetUserIds = [...new Set(targetUserIds)];
+
+            // 4. Send Notification to each user
+            for (const userId of targetUserIds) {
+                await this.notificationsService.create({
+                    userId: userId,
+                    title: payload.title,
+                    message: payload.message,
+                    type: 'INFO',
+                    sourceApp,
+                    actionType,
+                    actionUrl: payload.actionUrl
+                });
+            }
+
+            console.log(`Notification sent for ${sourceApp}:${actionType} to ${targetUserIds.length} users.`);
 
         } catch (error) {
             console.error('Error triggering notification:', error);
