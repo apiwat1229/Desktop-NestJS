@@ -63,13 +63,13 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'truck-scale',
-    title: 'Truck Scale',
-    description: 'Weighing System integration for inbound/outbound logistics.',
+    title: 'Truck Scale & Check-in',
+    description: 'Weighing System and Booking Check-in for logistics.',
     icon: Truck,
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50/50 group-hover:bg-emerald-100/50',
     hoverBorder: 'group-hover:border-emerald-500',
-    route: '/admin/scale',
+    route: '/scale',
   },
   {
     id: 'maintenance',

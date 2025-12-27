@@ -109,7 +109,6 @@ const routes = [
                 path: 'bookings',
                 redirect: '/bookings',
             },
-
             {
                 path: 'approvals',
                 name: 'Approvals',
@@ -137,6 +136,18 @@ const routes = [
         path: '/error',
         name: 'Error',
         component: () => import('../views/Error.vue'),
+    },
+    {
+        path: '/scale',
+        name: 'TruckScale',
+        component: () => import('@/components/layout/MainLayout.vue'),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                component: () => import('../views/admin/TruckScale.vue'),
+            }
+        ]
     },
     {
         path: '/:pathMatch(.*)*',

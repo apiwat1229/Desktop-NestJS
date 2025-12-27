@@ -30,6 +30,11 @@ export class BookingsController {
         return this.bookingsService.update(id, updateDto, req.user);
     }
 
+    @Patch(':id/check-in')
+    checkIn(@Param('id') id: string, @Body() body: any) {
+        return this.bookingsService.checkIn(id, body);
+    }
+
     @Delete(':id')
     remove(@Param('id') id: string, @Request() req: any) {
         return this.bookingsService.remove(id, req.user);

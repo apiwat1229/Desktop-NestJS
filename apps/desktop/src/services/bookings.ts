@@ -40,4 +40,9 @@ export const bookingsApi = {
         const response = await api.delete(`/bookings/${id}`);
         return response.data;
     },
+
+    checkIn: async (id: string, data?: any) => {
+        const response = await api.patch(`/bookings/${id}/check-in`, data);
+        return response.data;
+    },
 };

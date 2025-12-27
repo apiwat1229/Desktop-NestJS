@@ -146,7 +146,9 @@ const table = useVueTable({
             :model-value="String(table.getState().pagination.pageSize)"
             @update:model-value="(value) => table.setPageSize(Number(value))"
           >
-            <SelectTrigger class="w-[70px]">
+            <SelectTrigger
+              class="h-8 w-[70px] bg-background border-input hover:bg-accent hover:text-accent-foreground"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

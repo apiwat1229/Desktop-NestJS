@@ -145,6 +145,33 @@ export class BookingsService {
         }
     }
 
+    async checkIn(id: string, data?: any) {
+        const booking = await this.findOne(id);
+
+        if (booking.checkinAt) {
+            throw new BadRequestException('This booking has already been checked in.');
+        }
+
+        const updated = await this.prisma.booking.update({
+            where: { id },
+            data: {
+                checkinAt: new Date(),
+                truckType: data?.truckType,
+                truckRegister: data?.truckRegister,
+                note: data?.note,
+            },
+        });
+
+        // Trigger Notification
+        await this.triggerNotification('Booking', 'UPDATE', {
+            title: 'Truck Checked In',
+            message: `Truck ${booking.truckRegister} (${booking.bookingCode}) checked in.`,
+            actionUrl: `/bookings/${booking.bookingCode}`,
+        });
+
+        return updated;
+    }
+
     async findAll(date?: string, slot?: string, code?: string) {
         const where: any = {};
 

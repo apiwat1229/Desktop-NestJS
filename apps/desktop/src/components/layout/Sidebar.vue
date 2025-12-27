@@ -44,6 +44,12 @@ const allMenuGroups = [
         icon: Calendar,
         permission: 'bookings:read',
       },
+      {
+        name: 'Truck Scale',
+        path: '/scale',
+        icon: Truck,
+        permission: 'bookings:read',
+      },
       { name: 'Approvals', path: '/admin/approvals', icon: ClipboardCheck }, // Pending permission module
     ],
   },
