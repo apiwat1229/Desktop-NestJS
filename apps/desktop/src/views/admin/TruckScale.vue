@@ -740,18 +740,105 @@ onMounted(async () => {
       </TabsContent>
 
       <TabsContent value="scale-in" class="space-y-6 mt-0">
+        <!-- Controls & Stats (Scale In) -->
         <Card class="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent class="p-6">
-            <!-- Filters for Scale In (Similar to Checkin or simplified) -->
-            <div class="flex flex-col md:flex-row gap-4 items-end justify-between">
-              <div class="grid gap-2 w-full md:w-[320px]">
-                <Label>Search</Label>
-                <div class="relative">
-                  <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input v-model="searchQuery" placeholder="ค้นหา..." class="pl-9" />
+          <CardContent class="p-6 space-y-6">
+            <div class="flex flex-col xl:flex-row gap-6 items-end justify-between">
+              <!-- Filters Group -->
+              <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
+                <div class="grid gap-2 w-full md:w-auto">
+                  <Label>Select Date</Label>
+                  <Popover v-model:open="isDatePopoverOpen">
+                    <PopoverTrigger as-child>
+                      <Button
+                        variant="outline"
+                        :class="
+                          cn(
+                            'w-full md:w-[200px] justify-start text-left font-normal',
+                            !selectedDate && 'text-muted-foreground'
+                          )
+                        "
+                      >
+                        <CalendarIcon class="mr-2 h-4 w-4" />
+                        <span>{{
+                          selectedDate
+                            ? format(new Date(selectedDate), 'dd-MMM-yyyy')
+                            : 'Pick a date'
+                        }}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-auto p-0">
+                      <Calendar
+                        :model-value="selectedDateObject"
+                        @update:model-value="handleDateSelect"
+                        mode="single"
+                        initial-focus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div class="grid gap-2 w-full md:w-[320px]">
+                  <Label>Search Booking</Label>
+                  <div class="relative">
+                    <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-model="searchQuery"
+                      placeholder="Code / Supplier / Truck..."
+                      class="pl-9"
+                    />
+                  </div>
+                </div>
+                <Button
+                  class="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
+                  @click="fetchBookings"
+                >
+                  <Search class="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+              </div>
+
+              <!-- Stats Cards Group -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full xl:w-auto mt-4 xl:mt-0">
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-blue-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <Truck class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Total Expected</span>
+                    <span class="text-xl font-bold leading-none">{{ stats.total }}</span>
+                  </div>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-green-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                    <CheckCircle class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Checked In</span>
+                    <span class="text-xl font-bold leading-none text-green-600">{{
+                      stats.checkedIn
+                    }}</span>
+                  </div>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-orange-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <Clock class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Pending</span>
+                    <span class="text-xl font-bold leading-none text-orange-600">{{
+                      stats.pending
+                    }}</span>
+                  </div>
                 </div>
               </div>
-              <Button variant="outline">รีเฟรช</Button>
             </div>
           </CardContent>
         </Card>
@@ -760,17 +847,105 @@ onMounted(async () => {
       </TabsContent>
 
       <TabsContent value="scale-out" class="space-y-6 mt-0">
+        <!-- Controls & Stats (Scale Out) -->
         <Card class="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent class="p-6">
-            <div class="flex flex-col md:flex-row gap-4 items-end justify-between">
-              <div class="grid gap-2 w-full md:w-[320px]">
-                <Label>Search</Label>
-                <div class="relative">
-                  <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input v-model="searchQuery" placeholder="ค้นหา..." class="pl-9" />
+          <CardContent class="p-6 space-y-6">
+            <div class="flex flex-col xl:flex-row gap-6 items-end justify-between">
+              <!-- Filters Group -->
+              <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
+                <div class="grid gap-2 w-full md:w-auto">
+                  <Label>Select Date</Label>
+                  <Popover v-model:open="isDatePopoverOpen">
+                    <PopoverTrigger as-child>
+                      <Button
+                        variant="outline"
+                        :class="
+                          cn(
+                            'w-full md:w-[200px] justify-start text-left font-normal',
+                            !selectedDate && 'text-muted-foreground'
+                          )
+                        "
+                      >
+                        <CalendarIcon class="mr-2 h-4 w-4" />
+                        <span>{{
+                          selectedDate
+                            ? format(new Date(selectedDate), 'dd-MMM-yyyy')
+                            : 'Pick a date'
+                        }}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-auto p-0">
+                      <Calendar
+                        :model-value="selectedDateObject"
+                        @update:model-value="handleDateSelect"
+                        mode="single"
+                        initial-focus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div class="grid gap-2 w-full md:w-[320px]">
+                  <Label>Search Booking</Label>
+                  <div class="relative">
+                    <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-model="searchQuery"
+                      placeholder="Code / Supplier / Truck..."
+                      class="pl-9"
+                    />
+                  </div>
+                </div>
+                <Button
+                  class="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
+                  @click="fetchBookings"
+                >
+                  <Search class="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+              </div>
+
+              <!-- Stats Cards Group -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full xl:w-auto mt-4 xl:mt-0">
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-blue-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <Truck class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Total Expected</span>
+                    <span class="text-xl font-bold leading-none">{{ stats.total }}</span>
+                  </div>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-green-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                    <CheckCircle class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Checked In</span>
+                    <span class="text-xl font-bold leading-none text-green-600">{{
+                      stats.checkedIn
+                    }}</span>
+                  </div>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex items-center gap-4 border-l-4 border-l-orange-500 shadow-sm min-w-[200px]"
+                >
+                  <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <Clock class="w-4 h-4" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-muted-foreground font-medium">Pending</span>
+                    <span class="text-xl font-bold leading-none text-orange-600">{{
+                      stats.pending
+                    }}</span>
+                  </div>
                 </div>
               </div>
-              <Button variant="outline">รีเฟรช</Button>
             </div>
           </CardContent>
         </Card>
@@ -778,41 +953,108 @@ onMounted(async () => {
       </TabsContent>
 
       <TabsContent value="dashboard" class="space-y-6 mt-0">
-        <!-- Stats Row -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card class="p-6 flex flex-col justify-center gap-1 shadow-sm">
-            <span class="text-sm text-muted-foreground">จำนวนเที่ยวทั้งหมด</span>
-            <span class="text-3xl font-bold text-blue-600">{{ dashboardStats.count }} คัน</span>
-          </Card>
-          <Card class="p-6 flex flex-col justify-center gap-1 shadow-sm">
-            <span class="text-sm text-muted-foreground">TOTAL NET WEIGHT</span>
-            <span class="text-3xl font-bold text-green-600"
-              >{{ dashboardStats.net.toLocaleString() }} Kg.</span
-            >
-            <span class="text-xs text-muted-foreground"
-              >เฉลี่ย:
-              {{ (dashboardStats.net / (dashboardStats.count || 1)).toFixed(0) }} Kg./คัน</span
-            >
-          </Card>
-          <Card class="p-6 flex flex-col justify-center gap-1 shadow-sm">
-            <span class="text-sm text-muted-foreground">TOTAL GROSS WEIGHT</span>
-            <span class="text-3xl font-bold text-blue-500"
-              >{{ dashboardStats.gross.toLocaleString() }} Kg.</span
-            >
-          </Card>
-          <Card class="p-6 flex flex-col justify-center gap-1 shadow-sm">
-            <span class="text-sm text-muted-foreground">TOTAL WEIGHT IN / OUT</span>
-            <div class="flex items-baseline gap-2">
-              <span class="text-xl font-bold text-blue-600">{{
-                dashboardStats.weightIn.toLocaleString()
-              }}</span>
-              <span class="text-muted-foreground">/</span>
-              <span class="text-xl font-bold text-orange-600"
-                >{{ dashboardStats.weightOut.toLocaleString() }} Kg.</span
-              >
+        <!-- Controls & Stats (Dashboard) -->
+        <Card class="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+          <CardContent class="p-6 space-y-6">
+            <div class="flex flex-col xl:flex-row gap-6 items-end justify-between">
+              <!-- Filters Group -->
+              <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
+                <div class="grid gap-2 w-full md:w-auto">
+                  <Label>Select Date</Label>
+                  <Popover v-model:open="isDatePopoverOpen">
+                    <PopoverTrigger as-child>
+                      <Button
+                        variant="outline"
+                        :class="
+                          cn(
+                            'w-full md:w-[200px] justify-start text-left font-normal',
+                            !selectedDate && 'text-muted-foreground'
+                          )
+                        "
+                      >
+                        <CalendarIcon class="mr-2 h-4 w-4" />
+                        <span>{{
+                          selectedDate
+                            ? format(new Date(selectedDate), 'dd-MMM-yyyy')
+                            : 'Pick a date'
+                        }}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-auto p-0">
+                      <Calendar
+                        :model-value="selectedDateObject"
+                        @update:model-value="handleDateSelect"
+                        mode="single"
+                        initial-focus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div class="grid gap-2 w-full md:w-[320px]">
+                  <Label>Search Booking</Label>
+                  <div class="relative">
+                    <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-model="searchQuery"
+                      placeholder="Code / Supplier / Truck..."
+                      class="pl-9"
+                    />
+                  </div>
+                </div>
+                <Button
+                  class="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
+                  @click="fetchBookings"
+                >
+                  <Search class="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+              </div>
+
+              <!-- Stats Cards Group (Dashboard Specific) -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 w-full xl:w-auto mt-4 xl:mt-0">
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-blue-500 shadow-sm min-w-[150px]"
+                >
+                  <span class="text-xs text-muted-foreground font-medium">จำนวนเที่ยว</span>
+                  <span class="text-xl font-bold leading-none">{{ dashboardStats.count }} คัน</span>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-green-500 shadow-sm min-w-[150px]"
+                >
+                  <span class="text-xs text-muted-foreground font-medium">Total Net Weight</span>
+                  <span class="text-xl font-bold leading-none text-green-600">{{
+                    dashboardStats.net.toLocaleString()
+                  }}</span>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-blue-400 shadow-sm min-w-[150px]"
+                >
+                  <span class="text-xs text-muted-foreground font-medium">Total Gross</span>
+                  <span class="text-xl font-bold leading-none text-blue-500">{{
+                    dashboardStats.gross.toLocaleString()
+                  }}</span>
+                </div>
+
+                <div
+                  class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-orange-500 shadow-sm min-w-[150px]"
+                >
+                  <span class="text-xs text-muted-foreground font-medium">In / Out</span>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-lg font-bold text-blue-600"
+                      >{{ (dashboardStats.weightIn / 1000).toFixed(0) }}k</span
+                    >
+                    <span class="text-muted-foreground">/</span>
+                    <span class="text-lg font-bold text-orange-600"
+                      >{{ (dashboardStats.weightOut / 1000).toFixed(0) }}k</span
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
 
         <DataTable :columns="dashboardColumns" :data="filteredBookings" :loading="isLoading" />
       </TabsContent>
