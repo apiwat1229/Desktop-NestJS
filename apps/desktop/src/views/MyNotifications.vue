@@ -185,6 +185,18 @@ const notificationColumns: ColumnDef<NotificationDto>[] = [
         SUCCESS: { variant: 'default', class: 'bg-green-500 hover:bg-green-600' },
         WARNING: { variant: 'default', class: 'bg-yellow-500 hover:bg-yellow-600 text-black' },
         ERROR: { variant: 'destructive', class: '' },
+
+        // Approval Workflow Types
+        REQUEST: { variant: 'default', class: 'bg-purple-500 hover:bg-purple-600' },
+        APPROVAL_REQUEST: { variant: 'default', class: 'bg-purple-500 hover:bg-purple-600' },
+        APPROVE: { variant: 'default', class: 'bg-green-500 hover:bg-green-600' },
+        APPROVED: { variant: 'default', class: 'bg-green-500 hover:bg-green-600' },
+        REJECT: { variant: 'destructive', class: '' },
+        REJECTED: { variant: 'destructive', class: '' },
+        RETURNED: { variant: 'default', class: 'bg-orange-500 hover:bg-orange-600' },
+        CANCELLED: { variant: 'secondary', class: 'bg-gray-500 text-white hover:bg-gray-600' },
+        VOIDED: { variant: 'secondary', class: 'bg-gray-500 text-white hover:bg-gray-600' },
+        EXPIRED: { variant: 'secondary', class: 'bg-gray-500 text-white hover:bg-gray-600' },
       };
       const config = variants[type] || variants.INFO;
       return h(
