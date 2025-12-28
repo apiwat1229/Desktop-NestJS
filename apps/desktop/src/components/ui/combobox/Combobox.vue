@@ -67,7 +67,7 @@ const handleSelect = (currentValue: string) => {
             <CommandItem
               v-for="option in options"
               :key="option.value"
-              :value="option.value"
+              :value="option.label"
               @select="handleSelect(option.value)"
             >
               <Check

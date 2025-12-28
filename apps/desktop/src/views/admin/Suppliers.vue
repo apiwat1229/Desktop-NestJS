@@ -126,6 +126,7 @@ const fetchData = async () => {
 const fetchMasterData = async () => {
   try {
     provinces.value = await masterApi.getProvinces();
+    console.log('[Suppliers] Fetched provinces:', provinces.value.length, provinces.value);
     rubberTypes.value = await masterApi.getRubberTypes();
   } catch (error) {
     console.error('Failed to fetch master data:', error);

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import Combobox from '@/components/ui/combobox/Combobox.vue';
 import DataTable from '@/components/ui/data-table/DataTable.vue';
 import {
   Dialog,
@@ -15,10 +16,20 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import LiveDuration from '@/components/ui/LiveDuration.vue';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { bookingsApi } from '@/services/bookings';
+import { masterApi } from '@/services/master';
+import { rubberTypesApi } from '@/services/rubberTypes';
 import { socketService } from '@/services/socket';
 import { useAuthStore } from '@/stores/auth';
 import { getLocalTimeZone, today } from '@internationalized/date';
@@ -45,6 +56,26 @@ const settings = ref({
   autoRefresh: true,
   sound: false,
 });
+
+const provinces = ref<any[]>([]);
+const rubberTypes = ref<any[]>([]);
+
+const provinceOptions = computed(() => {
+  return provinces.value.map((p) => ({
+    value: p.name_th,
+    label: p.name_th,
+  }));
+});
+
+const fetchMasterData = async () => {
+  try {
+    const [provs, rubbers] = await Promise.all([masterApi.getProvinces(), rubberTypesApi.getAll()]);
+    provinces.value = provs;
+    rubberTypes.value = rubbers;
+  } catch (e) {
+    console.error('Failed to load master data', e);
+  }
+};
 
 // Load Settings
 const STORAGE_KEY_SETTINGS = 'truck_scale_settings';
@@ -256,6 +287,26 @@ const weightInData = ref({
   weightIn: 0,
 });
 
+const formattedWeightIn = computed({
+  get: () => {
+    if (!weightInData.value.weightIn) return '';
+    return weightInData.value.weightIn.toLocaleString();
+  },
+  set: (val) => {
+    const num = Number(val.replace(/,/g, ''));
+    if (!isNaN(num)) {
+      weightInData.value.weightIn = num;
+    }
+  },
+});
+
+const rubberTypeOptions = computed(() => {
+  return rubberTypes.value.map((t) => ({
+    value: t.name,
+    label: t.name,
+  }));
+});
+
 const openStartDrain = (booking: any) => {
   selectedDrainBooking.value = booking;
   startDrainDialogOpen.value = true;
@@ -268,10 +319,14 @@ const openStopDrain = (booking: any) => {
 
 const openWeightIn = (booking: any) => {
   selectedDrainBooking.value = booking;
+
+  const rawType = (booking.rubberType || '').trim();
+  const isValidType = rubberTypes.value.some((t) => t.name === rawType);
+
   weightInData.value = {
-    rubberSource: '',
-    rubberType: booking.rubberType || '',
-    weightIn: 0,
+    rubberSource: booking.rubberSource || '',
+    rubberType: isValidType ? rawType : '',
+    weightIn: booking.weightIn || 0,
   };
   weightInDialogOpen.value = true;
 };
@@ -466,8 +521,11 @@ const scaleInColumns: ColumnDef<any>[] = [
   {
     header: 'Total Drain',
     cell: ({ row }) => {
-      if (row.original.startDrainAt && row.original.stopDrainAt) {
-        return calculateDuration(row.original.startDrainAt, row.original.stopDrainAt);
+      if (row.original.startDrainAt) {
+        return h(LiveDuration, {
+          start: row.original.startDrainAt,
+          end: row.original.stopDrainAt,
+        });
       }
       return '00 นาที';
     },
@@ -530,8 +588,11 @@ const scaleOutColumns: ColumnDef<any>[] = [
   {
     header: 'Total Drain',
     cell: ({ row }) => {
-      if (row.original.startDrainAt && row.original.stopDrainAt) {
-        return calculateDuration(row.original.startDrainAt, row.original.stopDrainAt);
+      if (row.original.startDrainAt) {
+        return h(LiveDuration, {
+          start: row.original.startDrainAt,
+          end: row.original.stopDrainAt,
+        });
       }
       return '00 นาที';
     },
@@ -614,7 +675,7 @@ const dashboardColumns: ColumnDef<any>[] = [
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) =>
+    cell: () =>
       h('div', { class: 'flex gap-2' }, [
         h(
           Button,
@@ -632,6 +693,7 @@ const dashboardColumns: ColumnDef<any>[] = [
 
 onMounted(async () => {
   loadSettings();
+  fetchMasterData();
   await authStore.fetchUser();
   fetchBookings();
 
@@ -1541,36 +1603,50 @@ onUnmounted(() => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>บันทึกน้ำหนักขาเข้า (กก.)</DialogTitle>
+          <DialogDescription class="sr-only">
+            Record weight in data including rubber source and type.
+          </DialogDescription>
         </DialogHeader>
 
         <div class="grid grid-cols-2 gap-4 py-4">
           <div class="grid gap-2">
             <Label>ที่มาของยาง</Label>
-            <div class="relative">
-              <Input v-model="weightInData.rubberSource" placeholder="ระบุที่มา" />
-              <span
-                class="absolute right-3 top-2.5 cursor-pointer text-gray-400 hover:text-gray-600"
-                >×</span
-              >
-            </div>
+            <Combobox
+              v-model="weightInData.rubberSource"
+              :options="provinceOptions"
+              placeholder="ระบุที่มา"
+              search-placeholder="ค้นหาจังหวัด..."
+              empty-text="ไม่พบจังหวัด"
+            />
           </div>
           <div class="grid gap-2">
             <Label>ประเภทยาง</Label>
-            <div class="relative">
-              <Input v-model="weightInData.rubberType" placeholder="Regular CL" />
-              <span
-                class="absolute right-3 top-2.5 cursor-pointer text-gray-400 hover:text-gray-600"
-                >×</span
-              >
-            </div>
+            <Combobox
+              v-model="weightInData.rubberType"
+              :options="rubberTypeOptions"
+              placeholder="เลือกประเภทยาง"
+              search-placeholder="ค้นหาประเภทยาง..."
+              empty-text="ไม่พบประเภทยาง"
+            />
           </div>
           <div class="grid gap-2 col-span-2">
             <Label>น้ำหนัก (กก.)</Label>
             <Input
-              v-model="weightInData.weightIn"
-              type="number"
+              v-model="formattedWeightIn"
               class="text-lg font-medium"
               placeholder="0"
+              @keydown="
+                (e: KeyboardEvent) => {
+                  if (
+                    !/^[0-9]$/.test(e.key) &&
+                    !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(
+                      e.key
+                    )
+                  ) {
+                    e.preventDefault();
+                  }
+                }
+              "
             />
           </div>
         </div>
