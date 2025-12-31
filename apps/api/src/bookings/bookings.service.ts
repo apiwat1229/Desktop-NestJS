@@ -179,10 +179,13 @@ export class BookingsService {
         });
     }
 
-    async stopDrain(id: string) {
+    async stopDrain(id: string, data?: any) {
         return this.prisma.booking.update({
             where: { id },
-            data: { stopDrainAt: new Date() },
+            data: {
+                stopDrainAt: new Date(),
+                drainNote: data?.note,
+            },
         });
     }
 
@@ -193,6 +196,9 @@ export class BookingsService {
                 rubberSource: data.rubberSource,
                 rubberType: data.rubberType,
                 weightIn: parseFloat(data.weightIn),
+                trailerRubberSource: data.trailerRubberSource,
+                trailerRubberType: data.trailerRubberType,
+                trailerWeightIn: data.trailerWeightIn ? parseFloat(data.trailerWeightIn) : null,
             },
         });
     }

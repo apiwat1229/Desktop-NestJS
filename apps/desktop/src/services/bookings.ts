@@ -51,8 +51,8 @@ export const bookingsApi = {
         return response.data;
     },
 
-    stopDrain: async (id: string) => {
-        const response = await api.patch(`/bookings/${id}/stop-drain`);
+    stopDrain: async (id: string, data?: { note?: string }) => {
+        const response = await api.patch(`/bookings/${id}/stop-drain`, data);
         return response.data;
     },
 

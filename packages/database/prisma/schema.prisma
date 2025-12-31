@@ -256,9 +256,16 @@ model Booking {
   // Weight Scale Process
   startDrainAt DateTime? @map("start_drain_at")
   stopDrainAt  DateTime? @map("stop_drain_at")
+  drainNote    String?   @map("drain_note")
   weightIn     Float?    @map("weight_in")
   weightOut    Float?    @map("weight_out")
   rubberSource String?   @map("rubber_source")
+
+  // Trailer Information (For 10-wheel trailer)
+  trailerWeightIn     Float?  @map("trailer_weight_in")
+  trailerWeightOut    Float?  @map("trailer_weight_out")
+  trailerRubberType   String? @map("trailer_rubber_type")
+  trailerRubberSource String? @map("trailer_rubber_source")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

@@ -69,6 +69,12 @@ const provinceOptions = computed(() => {
   }));
 });
 
+const getRubberTypeName = (code: string | undefined) => {
+  if (!code) return '-';
+  const found = rubberTypes.value.find((r) => r.code === code);
+  return found ? found.name : code;
+};
+
 const fetchMasterData = async () => {
   try {
     const [provs, rubbers] = await Promise.all([masterApi.getProvinces(), rubberTypesApi.getAll()]);
@@ -158,6 +164,10 @@ const handleNextStep = () => {
   // Basic validation
   if (!checkInData.value.truckType) {
     toast.error('กรุณาเลือกประเภทรถ');
+    return;
+  }
+  if (!checkInData.value.truckRegister || !checkInData.value.truckRegister.trim()) {
+    toast.error('กรุณาระบุเลขทะเบียนรถ');
     return;
   }
   checkInStep.value = 2;
@@ -316,12 +326,16 @@ const confirmRequestEdit = async () => {
   }
 };
 const stopDrainDialogOpen = ref(false);
+const stopDrainReason = ref('');
 const weightInDialogOpen = ref(false);
 const selectedDrainBooking = ref<any>(null);
 const weightInData = ref({
   rubberSource: '',
   rubberType: '',
   weightIn: 0,
+  trailerRubberSource: '',
+  trailerRubberType: '',
+  trailerWeightIn: 0,
 });
 
 const formattedWeightIn = computed({
@@ -333,6 +347,19 @@ const formattedWeightIn = computed({
     const num = Number(val.replace(/,/g, ''));
     if (!isNaN(num)) {
       weightInData.value.weightIn = num;
+    }
+  },
+});
+
+const formattedTrailerWeightIn = computed({
+  get: () => {
+    if (!weightInData.value.trailerWeightIn) return '';
+    return weightInData.value.trailerWeightIn.toLocaleString();
+  },
+  set: (val) => {
+    const num = Number(val.replace(/,/g, ''));
+    if (!isNaN(num)) {
+      weightInData.value.trailerWeightIn = num;
     }
   },
 });
@@ -351,6 +378,7 @@ const openStartDrain = (booking: any) => {
 
 const openStopDrain = (booking: any) => {
   selectedDrainBooking.value = booking;
+  stopDrainReason.value = '';
   stopDrainDialogOpen.value = true;
 };
 
@@ -360,10 +388,16 @@ const openWeightIn = (booking: any) => {
   const rawType = (booking.rubberType || '').trim();
   const isValidType = rubberTypes.value.some((t) => t.name === rawType);
 
+  const rawTrailerType = (booking.trailerRubberType || '').trim();
+  const isValidTrailerType = rubberTypes.value.some((t) => t.name === rawTrailerType);
+
   weightInData.value = {
     rubberSource: booking.rubberSource || '',
     rubberType: isValidType ? rawType : '',
     weightIn: booking.weightIn || 0,
+    trailerRubberSource: booking.trailerRubberSource || '',
+    trailerRubberType: isValidTrailerType ? rawTrailerType : '',
+    trailerWeightIn: booking.trailerWeightIn || 0,
   };
   weightInDialogOpen.value = true;
 };
@@ -387,8 +421,20 @@ const confirmStartDrain = async () => {
 
 const confirmStopDrain = async () => {
   if (!selectedDrainBooking.value) return;
+
+  const start = new Date(selectedDrainBooking.value.startDrainAt).getTime();
+  const end = new Date().getTime();
+  const durationMins = Math.floor((end - start) / 60000);
+
+  if (durationMins < 40 && !stopDrainReason.value.trim()) {
+    toast.error('กรุณาระบุเหตุผล (เนื่องจากใช้เวลาต่ำกว่า 40 นาที)');
+    return;
+  }
+
   try {
-    await bookingsApi.stopDrain(selectedDrainBooking.value.id);
+    await bookingsApi.stopDrain(selectedDrainBooking.value.id, {
+      note: stopDrainReason.value,
+    });
     toast.success('Stopped Drain');
     stopDrainDialogOpen.value = false;
     fetchBookings();
@@ -1387,14 +1433,14 @@ onUnmounted(() => {
                     <SelectItem value="กระบะ">กระบะ</SelectItem>
                     <SelectItem value="6 ล้อ">6 ล้อ</SelectItem>
                     <SelectItem value="10 ล้อ">10 ล้อ</SelectItem>
-                    <SelectItem value="10 ล้อ (พ่วง)">10 ล้อ (พ่วง)</SelectItem>
+                    <SelectItem value="10 ล้อ พ่วง">10 ล้อ (พ่วง)</SelectItem>
                     <SelectItem value="เทรลเลอร์">เทรลเลอร์</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div class="grid gap-2 col-span-2">
-                  <Label>เลขทะเบียน</Label>
+                  <Label>เลขทะเบียน <span class="text-destructive">*</span></Label>
                   <Input v-model="checkInData.truckRegister" placeholder="Ex. 1กข 1234" />
                 </div>
               </div>
@@ -1519,7 +1565,7 @@ onUnmounted(() => {
             <div class="grid grid-cols-[100px_1fr] text-sm">
               <span class="text-muted-foreground">Rubber Type :</span>
               <span class="font-medium text-foreground">{{
-                selectedDrainBooking?.rubberType
+                getRubberTypeName(selectedDrainBooking?.rubberType)
               }}</span>
             </div>
           </div>
@@ -1598,7 +1644,7 @@ onUnmounted(() => {
             <div class="grid grid-cols-[100px_1fr] text-sm">
               <span class="text-muted-foreground">Rubber Type :</span>
               <span class="font-medium text-foreground">{{
-                selectedDrainBooking?.rubberType
+                getRubberTypeName(selectedDrainBooking?.rubberType)
               }}</span>
             </div>
           </div>
@@ -1636,6 +1682,24 @@ onUnmounted(() => {
               {{ calculateDuration(selectedDrainBooking?.startDrainAt, new Date()) }}
             </div>
           </div>
+
+          <div
+            v-if="
+              selectedDrainBooking?.startDrainAt &&
+              (new Date().getTime() - new Date(selectedDrainBooking.startDrainAt).getTime()) /
+                60000 <
+                40
+            "
+            class="grid gap-2"
+          >
+            <Label class="text-red-600">เหตุผล (ระบุเนื่องจากใช้เวลาต่ำกว่า 40 นาที) *</Label>
+            <Textarea
+              v-model="stopDrainReason"
+              placeholder="ระบุสาเหตุ..."
+              class="resize-none"
+              rows="3"
+            />
+          </div>
         </div>
 
         <DialogFooter class="gap-2 sm:gap-0 mt-2">
@@ -1651,7 +1715,7 @@ onUnmounted(() => {
 
     <!-- Weight In Dialog -->
     <Dialog v-model:open="weightInDialogOpen">
-      <DialogContent>
+      <DialogContent class="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>บันทึกน้ำหนักขาเข้า (กก.)</DialogTitle>
           <DialogDescription class="sr-only">
@@ -1659,7 +1723,124 @@ onUnmounted(() => {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="grid grid-cols-2 gap-4 py-4">
+        <!-- Trailer Layout -->
+        <div
+          v-if="['10 ล้อ พ่วง', '10 ล้อ (พ่วง)'].includes(selectedDrainBooking?.truckType)"
+          class="grid md:grid-cols-2 gap-8 py-4"
+        >
+          <!-- Main Truck -->
+          <div class="space-y-4">
+            <h3 class="font-semibold text-lg border-b pb-2 flex items-center gap-2">
+              <div class="w-1 h-5 bg-primary rounded-full"></div>
+              ส่วนหัว (Main)
+            </h3>
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <Label>ที่มาของยาง</Label>
+                <Combobox
+                  v-model="weightInData.rubberSource"
+                  :options="provinceOptions"
+                  placeholder="ระบุที่มา"
+                  search-placeholder="ค้นหาจังหวัด..."
+                  empty-text="ไม่พบจังหวัด"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label>ประเภทยาง</Label>
+                <Combobox
+                  v-model="weightInData.rubberType"
+                  :options="rubberTypeOptions"
+                  placeholder="เลือกประเภทยาง"
+                  search-placeholder="ค้นหาประเภทยาง..."
+                  empty-text="ไม่พบประเภทยาง"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label>น้ำหนัก (กก.)</Label>
+                <Input
+                  v-model="formattedWeightIn"
+                  class="text-lg font-medium"
+                  placeholder="0"
+                  @keydown="
+                    (e: KeyboardEvent) => {
+                      if (
+                        !/^[0-9]$/.test(e.key) &&
+                        ![
+                          'Backspace',
+                          'Delete',
+                          'ArrowLeft',
+                          'ArrowRight',
+                          'Tab',
+                          'Enter',
+                        ].includes(e.key)
+                      ) {
+                        e.preventDefault();
+                      }
+                    }
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Trailer -->
+          <div class="space-y-4">
+            <h3 class="font-semibold text-lg border-b pb-2 flex items-center gap-2">
+              <div class="w-1 h-5 bg-orange-500 rounded-full"></div>
+              ส่วนพ่วง (Trailer)
+            </h3>
+            <div class="grid gap-4">
+              <div class="grid gap-2">
+                <Label>ที่มาของยาง</Label>
+                <Combobox
+                  v-model="weightInData.trailerRubberSource"
+                  :options="provinceOptions"
+                  placeholder="ระบุที่มา"
+                  search-placeholder="ค้นหาจังหวัด..."
+                  empty-text="ไม่พบจังหวัด"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label>ประเภทยาง</Label>
+                <Combobox
+                  v-model="weightInData.trailerRubberType"
+                  :options="rubberTypeOptions"
+                  placeholder="เลือกประเภทยาง"
+                  search-placeholder="ค้นหาประเภทยาง..."
+                  empty-text="ไม่พบประเภทยาง"
+                />
+              </div>
+              <div class="grid gap-2">
+                <Label>น้ำหนัก (กก.)</Label>
+                <Input
+                  v-model="formattedTrailerWeightIn"
+                  class="text-lg font-medium"
+                  placeholder="0"
+                  @keydown="
+                    (e: KeyboardEvent) => {
+                      if (
+                        !/^[0-9]$/.test(e.key) &&
+                        ![
+                          'Backspace',
+                          'Delete',
+                          'ArrowLeft',
+                          'ArrowRight',
+                          'Tab',
+                          'Enter',
+                        ].includes(e.key)
+                      ) {
+                        e.preventDefault();
+                      }
+                    }
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standard Layout (No Trailer) -->
+        <div v-else class="grid grid-cols-2 gap-4 py-4">
           <div class="grid gap-2">
             <Label>ที่มาของยาง</Label>
             <Combobox

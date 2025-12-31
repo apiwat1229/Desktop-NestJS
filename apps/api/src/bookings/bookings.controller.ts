@@ -41,8 +41,8 @@ export class BookingsController {
     }
 
     @Patch(':id/stop-drain')
-    stopDrain(@Param('id') id: string) {
-        return this.bookingsService.stopDrain(id);
+    stopDrain(@Param('id') id: string, @Body() body: any) {
+        return this.bookingsService.stopDrain(id, body);
     }
 
     @Patch(':id/weight-in')
