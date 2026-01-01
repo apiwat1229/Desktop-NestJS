@@ -34,6 +34,7 @@ import { useAuthStore } from '@/stores/auth';
 import { format } from 'date-fns';
 import { Check, ChevronsUpDown } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 // --- Props ---
@@ -48,7 +49,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:open', 'success']);
 
 // --- State ---
-// const { t } = useI18n(); // Cleaned up unused
+const { t } = useI18n();
 const authStore = useAuthStore();
 const loading = ref(false);
 const suppliers = ref<any[]>([]);
@@ -64,13 +65,13 @@ const form = ref({
   supplierName: '', // Helper
 });
 
-const TRUCK_TYPES = [
-  { value: 'กระบะ', label: 'Pickup' },
-  { value: '6 ล้อ', label: '6-Wheeler' },
-  { value: '10 ล้อ', label: '10-Wheeler' },
-  { value: '10 ล้อ พ่วง', label: '10-Wheeler (Trailer)' },
-  { value: 'เทรลเลอร์', label: 'Trailer' },
-];
+const TRUCK_TYPES = computed(() => [
+  { value: 'กระบะ', label: t('bookingSheet.truckTypes.pickup') },
+  { value: '6 ล้อ', label: t('bookingSheet.truckTypes.6wheeler') },
+  { value: '10 ล้อ', label: t('bookingSheet.truckTypes.10wheeler') },
+  { value: '10 ล้อ พ่วง', label: t('bookingSheet.truckTypes.10wheelerTrailer') },
+  { value: 'เทรลเลอร์', label: t('bookingSheet.truckTypes.trailer') },
+]);
 
 // --- Computeds ---
 const isEditMode = computed(() => !!props.editingBooking);
@@ -143,14 +144,14 @@ async function fetchMasterData() {
     rubberTypes.value = rubberTypesResp;
   } catch (err) {
     console.error('Failed to fetch master data:', err);
-    toast.error('Failed to load initial data');
+    toast.error(t('common.errorLoading'));
   }
 }
 
 async function handleSubmit() {
   if (!form.value.supplierId || !form.value.rubberType) {
-    toast.error('Validation Error', {
-      description: 'Please select Supplier and Rubber Type',
+    toast.error(t('validation.required'), {
+      description: t('validation.required'),
     });
     return;
   }
@@ -180,20 +181,20 @@ async function handleSubmit() {
     if (isEditMode.value && props.editingBooking?.id) {
       const updated = await bookingsApi.update(props.editingBooking.id, payload);
       if (updated && updated.status === 'PENDING_APPROVAL') {
-        toast.info('Edit request has been sent for approval');
+        toast.info(t('bookingSheet.editRequest'));
       } else {
-        toast.success('Updated successfully');
+        toast.success(t('bookingSheet.updateSuccess'));
       }
       emit('success', updated);
     } else {
       const created = await bookingsApi.create(payload as any);
-      toast.success('Created successfully');
+      toast.success(t('common.success'));
       emit('success', created);
     }
     emit('update:open', false);
   } catch (err: any) {
     console.error('Save booking error:', err);
-    toast.error('Failed to save booking', {
+    toast.error(t('common.error'), {
       description: err.response?.data?.message || err.message,
     });
   } finally {
@@ -206,7 +207,7 @@ async function handleSubmit() {
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="max-w-3xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{{ isEditMode ? 'Edit Booking' : 'Add Booking' }}</DialogTitle>
+        <DialogTitle>{{ isEditMode ? t('booking.edit') : t('booking.addBooking') }}</DialogTitle>
         <DialogDescription>
           {{ selectedDate ? format(selectedDate, 'dd MMM yyyy') : '-' }} • {{ selectedSlot }}
         </DialogDescription>
@@ -216,11 +217,11 @@ async function handleSubmit() {
         <!-- Time Slots -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
-            <Label>Start Time</Label>
+            <Label>{{ t('booking.selectTime') }}</Label>
             <Input :model-value="startTime" readonly disabled />
           </div>
           <div class="space-y-2">
-            <Label>End Time</Label>
+            <Label>{{ t('booking.time') }}</Label>
             <Input :model-value="endTime" readonly disabled />
           </div>
         </div>
@@ -228,18 +229,18 @@ async function handleSubmit() {
         <!-- Queue Info -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
-            <Label>Queue Number</Label>
+            <Label>{{ t('booking.queueNumber') }}</Label>
             <Input :model-value="displayQueueNo" readonly disabled />
           </div>
           <div class="space-y-2">
-            <Label>Booking Code</Label>
+            <Label>{{ t('booking.bookingCode') }}</Label>
             <Input :model-value="displayBookingCode" readonly disabled />
           </div>
         </div>
 
         <!-- Supplier -->
         <div class="space-y-2">
-          <Label>Supplier</Label>
+          <Label>{{ t('booking.supplierName') }}</Label>
           <Popover v-model:open="openSupplierCombo">
             <PopoverTrigger as-child>
               <Button
@@ -253,7 +254,7 @@ async function handleSubmit() {
                     ? suppliers.find((framework) => framework.id === form.supplierId)?.code +
                       ' - ' +
                       suppliers.find((framework) => framework.id === form.supplierId)?.name
-                    : 'Select Supplier'
+                    : t('booking.supplierName')
                 }}
                 <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -265,8 +266,8 @@ async function handleSubmit() {
                     list.filter((i) => (i.code + i.name).toLowerCase().includes(term.toLowerCase()))
                 "
               >
-                <CommandInput placeholder="Search supplier..." />
-                <CommandEmpty>No supplier found.</CommandEmpty>
+                <CommandInput :placeholder="t('common.search')" />
+                <CommandEmpty>{{ t('common.noData') }}</CommandEmpty>
                 <CommandList>
                   <CommandGroup>
                     <CommandItem
@@ -300,10 +301,10 @@ async function handleSubmit() {
         <!-- Truck Info -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
-            <Label>Truck Type</Label>
+            <Label>{{ t('booking.truckType') }}</Label>
             <Select v-model="form.truckType">
               <SelectTrigger>
-                <SelectValue placeholder="Select Type" />
+                <SelectValue :placeholder="t('booking.type')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="type in TRUCK_TYPES" :key="type.value" :value="type.value">
@@ -313,17 +314,17 @@ async function handleSubmit() {
             </Select>
           </div>
           <div class="space-y-2">
-            <Label>Truck Register</Label>
+            <Label>{{ t('booking.truckRegister') }}</Label>
             <Input v-model="form.truckRegister" placeholder="e.g. 70-1234" />
           </div>
         </div>
 
         <!-- Rubber Type -->
         <div class="space-y-2">
-          <Label>Rubber Type <span class="text-red-500">*</span></Label>
+          <Label>{{ t('booking.rubberType') }} <span class="text-red-500">*</span></Label>
           <Select v-model="form.rubberType">
             <SelectTrigger>
-              <SelectValue placeholder="Select Rubber Type" />
+              <SelectValue :placeholder="t('booking.rubberType')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="type in rubberTypes" :key="type.id" :value="type.code">
@@ -335,10 +336,10 @@ async function handleSubmit() {
 
         <DialogFooter class="mt-6">
           <Button type="button" variant="outline" @click="$emit('update:open', false)">
-            Cancel
+            {{ t('common.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading">
-            {{ loading ? 'Saving...' : isEditMode ? 'Update' : 'Save' }}
+            {{ loading ? t('common.loading') : isEditMode ? t('common.update') : t('common.save') }}
           </Button>
         </DialogFooter>
       </form>

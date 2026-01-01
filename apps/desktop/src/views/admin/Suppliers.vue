@@ -30,6 +30,7 @@ import { suppliersApi, type Supplier } from '@/services/suppliers';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { ArrowUpDown, Edit, Plus, Search, Trash2, Truck } from 'lucide-vue-next';
 import { computed, h, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 // --- State ---
@@ -75,6 +76,8 @@ const formData = ref<Partial<Supplier>>({
   rubberTypeCodes: [],
   notes: '',
 });
+
+const { t } = useI18n();
 
 // --- Computed ---
 const stats = computed(() => ({
@@ -185,11 +188,7 @@ const handleSubmit = async () => {
   try {
     // Auto-generate name if empty
     if (!formData.value.name) {
-      formData.value.name = [
-        formData.value.title,
-        formData.value.firstName,
-        formData.value.lastName,
-      ]
+      formData.value.name = [formData.value.firstName, formData.value.lastName]
         .filter(Boolean)
         .join(' ');
     }
@@ -338,7 +337,7 @@ const columns: ColumnDef<Supplier>[] = [
           variant: 'ghost',
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         },
-        () => ['Code', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+        () => [t('admin.suppliers.code'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
       );
     },
     cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('code')),
@@ -352,24 +351,24 @@ const columns: ColumnDef<Supplier>[] = [
           variant: 'ghost',
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         },
-        () => ['Name', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+        () => [t('admin.suppliers.name'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
       );
     },
     cell: ({ row }) => h('div', row.getValue('name')),
   },
   {
     accessorKey: 'province.name_th',
-    header: 'Province',
+    header: t('admin.suppliers.province'),
     cell: ({ row }) => h('div', row.original.province?.name_th || '-'),
   },
   {
     accessorKey: 'phone',
-    header: 'Phone',
+    header: t('admin.suppliers.phone'),
     cell: ({ row }) => h('div', formatPhone(row.getValue('phone'))),
   },
   {
     accessorKey: 'rubberTypeCodes',
-    header: () => h('div', { class: 'text-center w-full' }, 'Rubber Types'),
+    header: () => h('div', { class: 'text-center w-full' }, t('admin.suppliers.allRubberTypes')),
     cell: ({ row }) => {
       const codes = (row.getValue('rubberTypeCodes') as string[]) || [];
       if (!codes.length)
@@ -391,7 +390,7 @@ const columns: ColumnDef<Supplier>[] = [
   },
   {
     accessorKey: 'status',
-    header: () => h('div', { class: 'text-center w-full' }, 'Status'),
+    header: () => h('div', { class: 'text-center w-full' }, t('common.status')),
     cell: ({ row }) => {
       const status = row.getValue('status') as string;
       const colorClass =
@@ -415,7 +414,7 @@ const columns: ColumnDef<Supplier>[] = [
   {
     id: 'actions',
     enableHiding: false,
-    header: () => h('div', { class: 'text-right' }, 'Actions'),
+    header: () => h('div', { class: 'text-right' }, t('common.actions')),
     cell: ({ row }) => {
       const item = row.original;
       return h('div', { class: 'flex items-center justify-end gap-2' }, [
@@ -468,9 +467,11 @@ onMounted(() => {
               <Truck class="h-8 w-8" />
             </div>
             <div>
-              <h1 class="text-2xl font-bold tracking-tight text-foreground">Suppliers</h1>
+              <h1 class="text-2xl font-bold tracking-tight text-foreground">
+                {{ t('admin.suppliers.title') }}
+              </h1>
               <p class="text-sm text-muted-foreground mt-1">
-                Manage supplier information and contacts.
+                {{ t('admin.suppliers.subtitle') }}
               </p>
             </div>
           </div>
@@ -479,19 +480,19 @@ onMounted(() => {
           <div class="flex items-center gap-8">
             <div class="text-center">
               <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                Total
+                {{ t('admin.suppliers.stats.total') }}
               </div>
               <div class="text-3xl font-bold">{{ stats.total }}</div>
             </div>
             <div class="text-center">
               <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
-                Active
+                {{ t('admin.suppliers.stats.active') }}
               </div>
               <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
             </div>
             <div class="text-center">
               <div class="text-xs font-bold text-orange-500 uppercase tracking-wider mb-1">
-                Suspended
+                {{ t('admin.suppliers.stats.suspended') }}
               </div>
               <div class="text-3xl font-bold text-orange-500">{{ stats.suspended }}</div>
             </div>
@@ -501,7 +502,7 @@ onMounted(() => {
           <div class="flex-shrink-0">
             <Button @click="handleOpenCreate" size="lg" class="shadow-lg shadow-primary/20">
               <Plus class="mr-2 h-5 w-5" />
-              Add New
+              {{ t('admin.suppliers.addNew') }}
             </Button>
           </div>
         </div>
@@ -511,15 +512,19 @@ onMounted(() => {
       <div class="flex items-center justify-between gap-4">
         <div class="relative w-full max-w-sm">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input v-model="searchQuery" placeholder="Search suppliers..." class="pl-9" />
+          <Input
+            v-model="searchQuery"
+            :placeholder="t('admin.suppliers.searchPlaceholder')"
+            class="pl-9"
+          />
         </div>
         <div class="flex items-center gap-2">
           <Select v-model="filterProvince">
             <SelectTrigger class="w-[180px]">
-              <SelectValue placeholder="All Provinces" />
+              <SelectValue :placeholder="t('admin.suppliers.allProvinces')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Provinces</SelectItem>
+              <SelectItem value="all">{{ t('admin.suppliers.allProvinces') }}</SelectItem>
               <SelectItem v-for="p in provinces" :key="p.id" :value="p.id.toString()">
                 {{ p.name_th }}
               </SelectItem>
@@ -527,10 +532,10 @@ onMounted(() => {
           </Select>
           <Select v-model="filterRubberType">
             <SelectTrigger class="w-[180px]">
-              <SelectValue placeholder="All Rubber Types" />
+              <SelectValue :placeholder="t('admin.suppliers.allRubberTypes')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Rubber Types</SelectItem>
+              <SelectItem value="all">{{ t('admin.suppliers.allRubberTypes') }}</SelectItem>
               <SelectItem v-for="rt in rubberTypes" :key="rt.id" :value="rt.code">
                 {{ rt.name }}
               </SelectItem>
@@ -550,9 +555,9 @@ onMounted(() => {
       <EmptyState
         v-else-if="filteredData.length === 0"
         :icon="Truck"
-        title="No Suppliers Found"
-        description="No suppliers match your current filters or search query."
-        action-label="Add New Supplier"
+        :title="t('admin.suppliers.noSuppliers')"
+        :description="t('admin.suppliers.noSuppliersDesc')"
+        :action-label="t('admin.suppliers.addNew')"
         :action="handleOpenCreate"
       />
 
@@ -562,48 +567,62 @@ onMounted(() => {
       <Dialog v-model:open="isModalOpen">
         <DialogContent class="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{{ editingItem ? 'Edit Supplier' : 'Add New Supplier' }}</DialogTitle>
-            <DialogDescription>Fill in the supplier details below.</DialogDescription>
+            <DialogTitle>{{
+              editingItem ? t('admin.suppliers.edit') : t('admin.suppliers.addNew')
+            }}</DialogTitle>
+            <DialogDescription>{{ t('admin.suppliers.businessDetails') }}</DialogDescription>
           </DialogHeader>
 
           <Tabs default-value="basic" class="w-full">
             <TabsList class="grid w-full grid-cols-4">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="contact">Contact</TabsTrigger>
-              <TabsTrigger value="address">Address</TabsTrigger>
-              <TabsTrigger value="business">Business</TabsTrigger>
+              <TabsTrigger value="basic">{{ t('admin.suppliers.basicInfo') }}</TabsTrigger>
+              <TabsTrigger value="contact">{{ t('admin.suppliers.contactInfo') }}</TabsTrigger>
+              <TabsTrigger value="address">{{ t('admin.suppliers.address') }}</TabsTrigger>
+              <TabsTrigger value="business">{{ t('admin.suppliers.businessDetails') }}</TabsTrigger>
             </TabsList>
 
             <!-- Basic Info -->
             <TabsContent value="basic" class="space-y-4 py-4">
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <Label>Code</Label>
+                  <Label>{{ t('admin.suppliers.code') }}</Label>
                   <Input v-model="formData.code" placeholder="SUP-001" />
                 </div>
                 <div class="space-y-2">
-                  <Label>Title</Label>
+                  <Label>{{ t('admin.suppliers.selectTitle') }}</Label>
                   <Select v-model="formData.title">
-                    <SelectTrigger><SelectValue placeholder="Select Title" /></SelectTrigger>
+                    <SelectTrigger
+                      ><SelectValue :placeholder="t('admin.suppliers.selectTitle')"
+                    /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="นาย">Mr.</SelectItem>
-                      <SelectItem value="นาง">Mrs.</SelectItem>
-                      <SelectItem value="นางสาว">Ms.</SelectItem>
-                      <SelectItem value="บริษัท">Company</SelectItem>
-                      <SelectItem value="หจก.">Partnership</SelectItem>
+                      <SelectItem value="นาย">{{
+                        t('admin.suppliers.titleOptions.mr')
+                      }}</SelectItem>
+                      <SelectItem value="นาง">{{
+                        t('admin.suppliers.titleOptions.mrs')
+                      }}</SelectItem>
+                      <SelectItem value="นางสาว">{{
+                        t('admin.suppliers.titleOptions.ms')
+                      }}</SelectItem>
+                      <SelectItem value="บริษัท">{{
+                        t('admin.suppliers.titleOptions.company')
+                      }}</SelectItem>
+                      <SelectItem value="หจก.">{{
+                        t('admin.suppliers.titleOptions.partnership')
+                      }}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div class="space-y-2">
-                  <Label>First Name</Label>
+                  <Label>{{ t('admin.suppliers.firstName') }}</Label>
                   <Input v-model="formData.firstName" />
                 </div>
                 <div class="space-y-2">
-                  <Label>Last Name</Label>
+                  <Label>{{ t('admin.suppliers.lastName') }}</Label>
                   <Input v-model="formData.lastName" />
                 </div>
                 <div class="col-span-2 space-y-2">
-                  <Label>Display Name (Auto-generated if empty)</Label>
+                  <Label>{{ t('admin.suppliers.displayName') }}</Label>
                   <Input v-model="formData.name" placeholder="Leave empty to auto-generate" />
                 </div>
               </div>
@@ -613,7 +632,7 @@ onMounted(() => {
             <TabsContent value="contact" class="space-y-4 py-4">
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <Label>Phone</Label>
+                  <Label>{{ t('admin.suppliers.phone') }}</Label>
                   <Input
                     :model-value="formData.phone"
                     @input="handlePhoneInput"
@@ -621,7 +640,7 @@ onMounted(() => {
                   />
                 </div>
                 <div class="space-y-2">
-                  <Label>Email</Label>
+                  <Label>{{ t('admin.suppliers.email') }}</Label>
                   <Input v-model="formData.email" type="email" />
                 </div>
               </div>
@@ -631,26 +650,26 @@ onMounted(() => {
             <TabsContent value="address" class="space-y-4 py-4">
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <Label>Province</Label>
+                  <Label>{{ t('admin.suppliers.province') }}</Label>
                   <Combobox
                     :options="provinces.map((p) => ({ value: p.id.toString(), label: p.name_th }))"
                     :model-value="formData.provinceId?.toString()"
                     @update:model-value="(v) => (formData.provinceId = v ? parseInt(v) : undefined)"
-                    placeholder="Select Province"
+                    :placeholder="t('admin.suppliers.province')"
                   />
                 </div>
                 <div class="space-y-2">
-                  <Label>District</Label>
+                  <Label>{{ t('admin.suppliers.district') }}</Label>
                   <Combobox
                     :options="districts.map((d) => ({ value: d.id.toString(), label: d.name_th }))"
                     :model-value="formData.districtId?.toString()"
                     @update:model-value="(v) => (formData.districtId = v ? parseInt(v) : undefined)"
-                    placeholder="Select District"
+                    :placeholder="t('admin.suppliers.district')"
                     :disabled="!formData.provinceId"
                   />
                 </div>
                 <div class="space-y-2">
-                  <Label>Subdistrict</Label>
+                  <Label>{{ t('admin.suppliers.subDistrict') }}</Label>
                   <Combobox
                     :options="
                       subdistricts.map((s) => ({ value: s.id.toString(), label: s.name_th }))
@@ -659,16 +678,16 @@ onMounted(() => {
                     @update:model-value="
                       (v) => (formData.subdistrictId = v ? parseInt(v) : undefined)
                     "
-                    placeholder="Select Subdistrict"
+                    :placeholder="t('admin.suppliers.subDistrict')"
                     :disabled="!formData.districtId"
                   />
                 </div>
                 <div class="space-y-2">
-                  <Label>Zip Code</Label>
+                  <Label>{{ t('admin.suppliers.zipcode') }}</Label>
                   <Input v-model="formData.zipCode" readonly />
                 </div>
                 <div class="col-span-2 space-y-2">
-                  <Label>Address Line</Label>
+                  <Label>{{ t('admin.suppliers.addressLine') }}</Label>
                   <Textarea v-model="formData.address" />
                 </div>
               </div>
@@ -678,26 +697,26 @@ onMounted(() => {
             <TabsContent value="business" class="space-y-4 py-4">
               <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-2 space-y-2">
-                  <Label>Rubber Types</Label>
+                  <Label>{{ t('admin.suppliers.allRubberTypes') }}</Label>
                   <MultiSelect
                     :options="rubberTypes.map((rt) => ({ label: rt.name, value: rt.code }))"
                     :model-value="formData.rubberTypeCodes"
                     @update:model-value="(v) => (formData.rubberTypeCodes = v)"
-                    placeholder="Select Rubber Types"
+                    :placeholder="t('admin.suppliers.allRubberTypes')"
                   />
                 </div>
                 <div class="space-y-2">
-                  <Label>Tax ID</Label>
+                  <Label>{{ t('admin.suppliers.taxId') }}</Label>
                   <Input v-model="formData.taxId" />
                 </div>
                 <div class="space-y-2">
-                  <Label>Status</Label>
+                  <Label>{{ t('common.status') }}</Label>
                   <Select v-model="formData.status">
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ACTIVE">Active</SelectItem>
-                      <SelectItem value="INACTIVE">Inactive</SelectItem>
-                      <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                      <SelectItem value="ACTIVE">{{ t('admin.status.active') }}</SelectItem>
+                      <SelectItem value="INACTIVE">{{ t('admin.status.inactive') }}</SelectItem>
+                      <SelectItem value="SUSPENDED">{{ t('admin.status.suspended') }}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -706,8 +725,8 @@ onMounted(() => {
           </Tabs>
 
           <DialogFooter>
-            <Button variant="outline" @click="isModalOpen = false">Cancel</Button>
-            <Button @click="handleSubmit">Save Changes</Button>
+            <Button variant="outline" @click="isModalOpen = false">{{ t('common.cancel') }}</Button>
+            <Button @click="handleSubmit">{{ t('common.saveChanges') }}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -716,14 +735,16 @@ onMounted(() => {
       <Dialog v-model:open="isDeleteModalOpen">
         <DialogContent class="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Supplier?</DialogTitle>
+            <DialogTitle>{{ t('admin.suppliers.deleteTitle') }}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this supplier? This action cannot be undone.
+              {{ t('admin.suppliers.deleteDescription') }}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" @click="isDeleteModalOpen = false">Cancel</Button>
-            <Button variant="destructive" @click="confirmDelete">Delete</Button>
+            <Button variant="outline" @click="isDeleteModalOpen = false">{{
+              t('common.cancel')
+            }}</Button>
+            <Button variant="destructive" @click="confirmDelete">{{ t('common.delete') }}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

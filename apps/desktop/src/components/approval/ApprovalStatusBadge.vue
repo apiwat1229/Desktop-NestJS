@@ -10,45 +10,48 @@ import {
   XCircle,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   status: string;
 }>();
 
+const { t } = useI18n();
+
 const statusConfig = computed(() => {
   const configs: Record<string, { label: string; variant: string; icon: any }> = {
     PENDING: {
-      label: 'Pending Approval',
+      label: t('approval.status.pending'),
       variant: 'warning',
       icon: Clock,
     },
     APPROVED: {
-      label: 'Approved',
+      label: t('approval.status.approved'),
       variant: 'success',
       icon: CheckCircle2,
     },
     REJECTED: {
-      label: 'Rejected',
+      label: t('approval.status.rejected'),
       variant: 'destructive',
       icon: XCircle,
     },
     RETURNED: {
-      label: 'Returned for Edit',
+      label: t('approval.status.returned'),
       variant: 'info',
       icon: ArrowLeft,
     },
     CANCELLED: {
-      label: 'Cancelled',
+      label: t('approval.status.cancelled'),
       variant: 'secondary',
       icon: Ban,
     },
     VOID: {
-      label: 'Void',
+      label: t('approval.status.void'),
       variant: 'destructive',
       icon: Slash,
     },
     EXPIRED: {
-      label: 'Expired',
+      label: t('approval.status.expired'),
       variant: 'secondary',
       icon: AlertTriangle,
     },

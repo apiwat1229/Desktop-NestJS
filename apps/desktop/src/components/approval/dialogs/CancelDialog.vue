@@ -14,6 +14,7 @@ import approvalsApi from '@/services/approvals';
 import { handleApiError } from '@/utils/errorHandler';
 import { Ban, Loader2 } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = defineModel<boolean>('open');
+const { t } = useI18n();
 const reason = ref('');
 const isLoading = ref(false);
 
@@ -36,13 +38,13 @@ const handleCancel = async () => {
       reason: reason.value || undefined,
     });
 
-    toast.success('Request cancelled successfully');
+    toast.success(t('approval.dialogs.cancel.success'));
 
     emit('success');
     isOpen.value = false;
     reason.value = '';
   } catch (err: any) {
-    handleApiError(err, 'Failed to cancel request');
+    handleApiError(err, t('approval.dialogs.cancel.error'));
   } finally {
     isLoading.value = false;
   }
@@ -53,23 +55,29 @@ const handleCancel = async () => {
   <Dialog v-model:open="isOpen">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Cancel Request</DialogTitle>
-        <DialogDescription> Are you sure you want to cancel this request? </DialogDescription>
+        <DialogTitle>{{ t('approval.dialogs.cancel.title') }}</DialogTitle>
+        <DialogDescription>{{ t('approval.dialogs.cancel.description') }}</DialogDescription>
       </DialogHeader>
 
       <div class="space-y-4">
         <div>
-          <Label>Reason (Optional)</Label>
-          <Textarea v-model="reason" placeholder="Enter reason..." :disabled="isLoading" />
+          <Label>{{ t('approval.dialogs.cancel.reasonLabel') }}</Label>
+          <Textarea
+            v-model="reason"
+            :placeholder="t('approval.dialogs.cancel.reasonPlaceholder')"
+            :disabled="isLoading"
+          />
         </div>
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isOpen = false" :disabled="isLoading"> Close </Button>
+        <Button variant="outline" @click="isOpen = false" :disabled="isLoading">{{
+          t('approval.dialogs.cancel.close')
+        }}</Button>
         <Button variant="destructive" @click="handleCancel" :disabled="isLoading">
           <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
           <Ban v-else class="w-4 h-4 mr-2" />
-          {{ isLoading ? 'Processing...' : 'Cancel Request' }}
+          {{ isLoading ? t('approval.dialogs.cancel.processing') : t('approval.actions.cancel') }}
         </Button>
       </DialogFooter>
     </DialogContent>

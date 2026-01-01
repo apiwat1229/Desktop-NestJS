@@ -46,6 +46,7 @@ import {
   Truck,
 } from 'lucide-vue-next';
 import { computed, h, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 // State
@@ -58,6 +59,8 @@ const settings = ref({
   autoRefresh: true,
   sound: false,
 });
+
+const { t } = useI18n();
 
 const provinces = ref<any[]>([]);
 const rubberTypes = ref<any[]>([]);
@@ -163,11 +166,11 @@ const openCheckInDialog = (booking: any) => {
 const handleNextStep = () => {
   // Basic validation
   if (!checkInData.value.truckType) {
-    toast.error('Please select truck type');
+    toast.error(t('truckScale.toast.selectTruckType'));
     return;
   }
   if (!checkInData.value.truckRegister || !checkInData.value.truckRegister.trim()) {
-    toast.error('Please enter truck registration number');
+    toast.error(t('truckScale.toast.truckRegisterRequired'));
     return;
   }
   checkInStep.value = 2;
@@ -177,12 +180,12 @@ const confirmCheckIn = async () => {
   if (!selectedBooking.value) return;
   try {
     await bookingsApi.checkIn(selectedBooking.value.id, checkInData.value);
-    toast.success('Check-in successful');
+    toast.success(t('truckScale.toast.checkInSuccess'));
     checkInDialogOpen.value = false;
     fetchBookings();
   } catch (error) {
     console.error('Check-in failed:', error);
-    toast.error('Failed to check-in');
+    toast.error(t('truckScale.toast.errorCheckIn'));
   }
 };
 
@@ -196,7 +199,7 @@ const fetchBookings = async () => {
     if (bookings.value.length > 0) console.log('[TruckScale] Booking Data:', bookings.value[0]);
   } catch (error) {
     console.error('Failed to fetch bookings:', error);
-    toast.error('Failed to load bookings');
+    toast.error(t('truckScale.toast.loadBookingsFailed'));
     bookings.value = [];
   } finally {
     isLoading.value = false;
@@ -243,7 +246,7 @@ const filteredBookings = computed(() => {
 // Scale Out & Dashboard Logic
 const weightOutDialogOpen = ref(false);
 const confirmCheckoutDialogOpen = ref(false);
-const weightOutData = ref({ weightOut: 0 });
+const weightOutData = ref<{ weightOut: number | null }>({ weightOut: 0 });
 
 const openWeightOut = (booking: any) => {
   selectedDrainBooking.value = booking;
@@ -254,22 +257,37 @@ const openWeightOut = (booking: any) => {
 const handleWeightOutNext = () => {
   // Validate
   if (!weightOutData.value.weightOut || weightOutData.value.weightOut <= 0) {
-    toast.error('Please enter weight out');
+    toast.error(t('truckScale.toast.weightOutRequired'));
     return;
   }
   weightOutDialogOpen.value = false;
   confirmCheckoutDialogOpen.value = true;
 };
 
+// Detail & Time Log Logic
+const detailDialogOpen = ref(false);
+const timeLogDialogOpen = ref(false);
+const selectedDetailBooking = ref<any>(null);
+
+const openBookingDetail = (booking: any) => {
+  selectedDetailBooking.value = booking;
+  detailDialogOpen.value = true;
+};
+
+const openTimeLog = (booking: any) => {
+  selectedDetailBooking.value = booking;
+  timeLogDialogOpen.value = true;
+};
+
 const confirmWeightOut = async () => {
   if (!selectedDrainBooking.value) return;
   try {
     await bookingsApi.saveWeightOut(selectedDrainBooking.value.id, weightOutData.value);
-    toast.success('Weight out saved successfully');
+    toast.success(t('truckScale.toast.weightOutSuccess'));
     confirmCheckoutDialogOpen.value = false;
     fetchBookings();
   } catch (e) {
-    toast.error('Failed to save weight out');
+    toast.error(t('truckScale.toast.errorWeightOut'));
   }
 };
 
@@ -304,7 +322,7 @@ const openRequestEdit = (booking: any) => {
 const confirmRequestEdit = async () => {
   if (!selectedRequestEditBooking.value) return;
   if (!requestEditReason.value) {
-    toast.error('Please provide a reason');
+    toast.error(t('truckScale.toast.reasonRequired'));
     return;
   }
   try {
@@ -317,12 +335,12 @@ const confirmRequestEdit = async () => {
       reason: requestEditReason.value,
       currentData: { weightIn: selectedRequestEditBooking.value.weightIn },
     });
-    toast.success('Edit request sent successfully');
+    toast.success(t('truckScale.toast.editRequestSent'));
     requestEditDialogOpen.value = false;
     fetchBookings();
   } catch (error) {
     console.error('Request edit failed:', error);
-    toast.error('Failed to send edit request');
+    toast.error(t('truckScale.toast.editRequestFailed'));
   }
 };
 const stopDrainDialogOpen = ref(false);
@@ -410,12 +428,14 @@ const confirmStartDrain = async () => {
   }
   try {
     await bookingsApi.startDrain(selectedDrainBooking.value.id);
-    toast.success('Started Drain');
+    toast.success(t('truckScale.toast.drainTimerStarted'));
     startDrainDialogOpen.value = false;
     fetchBookings();
   } catch (e: any) {
     console.error('Start drain error:', e);
-    toast.error('Failed to start: ' + (e.response?.data?.message || e.message));
+    toast.error(
+      t('truckScale.toast.startDrainFailed') + ': ' + (e.response?.data?.message || e.message)
+    );
   }
 };
 
@@ -427,7 +447,7 @@ const confirmStopDrain = async () => {
   const durationMins = Math.floor((end - start) / 60000);
 
   if (durationMins < 40 && !stopDrainReason.value.trim()) {
-    toast.error('Please provide a reason (duration less than 40 minutes)');
+    toast.error(t('truckScale.toast.reasonRequiredDuration'));
     return;
   }
 
@@ -435,11 +455,11 @@ const confirmStopDrain = async () => {
     await bookingsApi.stopDrain(selectedDrainBooking.value.id, {
       note: stopDrainReason.value,
     });
-    toast.success('Stopped Drain');
+    toast.success(t('truckScale.toast.drainTimerStopped'));
     stopDrainDialogOpen.value = false;
     fetchBookings();
   } catch (e) {
-    toast.error('Failed to stop');
+    toast.error(t('truckScale.toast.stopDrainFailed'));
   }
 };
 
@@ -456,43 +476,43 @@ const saveWeightIn = async () => {
 };
 
 const calculateDuration = (start: string | Date, end: string | Date) => {
-  if (!start || !end) return '00 min';
+  if (!start || !end) return '00 ' + t('liveDuration.min');
   const s = new Date(start).getTime();
   const e = new Date(end).getTime();
   const diff = Math.floor((e - s) / 60000); // minutes
-  return `${diff} min`;
+  return `${diff} ${t('liveDuration.min')}`;
 };
 
 // Columns
 const columns: ColumnDef<any>[] = [
   {
     accessorKey: 'queueNo',
-    header: 'Queue',
+    header: () => t('truckScale.queue') || 'Queue',
     cell: ({ row }) => h('div', { class: 'font-bold text-center w-12' }, row.original.queueNo),
   },
   {
     accessorKey: 'date',
-    header: 'Date',
+    header: () => t('truckScale.date'),
     cell: ({ row }) => format(new Date(row.original.date), 'dd-MMM-yyyy'),
   },
   {
     accessorKey: 'time',
-    header: 'Time',
+    header: () => t('truckScale.time') || 'Time',
     cell: ({ row }) => `${row.original.startTime} - ${row.original.endTime}`,
   },
   {
     accessorKey: 'bookingCode',
-    header: 'Booking',
+    header: () => t('booking.bookingCode'),
     cell: ({ row }) => row.original.bookingCode,
   },
   {
     accessorKey: 'supplierName',
-    header: 'Supplier',
+    header: () => t('truckScale.supplier') || 'Supplier',
     cell: ({ row }) => `${row.original.supplierCode} - ${row.original.supplierName}`,
   },
   {
     accessorKey: 'truckRegister',
-    header: 'Truck',
+    header: () => t('truckScale.truck') || 'Truck',
     cell: ({ row }) => {
       const type = row.original.truckType;
       const register = row.original.truckRegister;
@@ -505,7 +525,7 @@ const columns: ColumnDef<any>[] = [
   },
   {
     id: 'status',
-    header: 'Status',
+    header: () => t('truckScale.status'),
     cell: ({ row }) => {
       const isCheckedIn = !!row.original.checkinAt;
       if (isCheckedIn) {
@@ -532,7 +552,7 @@ const columns: ColumnDef<any>[] = [
 const scaleInColumns: ColumnDef<any>[] = [
   {
     accessorKey: 'supplierName',
-    header: 'Supplier',
+    header: () => t('truckScale.supplier') || 'Supplier',
     cell: ({ row }) =>
       h('div', { class: 'flex flex-col' }, [
         h('span', { class: 'font-medium' }, row.original.supplierCode),
@@ -541,23 +561,23 @@ const scaleInColumns: ColumnDef<any>[] = [
   },
   {
     accessorKey: 'queueNo',
-    header: 'Queue',
+    header: () => t('truckScale.queue') || 'Queue',
     cell: ({ row }) =>
       h('div', {}, `${row.original.startTime} - ${row.original.endTime} (${row.original.queueNo})`),
   },
   {
     accessorKey: 'truckRegister',
-    header: 'License Plate',
+    header: () => t('truckScale.licensePlate') || 'License Plate',
     cell: ({ row }) => row.original.truckRegister || '-',
   },
   {
     accessorKey: 'truckType',
-    header: 'Type',
+    header: () => t('truckScale.type') || 'Type',
     cell: ({ row }) => row.original.truckType || '-',
   },
   {
     accessorKey: 'startDrainAt',
-    header: 'Start Drain',
+    header: () => t('truckScale.startDrain') || 'Start Drain',
     cell: ({ row }) => {
       if (row.original.startDrainAt) {
         return h(
@@ -573,13 +593,13 @@ const scaleInColumns: ColumnDef<any>[] = [
           class: 'bg-green-100 text-green-700 hover:bg-green-200 border-none shadow-none',
           onClick: () => openStartDrain(row.original),
         },
-        () => 'Start'
+        () => t('truckScale.startDrain')
       );
     },
   },
   {
     accessorKey: 'stopDrainAt',
-    header: 'Stop Drain',
+    header: () => t('truckScale.stopDrain') || 'Stop Drain',
     cell: ({ row }) => {
       if (!row.original.startDrainAt)
         return h(Button, { size: 'sm', disabled: true, variant: 'secondary' }, () => 'Stop'); // Disabled if not started
@@ -597,12 +617,13 @@ const scaleInColumns: ColumnDef<any>[] = [
           class: 'bg-red-100 text-red-700 hover:bg-red-200 border-none shadow-none',
           onClick: () => openStopDrain(row.original),
         },
-        () => 'Stop'
+        () => t('truckScale.stopDrain')
       );
     },
   },
   {
-    header: 'Total Drain',
+    id: 'totalDrain',
+    header: () => t('truckScale.totalDrain') || 'Total Drain',
     cell: ({ row }) => {
       if (row.original.startDrainAt) {
         return h(LiveDuration, {
@@ -610,18 +631,18 @@ const scaleInColumns: ColumnDef<any>[] = [
           end: row.original.stopDrainAt,
         });
       }
-      return '00 min';
+      return '00 ' + t('liveDuration.min');
     },
   },
   {
     accessorKey: 'weightIn',
-    header: 'Weight In',
+    header: () => t('truckScale.weightIn') || 'Weight In',
     cell: ({ row }) =>
       row.original.weightIn ? `${row.original.weightIn.toLocaleString()} kg` : '-',
   },
   {
     id: 'action',
-    header: 'Action',
+    header: () => t('common.actions'),
     cell: ({ row }) => {
       const hasWeight = !!row.original.weightIn;
       const canEdit = row.original.canEditWeightIn; // Assuming backend provides this flag
@@ -636,7 +657,7 @@ const scaleInColumns: ColumnDef<any>[] = [
               class: 'text-blue-600 border-blue-200 bg-blue-50',
               onClick: () => openWeightIn(row.original),
             },
-            () => 'Edit'
+            () => t('common.edit')
           );
         }
         return h(
@@ -647,7 +668,7 @@ const scaleInColumns: ColumnDef<any>[] = [
             class: 'text-orange-600 border-orange-200 bg-orange-50',
             onClick: () => openRequestEdit(row.original),
           },
-          () => 'Request Edit'
+          () => t('truckScale.requestEdit')
         );
       }
       return h(
@@ -657,7 +678,7 @@ const scaleInColumns: ColumnDef<any>[] = [
           class: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
           onClick: () => openWeightIn(row.original),
         },
-        () => 'Save'
+        () => t('common.save')
       );
     },
   },
@@ -667,23 +688,24 @@ const scaleOutColumns: ColumnDef<any>[] = [
   ...scaleInColumns.slice(0, 3), // Supplier, Queue, Truck
   {
     accessorKey: 'truckType',
-    header: 'Type',
+    header: () => t('truckScale.type'),
     cell: ({ row }) => row.original.truckType || '-',
   },
   {
     accessorKey: 'startDrainAt',
-    header: 'Start Drain',
+    header: () => t('truckScale.startDrain') || 'Start Drain',
     cell: ({ row }) =>
       row.original.startDrainAt ? format(new Date(row.original.startDrainAt), 'HH:mm') : '-',
   },
   {
     accessorKey: 'stopDrainAt',
-    header: 'Stop Drain',
+    header: () => t('truckScale.stopDrain') || 'Stop Drain',
     cell: ({ row }) =>
       row.original.stopDrainAt ? format(new Date(row.original.stopDrainAt), 'HH:mm') : '-',
   },
   {
-    header: 'Total Drain',
+    id: 'totalDrain',
+    header: () => t('truckScale.totalDrain'),
     cell: ({ row }) => {
       if (row.original.startDrainAt) {
         return h(LiveDuration, {
@@ -691,18 +713,18 @@ const scaleOutColumns: ColumnDef<any>[] = [
           end: row.original.stopDrainAt,
         });
       }
-      return '00 min';
+      return '00 ' + t('liveDuration.min');
     },
   },
   {
     accessorKey: 'weightIn',
-    header: 'Weight In',
+    header: () => t('truckScale.weightIn'),
     cell: ({ row }) =>
       row.original.weightIn ? `${row.original.weightIn.toLocaleString()} kg` : '-',
   },
   {
     id: 'action',
-    header: 'Action',
+    header: () => t('common.actions'),
     cell: ({ row }) => {
       return h(
         Button,
@@ -711,7 +733,7 @@ const scaleOutColumns: ColumnDef<any>[] = [
           class: 'bg-blue-100 text-blue-600 hover:bg-blue-200 border-none shadow-none',
           onClick: () => openWeightOut(row.original),
         },
-        () => 'Save'
+        () => t('common.save')
       );
     },
   },
@@ -720,26 +742,28 @@ const scaleOutColumns: ColumnDef<any>[] = [
 const dashboardColumns: ColumnDef<any>[] = [
   {
     accessorKey: 'date',
-    header: 'Date',
+    header: () => t('truckScale.date'),
     cell: ({ row }) => format(new Date(row.original.date), 'dd-MMM-yyyy'),
   },
   {
     accessorKey: 'supplierName',
-    header: 'Supplier',
+    header: () => t('truckScale.supplier'),
     cell: ({ row }) => `${row.original.supplierCode} : ${row.original.supplierName}`,
   },
   {
     accessorKey: 'truckRegister',
-    header: 'License Plate',
+    header: () => t('truckScale.licensePlate') || 'License Plate',
     cell: ({ row }) => row.original.truckRegister || '-',
   },
   {
     accessorKey: 'truckType',
-    header: 'Type',
+    header: () => t('truckScale.type') || 'Type',
     cell: ({ row }) => row.original.truckType || '-',
   },
   {
-    header: 'Rubber Type / Province',
+    id: 'rubberTypeProvince',
+    header: () =>
+      `${t('truckScale.rubberType')} / ${t('admin.suppliers.dialog.labels.province') || 'Province'}`,
     cell: ({ row }) =>
       h('div', { class: 'flex flex-col' }, [
         h('span', { class: 'font-medium' }, row.original.rubberType || '-'),
@@ -752,18 +776,19 @@ const dashboardColumns: ColumnDef<any>[] = [
   },
   {
     accessorKey: 'weightIn',
-    header: 'Weight In',
+    header: () => t('truckScale.weightIn') || 'Weight In',
     cell: ({ row }) =>
       row.original.weightIn ? `${row.original.weightIn.toLocaleString()} Kg.` : '-',
   },
   {
     accessorKey: 'weightOut',
-    header: 'Weight Out',
+    header: () => t('truckScale.weightOut'),
     cell: ({ row }) =>
       row.original.weightOut ? `${row.original.weightOut.toLocaleString()} Kg.` : '-',
   },
   {
-    header: 'Net',
+    id: 'netWeight',
+    header: () => t('truckScale.netWeight') || 'Net',
     cell: ({ row }) => {
       const net = Math.abs((row.original.weightIn || 0) - (row.original.weightOut || 0));
       return h('span', { class: 'font-bold' }, `${net.toLocaleString()} Kg.`);
@@ -771,19 +796,29 @@ const dashboardColumns: ColumnDef<any>[] = [
   },
   {
     id: 'actions',
-    header: 'Actions',
-    cell: () =>
+    header: () => t('common.actions'),
+    cell: ({ row }) =>
       h('div', { class: 'flex gap-2' }, [
         h(
           Button,
-          { size: 'icon', variant: 'ghost', class: 'h-8 w-8 bg-green-50 text-green-600' },
+          {
+            size: 'icon',
+            variant: 'ghost',
+            class: 'h-8 w-8 bg-green-50 text-green-600 hover:bg-green-100',
+            onClick: () => openBookingDetail(row.original),
+          },
           () => h(CheckCircle, { class: 'w-4 h-4' })
         ),
         h(
           Button,
-          { size: 'icon', variant: 'ghost', class: 'h-8 w-8 bg-blue-50 text-blue-600' },
+          {
+            size: 'icon',
+            variant: 'ghost',
+            class: 'h-8 w-8 bg-blue-50 text-blue-600 hover:bg-blue-100',
+            onClick: () => openTimeLog(row.original),
+          },
           () => h(Clock, { class: 'w-4 h-4' })
-        ), // Just placeholders/icons as per image
+        ),
       ]),
   },
 ];
@@ -839,8 +874,8 @@ onUnmounted(() => {
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <!-- Title -->
         <div class="flex flex-col gap-1">
-          <h1 class="text-3xl font-bold tracking-tight">Truck Scale System</h1>
-          <p class="text-muted-foreground">Manage truck weigh-ins and gate operations.</p>
+          <h1 class="text-3xl font-bold tracking-tight">{{ t('truckScale.title') }}</h1>
+          <p class="text-muted-foreground">{{ t('truckScale.formDescription') }}</p>
         </div>
 
         <!-- Tabs List (Right Aligned) -->
@@ -849,25 +884,25 @@ onUnmounted(() => {
             value="checkin"
             class="px-4 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md"
           >
-            Booking Check-in
+            {{ t('truckScale.checkIn') }}
           </TabsTrigger>
           <TabsTrigger
             value="scale-in"
             class="px-4 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md"
           >
-            Weight Scale In
+            {{ t('truckScale.weightIn') }}
           </TabsTrigger>
           <TabsTrigger
             value="scale-out"
             class="px-4 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md"
           >
-            Weight Scale Out
+            {{ t('truckScale.weightOut') }}
           </TabsTrigger>
           <TabsTrigger
             value="dashboard"
             class="px-4 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md"
           >
-            Weight Summary Dashboard
+            {{ t('truckScale.dashboard') }}
           </TabsTrigger>
         </TabsList>
 
@@ -880,7 +915,7 @@ onUnmounted(() => {
           </DialogTrigger>
           <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
+              <DialogTitle>{{ t('common.settings') }}</DialogTitle>
               <DialogDescription>
                 Configure notification and auto-refresh settings.
               </DialogDescription>
@@ -888,9 +923,9 @@ onUnmounted(() => {
             <div class="grid gap-4 py-4">
               <div class="flex items-center justify-between space-x-2">
                 <Label htmlFor="auto-refresh" class="flex flex-col space-y-1">
-                  <span>Auto Refresh</span>
+                  <span>{{ t('truckScale.settings.autoRefresh') }}</span>
                   <span class="font-normal leading-snug text-muted-foreground">
-                    Automatically refresh data when a new notification arrives.
+                    {{ t('truckScale.settings.autoRefreshDesc') }}
                   </span>
                 </Label>
                 <Checkbox
@@ -901,9 +936,9 @@ onUnmounted(() => {
               </div>
               <div class="flex items-center justify-between space-x-2">
                 <Label htmlFor="sound" class="flex flex-col space-y-1">
-                  <span>Notification Sound</span>
+                  <span>{{ t('truckScale.settings.sound') }}</span>
                   <span class="font-normal leading-snug text-muted-foreground">
-                    Play a sound when a notification is received.
+                    {{ t('truckScale.settings.soundDesc') }}
                   </span>
                 </Label>
                 <Checkbox
@@ -926,7 +961,7 @@ onUnmounted(() => {
               <!-- Filters Group -->
               <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
                 <div class="grid gap-2 w-full md:w-auto">
-                  <Label>Select Date</Label>
+                  <Label>{{ t('truckScale.date') }}</Label>
                   <Popover v-model:open="isDatePopoverOpen">
                     <PopoverTrigger as-child>
                       <Button
@@ -942,7 +977,7 @@ onUnmounted(() => {
                         <span>{{
                           selectedDate
                             ? format(new Date(selectedDate), 'dd-MMM-yyyy')
-                            : 'Pick a date'
+                            : t('truckScale.pickDate')
                         }}</span>
                       </Button>
                     </PopoverTrigger>
@@ -957,12 +992,12 @@ onUnmounted(() => {
                   </Popover>
                 </div>
                 <div class="grid gap-2 w-full md:w-[320px]">
-                  <Label>Search Booking</Label>
+                  <Label>{{ t('common.search') }}</Label>
                   <div class="relative">
                     <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       v-model="searchQuery"
-                      placeholder="Code / Supplier / Truck..."
+                      :placeholder="t('truckScale.searchPlaceholder')"
                       class="pl-9"
                     />
                   </div>
@@ -972,7 +1007,7 @@ onUnmounted(() => {
                   @click="fetchBookings"
                 >
                   <Search class="w-4 h-4 mr-2" />
-                  Search
+                  {{ t('common.search') }}
                 </Button>
               </div>
 
@@ -985,7 +1020,9 @@ onUnmounted(() => {
                     <Truck class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Total Expected</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.totalExpected') || 'Total Expected'
+                    }}</span>
                     <span class="text-xl font-bold leading-none">{{ stats.total }}</span>
                   </div>
                 </div>
@@ -997,7 +1034,9 @@ onUnmounted(() => {
                     <CheckCircle class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Checked In</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.checkedIn')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-green-600">{{
                       stats.checkedIn
                     }}</span>
@@ -1011,7 +1050,9 @@ onUnmounted(() => {
                     <Clock class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Pending</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.pending')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-orange-600">{{
                       stats.pending
                     }}</span>
@@ -1034,7 +1075,7 @@ onUnmounted(() => {
               <!-- Filters Group -->
               <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
                 <div class="grid gap-2 w-full md:w-auto">
-                  <Label>Select Date</Label>
+                  <Label>{{ t('booking.selectDate') }}</Label>
                   <Popover v-model:open="isDatePopoverOpen">
                     <PopoverTrigger as-child>
                       <Button
@@ -1065,12 +1106,12 @@ onUnmounted(() => {
                   </Popover>
                 </div>
                 <div class="grid gap-2 w-full md:w-[320px]">
-                  <Label>Search Booking</Label>
+                  <Label>{{ t('truckScale.searchBooking') }}</Label>
                   <div class="relative">
                     <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       v-model="searchQuery"
-                      placeholder="Code / Supplier / Truck..."
+                      :placeholder="t('truckScale.searchPlaceholder')"
                       class="pl-9"
                     />
                   </div>
@@ -1080,7 +1121,7 @@ onUnmounted(() => {
                   @click="fetchBookings"
                 >
                   <Search class="w-4 h-4 mr-2" />
-                  Search
+                  {{ t('common.search') }}
                 </Button>
               </div>
 
@@ -1093,7 +1134,9 @@ onUnmounted(() => {
                     <Truck class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Total Expected</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.totalExpected')
+                    }}</span>
                     <span class="text-xl font-bold leading-none">{{ stats.total }}</span>
                   </div>
                 </div>
@@ -1105,7 +1148,9 @@ onUnmounted(() => {
                     <CheckCircle class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Checked In</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.checkedIn')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-green-600">{{
                       stats.checkedIn
                     }}</span>
@@ -1119,7 +1164,9 @@ onUnmounted(() => {
                     <Clock class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Pending</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.pending')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-orange-600">{{
                       stats.pending
                     }}</span>
@@ -1141,7 +1188,7 @@ onUnmounted(() => {
               <!-- Filters Group -->
               <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
                 <div class="grid gap-2 w-full md:w-auto">
-                  <Label>Select Date</Label>
+                  <Label>{{ t('booking.selectDate') }}</Label>
                   <Popover v-model:open="isDatePopoverOpen">
                     <PopoverTrigger as-child>
                       <Button
@@ -1157,7 +1204,7 @@ onUnmounted(() => {
                         <span>{{
                           selectedDate
                             ? format(new Date(selectedDate), 'dd-MMM-yyyy')
-                            : 'Pick a date'
+                            : t('truckScale.pickDate')
                         }}</span>
                       </Button>
                     </PopoverTrigger>
@@ -1172,12 +1219,12 @@ onUnmounted(() => {
                   </Popover>
                 </div>
                 <div class="grid gap-2 w-full md:w-[320px]">
-                  <Label>Search Booking</Label>
+                  <Label>{{ t('truckScale.searchBooking') }}</Label>
                   <div class="relative">
                     <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       v-model="searchQuery"
-                      placeholder="Code / Supplier / Truck..."
+                      :placeholder="t('truckScale.searchPlaceholder')"
                       class="pl-9"
                     />
                   </div>
@@ -1187,7 +1234,7 @@ onUnmounted(() => {
                   @click="fetchBookings"
                 >
                   <Search class="w-4 h-4 mr-2" />
-                  Search
+                  {{ t('common.search') }}
                 </Button>
               </div>
 
@@ -1200,7 +1247,9 @@ onUnmounted(() => {
                     <Truck class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Total Expected</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.totalExpected')
+                    }}</span>
                     <span class="text-xl font-bold leading-none">{{ stats.total }}</span>
                   </div>
                 </div>
@@ -1212,7 +1261,9 @@ onUnmounted(() => {
                     <CheckCircle class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Checked In</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.checkedIn')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-green-600">{{
                       stats.checkedIn
                     }}</span>
@@ -1226,7 +1277,9 @@ onUnmounted(() => {
                     <Clock class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-xs text-muted-foreground font-medium">Pending</span>
+                    <span class="text-xs text-muted-foreground font-medium">{{
+                      t('truckScale.stats.pending')
+                    }}</span>
                     <span class="text-xl font-bold leading-none text-orange-600">{{
                       stats.pending
                     }}</span>
@@ -1247,7 +1300,7 @@ onUnmounted(() => {
               <!-- Filters Group -->
               <div class="flex flex-col md:flex-row gap-4 items-end w-full xl:w-auto">
                 <div class="grid gap-2 w-full md:w-auto">
-                  <Label>Select Date</Label>
+                  <Label>{{ t('booking.selectDate') }}</Label>
                   <Popover v-model:open="isDatePopoverOpen">
                     <PopoverTrigger as-child>
                       <Button
@@ -1263,7 +1316,7 @@ onUnmounted(() => {
                         <span>{{
                           selectedDate
                             ? format(new Date(selectedDate), 'dd-MMM-yyyy')
-                            : 'Pick a date'
+                            : t('truckScale.pickDate')
                         }}</span>
                       </Button>
                     </PopoverTrigger>
@@ -1278,12 +1331,12 @@ onUnmounted(() => {
                   </Popover>
                 </div>
                 <div class="grid gap-2 w-full md:w-[320px]">
-                  <Label>Search Booking</Label>
+                  <Label>{{ t('truckScale.searchBooking') }}</Label>
                   <div class="relative">
                     <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       v-model="searchQuery"
-                      placeholder="Code / Supplier / Truck..."
+                      :placeholder="t('truckScale.searchPlaceholder')"
                       class="pl-9"
                     />
                   </div>
@@ -1293,7 +1346,7 @@ onUnmounted(() => {
                   @click="fetchBookings"
                 >
                   <Search class="w-4 h-4 mr-2" />
-                  Search
+                  {{ t('common.search') }}
                 </Button>
               </div>
 
@@ -1302,42 +1355,49 @@ onUnmounted(() => {
                 <div
                   class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-blue-500 shadow-sm min-w-[150px]"
                 >
-                  <span class="text-xs text-muted-foreground font-medium">Total Trips</span>
-                  <span class="text-xl font-bold leading-none"
-                    >{{ dashboardStats.count }} trips</span
-                  >
+                  <span class="text-xs text-muted-foreground font-medium">{{
+                    t('truckScale.stats.totalTrips')
+                  }}</span>
+                  <span class="text-xl font-bold leading-none">{{ dashboardStats.count }}</span>
                 </div>
 
                 <div
                   class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-green-500 shadow-sm min-w-[150px]"
                 >
-                  <span class="text-xs text-muted-foreground font-medium">Total Net Weight</span>
-                  <span class="text-xl font-bold leading-none text-green-600">{{
-                    dashboardStats.net.toLocaleString()
+                  <span class="text-xs text-muted-foreground font-medium">{{
+                    t('truckScale.stats.totalNetWeight')
                   }}</span>
+                  <span class="text-xl font-bold leading-none text-green-600"
+                    >{{ dashboardStats.net.toLocaleString() }} Kg.</span
+                  >
                 </div>
 
                 <div
                   class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-blue-400 shadow-sm min-w-[150px]"
                 >
-                  <span class="text-xs text-muted-foreground font-medium">Total Gross</span>
-                  <span class="text-xl font-bold leading-none text-blue-500">{{
-                    dashboardStats.gross.toLocaleString()
+                  <span class="text-xs text-muted-foreground font-medium">{{
+                    t('truckScale.stats.totalGross')
                   }}</span>
+                  <span class="text-xl font-bold leading-none text-blue-500"
+                    >{{ dashboardStats.gross.toLocaleString() }} Kg.</span
+                  >
                 </div>
 
                 <div
                   class="rounded-lg border bg-background px-4 py-2 flex flex-col justify-center gap-1 border-l-4 border-l-orange-500 shadow-sm min-w-[150px]"
                 >
-                  <span class="text-xs text-muted-foreground font-medium">In / Out</span>
+                  <span class="text-xs text-muted-foreground font-medium">{{
+                    t('truckScale.stats.inOut')
+                  }}</span>
                   <div class="flex items-baseline gap-1">
-                    <span class="text-lg font-bold text-blue-600"
-                      >{{ (dashboardStats.weightIn / 1000).toFixed(0) }}k</span
-                    >
+                    <span class="text-lg font-bold text-blue-600">{{
+                      dashboardStats.weightIn.toLocaleString()
+                    }}</span>
                     <span class="text-muted-foreground">/</span>
-                    <span class="text-lg font-bold text-orange-600"
-                      >{{ (dashboardStats.weightOut / 1000).toFixed(0) }}k</span
-                    >
+                    <span class="text-lg font-bold text-orange-600">{{
+                      dashboardStats.weightOut.toLocaleString()
+                    }}</span>
+                    <span class="text-sm text-muted-foreground ml-1">Kg.</span>
                   </div>
                 </div>
               </div>
@@ -1356,17 +1416,17 @@ onUnmounted(() => {
         <!-- STEP 1: FORM -->
         <div v-if="checkInStep === 1">
           <DialogHeader class="mb-4">
-            <DialogTitle class="text-xl">Check-in Record</DialogTitle>
-            <DialogDescription class="sr-only"
-              >Form to record truck check-in details.</DialogDescription
-            >
+            <DialogTitle class="text-xl">{{ t('truckScale.checkInRecord') }}</DialogTitle>
+            <DialogDescription class="sr-only">{{
+              t('truckScale.formDescription')
+            }}</DialogDescription>
           </DialogHeader>
 
           <!-- Booking Details Card -->
           <div class="bg-muted/30 rounded-lg p-4 mb-6 border">
             <div class="flex items-center gap-2 mb-4">
               <div class="w-1 h-6 bg-blue-600 rounded-full"></div>
-              <span class="font-semibold text-base">Booking Details</span>
+              <span class="font-semibold text-base">{{ t('approval.requestDetails') }}</span>
               <Badge
                 variant="secondary"
                 class="ml-auto bg-blue-100 text-blue-700 hover:bg-blue-100 text-lg px-3 py-1"
@@ -1377,7 +1437,7 @@ onUnmounted(() => {
 
             <div class="space-y-2 text-sm">
               <div class="grid grid-cols-[100px_1fr] items-center">
-                <span class="text-muted-foreground">Date</span>
+                <span class="text-muted-foreground">{{ t('truckScale.date') }}</span>
                 <span class="font-medium">
                   {{
                     selectedBooking?.date
@@ -1387,17 +1447,17 @@ onUnmounted(() => {
                 </span>
               </div>
               <div class="grid grid-cols-[100px_1fr] items-center">
-                <span class="text-muted-foreground">Time Slot</span>
+                <span class="text-muted-foreground">{{ t('booking.timeSlot') }}</span>
                 <span class="font-medium">
                   {{ selectedBooking?.startTime }} - {{ selectedBooking?.endTime }}
                 </span>
               </div>
               <div class="grid grid-cols-[100px_1fr] items-center">
-                <span class="text-muted-foreground">Booking</span>
+                <span class="text-muted-foreground">{{ t('booking.bookingCode') }}</span>
                 <span class="font-medium">{{ selectedBooking?.bookingCode }}</span>
               </div>
               <div class="grid grid-cols-[100px_1fr] items-center">
-                <span class="text-muted-foreground">Supplier</span>
+                <span class="text-muted-foreground">{{ t('truckScale.supplier') }}</span>
                 <span class="font-medium">
                   {{ selectedBooking?.supplierCode }} — {{ selectedBooking?.supplierName }}
                 </span>
@@ -1410,7 +1470,7 @@ onUnmounted(() => {
             <!-- Row 1: Time & Recorder -->
             <div class="grid grid-cols-2 gap-4">
               <div class="grid gap-2">
-                <Label>Check-in Time</Label>
+                <Label>{{ t('truckScale.checkInTime') }}</Label>
                 <Input
                   :model-value="checkInTime ? format(checkInTime, 'HH:mm') : '-'"
                   readonly
@@ -1418,7 +1478,7 @@ onUnmounted(() => {
                 />
               </div>
               <div class="grid gap-2">
-                <Label>Recorder</Label>
+                <Label>{{ t('booking.recorder') }}</Label>
                 <Input :model-value="recorderName" readonly class="bg-muted" />
               </div>
             </div>
@@ -1426,23 +1486,34 @@ onUnmounted(() => {
             <!-- Row 2: Truck Info -->
             <div class="grid grid-cols-2 gap-4">
               <div class="grid gap-2">
-                <Label>Truck Type <span class="text-destructive">*</span></Label>
+                <Label
+                  >{{ t('truckScale.truckType') }} <span class="text-destructive">*</span></Label
+                >
                 <Select v-model="checkInData.truckType">
                   <SelectTrigger>
-                    <SelectValue placeholder="Select truck type" />
+                    <SelectValue :placeholder="t('truckScale.selectTruckType')" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="กระบะ">Pickup</SelectItem>
-                    <SelectItem value="6 ล้อ">6-Wheeler</SelectItem>
-                    <SelectItem value="10 ล้อ">10-Wheeler</SelectItem>
-                    <SelectItem value="10 ล้อ พ่วง">10-Wheeler (Trailer)</SelectItem>
-                    <SelectItem value="เทรลเลอร์">Trailer</SelectItem>
+                    <SelectItem value="กระบะ">{{ t('truckScale.truckTypes.pickup') }}</SelectItem>
+                    <SelectItem value="6 ล้อ">{{ t('truckScale.truckTypes.6wheeler') }}</SelectItem>
+                    <SelectItem value="10 ล้อ">{{
+                      t('truckScale.truckTypes.10wheeler')
+                    }}</SelectItem>
+                    <SelectItem value="10 ล้อ พ่วง">{{
+                      t('truckScale.truckTypes.10wheelerTrailer')
+                    }}</SelectItem>
+                    <SelectItem value="เทรลเลอร์">{{
+                      t('truckScale.truckTypes.trailer')
+                    }}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div class="grid gap-2 col-span-2">
-                  <Label>License Plate <span class="text-destructive">*</span></Label>
+                  <Label
+                    >{{ t('truckScale.licensePlate') }}
+                    <span class="text-destructive">*</span></Label
+                  >
                   <Input v-model="checkInData.truckRegister" placeholder="Ex. 1กข 1234" />
                 </div>
               </div>
@@ -1450,7 +1521,7 @@ onUnmounted(() => {
 
             <!-- Note -->
             <div class="grid gap-2">
-              <Label>Note</Label>
+              <Label>{{ t('approval.note') }}</Label>
               <Textarea
                 v-model="checkInData.note"
                 placeholder="Additional details (if any)"
@@ -1460,9 +1531,11 @@ onUnmounted(() => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" @click="checkInDialogOpen = false"> Close </Button>
+            <Button variant="outline" @click="checkInDialogOpen = false">
+              {{ t('common.close') }}
+            </Button>
             <Button class="bg-blue-600 hover:bg-blue-700" @click="handleNextStep">
-              Confirm Check-in
+              {{ t('common.confirm') }}
             </Button>
           </DialogFooter>
         </div>
@@ -1470,25 +1543,33 @@ onUnmounted(() => {
         <!-- STEP 2: CONFIRMATION -->
         <div v-else class="flex flex-col items-center justify-center py-6 text-center space-y-6">
           <DialogHeader class="mb-2">
-            <DialogTitle class="text-2xl font-bold">Confirm Check-in</DialogTitle>
-            <DialogDescription class="sr-only">Confirm check-in details.</DialogDescription>
+            <DialogTitle class="text-2xl font-bold">{{
+              t('truckScale.confirmCheckIn')
+            }}</DialogTitle>
+            <DialogDescription class="sr-only">{{
+              t('truckScale.confirmCheckIn')
+            }}</DialogDescription>
           </DialogHeader>
 
           <div class="space-y-2">
-            <p class="text-muted-foreground text-sm">Please verify before confirming</p>
+            <p class="text-muted-foreground text-sm">{{ t('truckScale.verifyBeforeConfirm') }}</p>
           </div>
 
           <div class="bg-muted/30 border rounded-xl p-6 w-full max-w-sm mx-auto space-y-6">
             <!-- Primary Info: Supplier & Time -->
             <div class="space-y-2">
-              <div class="text-sm text-muted-foreground font-medium">Supplier</div>
+              <div class="text-sm text-muted-foreground font-medium">
+                {{ t('truckScale.supplier') }}
+              </div>
               <div class="text-2xl font-bold text-foreground leading-tight">
                 {{ selectedBooking?.supplierCode }} — {{ selectedBooking?.supplierName }}
               </div>
             </div>
 
             <div class="space-y-2">
-              <div class="text-sm text-muted-foreground font-medium">Check-in Time</div>
+              <div class="text-sm text-muted-foreground font-medium">
+                {{ t('truckScale.checkInTime') }}
+              </div>
               <div
                 class="text-3xl font-extrabold text-blue-600 bg-blue-50 py-3 rounded-lg border border-blue-100"
               >
@@ -1498,10 +1579,10 @@ onUnmounted(() => {
 
             <div class="border-t pt-4 space-y-3">
               <div class="grid grid-cols-2 gap-2 text-sm">
-                <div class="text-muted-foreground">Booking No.</div>
+                <div class="text-muted-foreground">{{ t('booking.bookingCode') }}</div>
                 <div class="font-medium text-right">{{ selectedBooking?.bookingCode }}</div>
 
-                <div class="text-muted-foreground">Truck</div>
+                <div class="text-muted-foreground">{{ t('truckScale.truck') }}</div>
                 <div class="font-medium text-right">
                   {{ checkInData.truckType || '-' }} • {{ checkInData.truckRegister || '-' }}
                 </div>
@@ -1510,9 +1591,11 @@ onUnmounted(() => {
           </div>
 
           <div class="flex gap-4 w-full max-w-sm justify-center pt-4">
-            <Button variant="outline" class="w-full h-11" @click="checkInStep = 1"> Cancel </Button>
+            <Button variant="outline" class="w-full h-11" @click="checkInStep = 1">
+              {{ t('common.cancel') }}
+            </Button>
             <Button class="w-full h-11 bg-blue-600 hover:bg-blue-700" @click="confirmCheckIn">
-              Confirm
+              {{ t('common.confirm') }}
             </Button>
           </div>
         </div>
@@ -1523,8 +1606,10 @@ onUnmounted(() => {
     <Dialog v-model:open="startDrainDialogOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Confirm Start Drain Timer</DialogTitle>
-          <DialogDescription class="sr-only">Confirm to start drain timer.</DialogDescription>
+          <DialogTitle>{{ t('truckScale.confirmStartDrainTimer') }}</DialogTitle>
+          <DialogDescription class="sr-only">{{
+            t('truckScale.confirmStartDrainDescription') || 'Confirm to start drain timer.'
+          }}</DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4 py-2">
@@ -1553,19 +1638,19 @@ onUnmounted(() => {
           <!-- Details List -->
           <div class="space-y-3 px-1">
             <div class="grid grid-cols-[100px_1fr] text-sm">
-              <span class="text-muted-foreground">Supplier :</span>
+              <span class="text-muted-foreground">{{ t('truckScale.supplier') }} :</span>
               <span class="font-medium text-foreground truncate">{{
                 selectedDrainBooking?.supplierName
               }}</span>
             </div>
             <div class="grid grid-cols-[100px_1fr] text-sm">
-              <span class="text-muted-foreground">Booking Code :</span>
+              <span class="text-muted-foreground">{{ t('booking.bookingCode') }} :</span>
               <span class="font-medium font-mono text-foreground">{{
                 selectedDrainBooking?.bookingCode
               }}</span>
             </div>
             <div class="grid grid-cols-[100px_1fr] text-sm">
-              <span class="text-muted-foreground">Rubber Type :</span>
+              <span class="text-muted-foreground">{{ t('truckScale.rubberType') }} :</span>
               <span class="font-medium text-foreground">{{
                 getRubberTypeName(selectedDrainBooking?.rubberType)
               }}</span>
@@ -1578,7 +1663,7 @@ onUnmounted(() => {
           <div
             class="flex justify-between items-center bg-green-50 p-4 rounded-xl border border-green-100"
           >
-            <span class="text-green-700 font-medium text-sm">Start Time:</span>
+            <span class="text-green-700 font-medium text-sm">{{ t('truckScale.startTime') }}:</span>
             <span
               class="text-green-700 font-mono text-xl font-bold bg-white px-3 py-1 rounded-lg border border-green-200 shadow-sm"
             >
@@ -1588,12 +1673,12 @@ onUnmounted(() => {
         </div>
 
         <DialogFooter class="gap-2 sm:gap-0 mt-2">
-          <Button variant="outline" @click="startDrainDialogOpen = false" class="h-10"
-            >Cancel</Button
-          >
-          <Button class="bg-green-600 hover:bg-green-700 h-10 px-8" @click="confirmStartDrain"
-            >Confirm</Button
-          >
+          <Button variant="outline" @click="startDrainDialogOpen = false" class="h-10">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-green-600 hover:bg-green-700 h-10 px-8" @click="confirmStartDrain">{{
+            t('common.confirm')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1602,8 +1687,10 @@ onUnmounted(() => {
     <Dialog v-model:open="stopDrainDialogOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Confirm Stop Drain Timer</DialogTitle>
-          <DialogDescription class="sr-only">Confirm to stop drain timer.</DialogDescription>
+          <DialogTitle>{{ t('truckScale.confirmStopDrainTimer') }}</DialogTitle>
+          <DialogDescription class="sr-only">{{
+            t('truckScale.confirmStopDrainDescription') || 'Confirm to stop drain timer.'
+          }}</DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4 py-2">
@@ -1632,13 +1719,13 @@ onUnmounted(() => {
           <!-- Details List -->
           <div class="space-y-3 px-1">
             <div class="grid grid-cols-[100px_1fr] text-sm">
-              <span class="text-muted-foreground">Supplier :</span>
+              <span class="text-muted-foreground">{{ t('truckScale.supplier') }} :</span>
               <span class="font-medium text-foreground truncate">{{
                 selectedDrainBooking?.supplierName
               }}</span>
             </div>
             <div class="grid grid-cols-[100px_1fr] text-sm">
-              <span class="text-muted-foreground">Booking Code :</span>
+              <span class="text-muted-foreground">{{ t('booking.bookingCode') }} :</span>
               <span class="font-medium font-mono text-foreground">{{
                 selectedDrainBooking?.bookingCode
               }}</span>
@@ -1656,7 +1743,7 @@ onUnmounted(() => {
           <!-- Time Comparison -->
           <div class="grid grid-cols-2 gap-3">
             <div class="border p-3 rounded-lg bg-background">
-              <div class="text-xs text-muted-foreground mb-1">Start Time</div>
+              <div class="text-xs text-muted-foreground mb-1">{{ t('truckScale.startTime') }}</div>
               <div class="text-green-600 font-bold text-lg flex items-center gap-1.5">
                 <Clock class="w-4 h-4" />
                 {{
@@ -1667,7 +1754,7 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="border p-3 rounded-lg bg-red-50 border-red-100">
-              <div class="text-xs text-red-500 mb-1">Stop Time</div>
+              <div class="text-xs text-red-500 mb-1">{{ t('truckScale.stopTime') }}</div>
               <div class="text-red-600 font-bold text-lg flex items-center gap-1.5">
                 <Clock class="w-4 h-4" /> {{ format(new Date(), 'HH:mm') }}
               </div>
@@ -1678,7 +1765,7 @@ onUnmounted(() => {
             class="bg-orange-50 border border-orange-100 p-3 rounded-lg flex justify-between items-center"
           >
             <div class="flex items-center gap-2 text-orange-700 text-sm font-medium">
-              <span>⏳ Total Duration</span>
+              <span>⏳ {{ t('truckScale.totalDuration') }}</span>
             </div>
             <div class="text-xl font-bold text-orange-700">
               {{ calculateDuration(selectedDrainBooking?.startDrainAt, new Date()) }}
@@ -1694,10 +1781,10 @@ onUnmounted(() => {
             "
             class="grid gap-2"
           >
-            <Label class="text-red-600">Reason (required if duration less than 40 minutes) *</Label>
+            <Label class="text-red-600">{{ t('truckScale.reasonRequired') }} *</Label>
             <Textarea
               v-model="stopDrainReason"
-              placeholder="Specify reason..."
+              :placeholder="t('truckScale.specifyReason')"
               class="resize-none"
               rows="3"
             />
@@ -1705,12 +1792,12 @@ onUnmounted(() => {
         </div>
 
         <DialogFooter class="gap-2 sm:gap-0 mt-2">
-          <Button variant="outline" @click="stopDrainDialogOpen = false" class="h-10"
-            >Cancel</Button
-          >
-          <Button class="bg-red-600 hover:bg-red-700 h-10 px-8" @click="confirmStopDrain"
-            >Confirm Stop</Button
-          >
+          <Button variant="outline" @click="stopDrainDialogOpen = false" class="h-10">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-red-600 hover:bg-red-700 h-10 px-8" @click="confirmStopDrain">{{
+            t('truckScale.confirmStop')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1719,9 +1806,12 @@ onUnmounted(() => {
     <Dialog v-model:open="weightInDialogOpen">
       <DialogContent class="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Record Weight In (kg)</DialogTitle>
+          <DialogTitle>{{ t('truckScale.recordWeightIn') }}</DialogTitle>
           <DialogDescription class="sr-only">
-            Record weight in data including rubber source and type.
+            {{
+              t('truckScale.recordWeightInDescription') ||
+              'Record weight in data including rubber source and type.'
+            }}
           </DialogDescription>
         </DialogHeader>
 
@@ -1734,31 +1824,31 @@ onUnmounted(() => {
           <div class="space-y-4">
             <h3 class="font-semibold text-lg border-b pb-2 flex items-center gap-2">
               <div class="w-1 h-5 bg-primary rounded-full"></div>
-              Main Truck
+              {{ t('truckScale.mainTruck') }}
             </h3>
             <div class="grid gap-4">
               <div class="grid gap-2">
-                <Label>Rubber Source</Label>
+                <Label>{{ t('truckScale.rubberSource') }}</Label>
                 <Combobox
                   v-model="weightInData.rubberSource"
                   :options="provinceOptions"
-                  placeholder="Specify source"
-                  search-placeholder="Search province..."
-                  empty-text="Province not found"
+                  :placeholder="t('truckScale.specifySource')"
+                  :search-placeholder="t('admin.suppliers.dialog.placeholders.searchProvince')"
+                  :empty-text="t('admin.suppliers.dialog.errors.provinceNotFound')"
                 />
               </div>
               <div class="grid gap-2">
-                <Label>Rubber Type</Label>
+                <Label>{{ t('truckScale.rubberType') }}</Label>
                 <Combobox
                   v-model="weightInData.rubberType"
                   :options="rubberTypeOptions"
-                  placeholder="Select rubber type"
-                  search-placeholder="Search rubber type..."
-                  empty-text="Rubber type not found"
+                  :placeholder="t('truckScale.selectRubberType')"
+                  :search-placeholder="t('truckScale.searchRubberType')"
+                  :empty-text="t('truckScale.rubberTypeNotFound')"
                 />
               </div>
               <div class="grid gap-2">
-                <Label>Weight (kg)</Label>
+                <Label>{{ t('truckScale.weight') }} (kg)</Label>
                 <Input
                   v-model="formattedWeightIn"
                   class="text-lg font-medium"
@@ -1789,31 +1879,31 @@ onUnmounted(() => {
           <div class="space-y-4">
             <h3 class="font-semibold text-lg border-b pb-2 flex items-center gap-2">
               <div class="w-1 h-5 bg-orange-500 rounded-full"></div>
-              Trailer
+              {{ t('truckScale.trailer') }}
             </h3>
             <div class="grid gap-4">
               <div class="grid gap-2">
-                <Label>Rubber Source</Label>
+                <Label>{{ t('truckScale.rubberSource') }}</Label>
                 <Combobox
                   v-model="weightInData.trailerRubberSource"
                   :options="provinceOptions"
-                  placeholder="Specify source"
-                  search-placeholder="Search province..."
-                  empty-text="Province not found"
+                  :placeholder="t('truckScale.specifySource')"
+                  :search-placeholder="t('admin.suppliers.dialog.placeholders.searchProvince')"
+                  :empty-text="t('admin.suppliers.dialog.errors.provinceNotFound')"
                 />
               </div>
               <div class="grid gap-2">
-                <Label>Rubber Type</Label>
+                <Label>{{ t('truckScale.rubberType') }}</Label>
                 <Combobox
                   v-model="weightInData.trailerRubberType"
                   :options="rubberTypeOptions"
-                  placeholder="Select rubber type"
-                  search-placeholder="Search rubber type..."
-                  empty-text="Rubber type not found"
+                  :placeholder="t('truckScale.selectRubberType')"
+                  :search-placeholder="t('truckScale.searchRubberType')"
+                  :empty-text="t('truckScale.rubberTypeNotFound')"
                 />
               </div>
               <div class="grid gap-2">
-                <Label>Weight (kg)</Label>
+                <Label>{{ t('truckScale.weight') }} (kg)</Label>
                 <Input
                   v-model="formattedTrailerWeightIn"
                   class="text-lg font-medium"
@@ -1844,27 +1934,31 @@ onUnmounted(() => {
         <!-- Standard Layout (No Trailer) -->
         <div v-else class="grid grid-cols-2 gap-4 py-4">
           <div class="grid gap-2">
-            <Label>Rubber Source</Label>
+            <Label>{{ t('truckScale.rubberSource') }}</Label>
             <Combobox
               v-model="weightInData.rubberSource"
               :options="provinceOptions"
-              placeholder="Specify source"
-              search-placeholder="Search province..."
-              empty-text="Province not found"
+              :placeholder="t('truckScale.specifySource')"
+              :search-placeholder="
+                t('admin.suppliers.dialog.placeholders.searchProvince') || 'Search province...'
+              "
+              :empty-text="
+                t('admin.suppliers.dialog.errors.provinceNotFound') || 'Province not found'
+              "
             />
           </div>
           <div class="grid gap-2">
-            <Label>Rubber Type</Label>
+            <Label>{{ t('truckScale.rubberType') }}</Label>
             <Combobox
               v-model="weightInData.rubberType"
               :options="rubberTypeOptions"
-              placeholder="Select rubber type"
-              search-placeholder="Search rubber type..."
-              empty-text="Rubber type not found"
+              :placeholder="t('truckScale.selectRubberType')"
+              :search-placeholder="t('truckScale.searchRubberType') || 'Search rubber type...'"
+              :empty-text="t('truckScale.rubberTypeNotFound') || 'Rubber type not found'"
             />
           </div>
           <div class="grid gap-2 col-span-2">
-            <Label>Weight (kg)</Label>
+            <Label>{{ t('truckScale.weight') }} (kg)</Label>
             <Input
               v-model="formattedWeightIn"
               class="text-lg font-medium"
@@ -1886,8 +1980,12 @@ onUnmounted(() => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="weightInDialogOpen = false">Cancel</Button>
-          <Button class="bg-blue-600 hover:bg-blue-700" @click="saveWeightIn">Save</Button>
+          <Button variant="outline" @click="weightInDialogOpen = false">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-blue-600 hover:bg-blue-700" @click="saveWeightIn">{{
+            t('common.save')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1896,15 +1994,24 @@ onUnmounted(() => {
     <Dialog v-model:open="weightOutDialogOpen">
       <DialogContent class="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Record Weight Out (kg)</DialogTitle>
+          <DialogTitle>{{ t('truckScale.recordWeightOut') }} (kg)</DialogTitle>
         </DialogHeader>
 
         <div class="grid gap-4 py-4">
           <div class="grid gap-2">
-            <Label>Weight Out</Label>
+            <Label>{{ t('truckScale.weightOutLabel') }}</Label>
             <Input
-              v-model="weightOutData.weightOut"
-              type="number"
+              :model-value="
+                weightOutData.weightOut ? Number(weightOutData.weightOut).toLocaleString() : ''
+              "
+              @input="
+                (e: any) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  weightOutData.weightOut = value ? Number(value) : null;
+                  e.target.value = value ? Number(value).toLocaleString() : '';
+                }
+              "
+              type="text"
               class="text-xl h-12"
               placeholder="0"
             />
@@ -1912,8 +2019,12 @@ onUnmounted(() => {
         </div>
 
         <DialogFooter class="flex justify-between sm:justify-end gap-2">
-          <Button variant="outline" @click="weightOutDialogOpen = false">Cancel</Button>
-          <Button class="bg-blue-600 hover:bg-blue-700" @click="handleWeightOutNext">Save</Button>
+          <Button variant="outline" @click="weightOutDialogOpen = false">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-blue-600 hover:bg-blue-700" @click="handleWeightOutNext">{{
+            t('common.save')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1922,7 +2033,7 @@ onUnmounted(() => {
     <Dialog v-model:open="confirmCheckoutDialogOpen">
       <DialogContent class="max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirm Weight Out Record (Check-OUT)</DialogTitle>
+          <DialogTitle>{{ t('truckScale.confirmWeightOutRecord') }}</DialogTitle>
         </DialogHeader>
 
         <div class="bg-muted/30 border rounded-lg p-4 mb-4">
@@ -1944,19 +2055,19 @@ onUnmounted(() => {
 
         <div class="border rounded-lg p-4 space-y-3">
           <div class="flex justify-between items-center text-sm">
-            <span class="text-muted-foreground">Weight In:</span>
+            <span class="text-muted-foreground">{{ t('truckScale.weightIn') }}:</span>
             <span class="font-medium text-lg"
               >{{ selectedDrainBooking?.weightIn?.toLocaleString() }} kg</span
             >
           </div>
           <div class="flex justify-between items-center text-sm border-b pb-3">
-            <span class="text-muted-foreground">Net Weight Out</span>
+            <span class="text-muted-foreground">{{ t('truckScale.netWeightOut') }}</span>
             <span class="font-bold text-xl text-green-600"
               >{{ Number(weightOutData.weightOut).toLocaleString() }} kg</span
             >
           </div>
           <div class="flex justify-between items-center pt-1">
-            <span class="text-blue-600 font-medium">Net Weight</span>
+            <span class="text-blue-600 font-medium">{{ t('truckScale.netWeight') }}</span>
             <span class="font-bold text-2xl text-blue-600">
               {{
                 Math.abs(
@@ -1969,12 +2080,12 @@ onUnmounted(() => {
         </div>
 
         <DialogFooter class="mt-4 gap-2">
-          <Button variant="outline" class="w-full" @click="confirmCheckoutDialogOpen = false"
-            >Cancel</Button
-          >
-          <Button class="bg-green-600 hover:bg-green-700 w-full" @click="confirmWeightOut"
-            >Confirm</Button
-          >
+          <Button variant="outline" class="w-full" @click="confirmCheckoutDialogOpen = false">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-green-600 hover:bg-green-700 w-full" @click="confirmWeightOut">{{
+            t('common.confirm')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1983,28 +2094,263 @@ onUnmounted(() => {
     <Dialog v-model:open="requestEditDialogOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Request Approval to Edit Weight In</DialogTitle>
+          <DialogTitle>{{ t('truckScale.requestEditTitle') }}</DialogTitle>
           <DialogDescription>
-            Specify the reason for editing to send approval request
+            {{ t('truckScale.requestEditDescription') }}
           </DialogDescription>
         </DialogHeader>
 
         <div class="grid gap-4 py-4">
           <div class="grid gap-2">
-            <Label>Reason for Edit</Label>
+            <Label>{{ t('truckScale.reasonForEdit') }}</Label>
             <Textarea
               v-model="requestEditReason"
-              placeholder="เช่น ลงน้ำหนักผิด, เปลี่ยนรถ ฯลฯ"
+              :placeholder="t('truckScale.requestEditPlaceholder')"
               class="min-h-[100px]"
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="requestEditDialogOpen = false">Cancel</Button>
-          <Button class="bg-blue-600 hover:bg-blue-700" @click="confirmRequestEdit"
-            >Send Request</Button
-          >
+          <Button variant="outline" @click="requestEditDialogOpen = false">{{
+            t('common.cancel')
+          }}</Button>
+          <Button class="bg-blue-600 hover:bg-blue-700" @click="confirmRequestEdit">{{
+            t('truckScale.sendRequest')
+          }}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Booking Detail Dialog -->
+    <Dialog v-model:open="detailDialogOpen">
+      <DialogContent class="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{{ t('truckScale.bookingDetails') || 'Booking Details' }}</DialogTitle>
+        </DialogHeader>
+
+        <div class="bg-muted/30 border rounded-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <div class="bg-white border rounded p-1"><Truck class="w-4 h-4 text-blue-600" /></div>
+              <div class="flex flex-col">
+                <span class="font-bold text-lg leading-none">{{
+                  selectedDetailBooking?.truckRegister
+                }}</span>
+                <span class="text-xs text-muted-foreground">{{
+                  selectedDetailBooking?.truckType
+                }}</span>
+              </div>
+            </div>
+            <Badge class="bg-blue-600 text-sm px-3">Q {{ selectedDetailBooking?.queueNo }}</Badge>
+          </div>
+          <div class="text-sm text-muted-foreground mt-2">
+            <div>
+              {{ selectedDetailBooking?.supplierCode }} : {{ selectedDetailBooking?.supplierName }}
+            </div>
+          </div>
+        </div>
+
+        <div class="border rounded-lg p-4 space-y-3">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-muted-foreground">{{ t('truckScale.rubberType') }}:</span>
+            <span class="font-medium">{{ selectedDetailBooking?.rubberType }}</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-muted-foreground">{{ t('truckScale.weightIn') }}:</span>
+            <span class="font-medium text-lg"
+              >{{ selectedDetailBooking?.weightIn?.toLocaleString() }} kg</span
+            >
+          </div>
+          <div class="flex justify-between items-center text-sm border-b pb-3">
+            <span class="text-muted-foreground">{{ t('truckScale.weightOutLabel') }}:</span>
+            <span class="font-bold text-xl text-orange-600"
+              >{{ selectedDetailBooking?.weightOut?.toLocaleString() }} kg</span
+            >
+          </div>
+          <div class="flex justify-between items-center pt-1">
+            <span class="text-blue-600 font-medium">{{ t('truckScale.netWeight') }}</span>
+            <span class="font-bold text-2xl text-blue-600">
+              {{
+                Math.abs(
+                  (selectedDetailBooking?.weightIn || 0) - (selectedDetailBooking?.weightOut || 0)
+                ).toLocaleString()
+              }}
+              kg
+            </span>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button class="w-full" @click="detailDialogOpen = false">{{ t('common.close') }}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Time Log Dialog -->
+    <Dialog v-model:open="timeLogDialogOpen">
+      <DialogContent
+        class="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col [&>button]:hidden"
+      >
+        <DialogHeader>
+          <DialogTitle class="flex items-center justify-between">
+            <span>{{ t('truckScale.timeLog') || 'Time Log' }}</span>
+            <span class="text-sm font-normal text-blue-600">{{
+              selectedDetailBooking?.checkinAt
+                ? format(new Date(selectedDetailBooking.checkinAt), 'dd-MMM-yyyy')
+                : ''
+            }}</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div class="overflow-y-auto flex-1 px-1">
+          <div class="space-y-1 mb-3 pb-3 border-b">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-sm">{{ selectedDetailBooking?.bookingCode }}</span>
+              <span class="text-xs text-muted-foreground">{{
+                selectedDetailBooking?.truckRegister
+              }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-muted-foreground">
+                {{ selectedDetailBooking?.supplierCode }} -
+                {{ selectedDetailBooking?.supplierName }}
+              </span>
+              <span class="text-xs font-medium">{{ selectedDetailBooking?.truckType || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="relative pl-6 space-y-2 my-4">
+            <!-- Vertical Line -->
+            <div
+              class="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 via-green-200 to-orange-200"
+            ></div>
+
+            <!-- Check-in -->
+            <div class="relative flex items-baseline gap-3">
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-blue-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-blue-700 dark:text-blue-400 min-w-[100px]"
+                >Check-in</span
+              >
+              <span class="text-base font-bold">{{
+                selectedDetailBooking?.checkinAt
+                  ? format(new Date(selectedDetailBooking.checkinAt), 'HH:mm')
+                  : '-'
+              }}</span>
+            </div>
+
+            <!-- Weight In -->
+            <div class="relative flex items-baseline gap-3">
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-green-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-green-700 dark:text-green-400 min-w-[100px]"
+                >Weight In</span
+              >
+              <span class="text-base font-bold text-green-600">{{
+                selectedDetailBooking?.weightIn
+                  ? selectedDetailBooking.weightIn.toLocaleString() + ' Kg.'
+                  : '-'
+              }}</span>
+            </div>
+
+            <!-- Start Drain -->
+            <div class="relative flex items-baseline gap-3">
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-yellow-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-yellow-700 dark:text-yellow-400 min-w-[100px]"
+                >Start Drain</span
+              >
+              <span class="text-base font-bold">{{
+                selectedDetailBooking?.startDrainAt
+                  ? format(new Date(selectedDetailBooking.startDrainAt), 'HH:mm')
+                  : '-'
+              }}</span>
+            </div>
+
+            <!-- Stop Drain -->
+            <div class="relative flex items-baseline gap-3">
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-orange-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-orange-700 dark:text-orange-400 min-w-[100px]"
+                >Stop Drain</span
+              >
+              <span class="text-base font-bold">{{
+                selectedDetailBooking?.stopDrainAt
+                  ? format(new Date(selectedDetailBooking.stopDrainAt), 'HH:mm:ss')
+                  : '-'
+              }}</span>
+            </div>
+
+            <!-- Total Drain -->
+            <div
+              v-if="selectedDetailBooking?.startDrainAt && selectedDetailBooking?.stopDrainAt"
+              class="relative flex items-baseline gap-3"
+            >
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-amber-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-amber-700 dark:text-amber-400 min-w-[100px]"
+                >Total Drain</span
+              >
+              <span class="text-base font-bold text-amber-600">
+                {{
+                  Math.floor(
+                    (new Date(selectedDetailBooking.stopDrainAt).getTime() -
+                      new Date(selectedDetailBooking.startDrainAt).getTime()) /
+                      60000
+                  )
+                }}
+                Min
+              </span>
+            </div>
+
+            <!-- Weight Out -->
+            <div class="relative flex items-baseline gap-3">
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-red-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-red-700 dark:text-red-400 min-w-[100px]"
+                >Weight Out</span
+              >
+              <span class="text-base font-bold text-red-600">{{
+                selectedDetailBooking?.weightOut
+                  ? selectedDetailBooking.weightOut.toLocaleString() + ' Kg'
+                  : '-'
+              }}</span>
+            </div>
+
+            <!-- Net Weight Summary -->
+            <div
+              v-if="selectedDetailBooking?.weightIn && selectedDetailBooking?.weightOut"
+              class="relative flex items-baseline gap-3 pt-2 border-t mt-2"
+            >
+              <div
+                class="absolute -left-[18px] w-4 h-4 rounded-full bg-purple-500 border-2 border-background"
+              ></div>
+              <span class="text-sm font-medium text-purple-700 dark:text-purple-400 min-w-[100px]"
+                >Net Weight</span
+              >
+              <span class="text-lg font-bold text-purple-900 dark:text-purple-100">
+                {{
+                  Math.abs(
+                    selectedDetailBooking.weightIn - selectedDetailBooking.weightOut
+                  ).toLocaleString()
+                }}
+                Kg.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter class="mt-2">
+          <Button class="w-full" variant="outline" @click="timeLogDialogOpen = false">{{
+            t('common.close')
+          }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

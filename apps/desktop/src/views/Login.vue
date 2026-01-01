@@ -4,6 +4,7 @@ import LoginForm from '@/components/LoginForm.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { storage } from '../services/storage';
@@ -14,6 +15,7 @@ const showChangePasswordDialog = ref(false);
 const tempToken = ref('');
 const loginFormRef = ref<InstanceType<typeof LoginForm> | null>(null);
 
+const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -67,13 +69,12 @@ async function handleLogin({
 
     // Handle account locked
     if (err.response?.data?.message?.includes('locked')) {
-      loginError.value =
-        'Your account has been locked due to multiple failed login attempts. Please contact IT support.';
+      loginError.value = t('auth.accountLocked');
       return;
     }
 
     // Handle other errors
-    loginError.value = err.response?.data?.message || err.message || 'Login failed';
+    loginError.value = err.response?.data?.message || err.message || t('auth.loginFailed');
   } finally {
     if (loginFormRef.value) {
       loginFormRef.value.setLoading(false);
@@ -83,7 +84,7 @@ async function handleLogin({
 
 function handlePasswordChangeSuccess() {
   showChangePasswordDialog.value = false;
-  toast.success('Password changed successfully! You are now logged in.');
+  toast.success(t('auth.passwordChanged'));
   router.push('/');
 }
 </script>

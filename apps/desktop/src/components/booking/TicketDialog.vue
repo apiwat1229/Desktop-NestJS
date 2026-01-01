@@ -70,20 +70,28 @@ const formattedDate = computed(() => {
 
 // --- Helpers ---
 function thaiDateWithWeekday(dateField: Date): string {
-  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const weekdays = [
+    t('ticketDialog.weekdays.sunday'),
+    t('ticketDialog.weekdays.monday'),
+    t('ticketDialog.weekdays.tuesday'),
+    t('ticketDialog.weekdays.wednesday'),
+    t('ticketDialog.weekdays.thursday'),
+    t('ticketDialog.weekdays.friday'),
+    t('ticketDialog.weekdays.saturday'),
+  ];
   const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    t('ticketDialog.months.jan'),
+    t('ticketDialog.months.feb'),
+    t('ticketDialog.months.mar'),
+    t('ticketDialog.months.apr'),
+    t('ticketDialog.months.may'),
+    t('ticketDialog.months.jun'),
+    t('ticketDialog.months.jul'),
+    t('ticketDialog.months.aug'),
+    t('ticketDialog.months.sep'),
+    t('ticketDialog.months.oct'),
+    t('ticketDialog.months.nov'),
+    t('ticketDialog.months.dec'),
   ];
 
   const weekday = weekdays[dateField.getDay()];
@@ -106,14 +114,10 @@ const handleSaveTicketImage = async () => {
     link.download = `ticket_${props.ticket?.bookingCode || 'booking'}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    toast.success(t('common.toast.success'), {
-      description: t('common.toast.imageSaved', 'Ticket image saved successfully'),
-    });
+    toast.success(t('booking.ticketSaved'));
   } catch (err) {
     console.error('Save error:', err);
-    toast.error(t('common.error'), {
-      description: t('booking.errorSaving', 'Failed to save ticket image'),
-    });
+    toast.error(t('booking.errorSaving'));
   }
 };
 
@@ -129,15 +133,11 @@ const handleCopyTicketImage = async () => {
       if (!blob) return;
       const item = new ClipboardItem({ [blob.type]: blob });
       await navigator.clipboard.write([item]);
-      toast.success(t('common.toast.success'), {
-        description: t('common.toast.ticketCopied', 'Ticket copied to clipboard'),
-      });
+      toast.success(t('booking.ticketCopied'));
     }, 'image/png');
   } catch (err: any) {
     console.error('Copy error:', err);
-    toast.error(t('common.error'), {
-      description: t('booking.errorCopying', 'Failed to copy ticket image'),
-    });
+    toast.error(t('booking.errorCopying'));
   }
 };
 </script>
@@ -146,8 +146,8 @@ const handleCopyTicketImage = async () => {
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="max-w-md">
       <DialogHeader>
-        <DialogTitle>Ticket Details</DialogTitle>
-        <DialogDescription> Preview of the booking ticket details. </DialogDescription>
+        <DialogTitle>{{ t('ticketDialog.title') }}</DialogTitle>
+        <DialogDescription>{{ t('ticketDialog.description') }}</DialogDescription>
       </DialogHeader>
 
       <div v-if="ticket" class="space-y-4">
@@ -172,33 +172,33 @@ const handleCopyTicketImage = async () => {
                 @error="(e: any) => (e.target.style.display = 'none')"
               />
             </div>
-            <span class="text-lg font-bold">Queue Ticket CL</span>
+            <span class="text-lg font-bold">{{ t('ticketDialog.queueTicket') }}</span>
           </div>
 
           <!-- Details -->
           <div class="space-y-2">
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Code:</span>
+              <span class="font-semibold">{{ t('ticketDialog.code') }}:</span>
               <span class="text-right flex-1 ml-2">{{ ticket.supplierCode || '-' }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Name:</span>
+              <span class="font-semibold">{{ t('ticketDialog.name') }}:</span>
               <span class="text-right flex-1 ml-2">{{ ticket.supplierName || '-' }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Date:</span>
+              <span class="font-semibold">{{ t('ticketDialog.date') }}:</span>
               <span class="text-right flex-1 ml-2">{{ formattedDate }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Time:</span>
+              <span class="font-semibold">{{ t('ticketDialog.time') }}:</span>
               <span class="text-right flex-1 ml-2">{{ ticket.startTime || '-' }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Truck:</span>
+              <span class="font-semibold">{{ t('ticketDialog.truck') }}:</span>
               <span class="text-right flex-1 ml-2">{{ truckPreview }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Type:</span>
+              <span class="font-semibold">{{ t('ticketDialog.type') }}:</span>
               <span class="text-right flex-1 ml-2">
                 {{
                   RUBBER_TYPE_MAP[ticket.rubberType] ||
@@ -209,18 +209,18 @@ const handleCopyTicketImage = async () => {
               </span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Booking:</span>
+              <span class="font-semibold">{{ t('ticketDialog.booking') }}:</span>
               <span class="text-right flex-1 ml-2">{{ ticket.bookingCode || '-' }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="font-semibold">Recorder:</span>
+              <span class="font-semibold">{{ t('ticketDialog.recorder') }}:</span>
               <span class="text-right flex-1 ml-2">{{ ticket.recorder || '-' }}</span>
             </div>
           </div>
 
           <!-- Queue Number -->
           <div class="flex justify-between items-center my-4">
-            <span class="font-bold">Queue:</span>
+            <span class="font-bold">{{ t('ticketDialog.queue') }}:</span>
             <div
               :style="{
                 width: '56px',
@@ -242,10 +242,10 @@ const handleCopyTicketImage = async () => {
 
           <!-- Warning -->
           <div class="text-center my-4 leading-tight">
-            <p class="text-xs font-semibold">Vehicles can park overnight</p>
-            <p class="text-xs font-semibold">in front of the factory</p>
+            <p class="text-xs font-semibold">{{ t('ticketDialog.parkingInfo') }}</p>
+            <p class="text-xs font-semibold">{{ t('ticketDialog.parkingLocation') }}</p>
             <p class="text-xs font-bold text-red-600 mt-2">
-              * Do NOT park on the factory entrance road *
+              {{ t('ticketDialog.parkingWarning') }}
             </p>
           </div>
 
@@ -263,7 +263,7 @@ const handleCopyTicketImage = async () => {
               v-else
               class="w-32 h-32 bg-muted/50 rounded border border-dashed border-muted-foreground/30 flex items-center justify-center"
             >
-              <span class="text-gray-500 text-sm">No Code</span>
+              <span class="text-gray-500 text-sm">{{ t('ticketDialog.noCode') }}</span>
             </div>
           </div>
         </div>
@@ -275,11 +275,11 @@ const handleCopyTicketImage = async () => {
             class="gap-2 bg-green-600 hover:bg-green-700 text-white"
           >
             <Download class="h-4 w-4" />
-            Save Ticket
+            {{ t('ticketDialog.saveTicket') }}
           </Button>
           <Button @click="handleCopyTicketImage" variant="outline" class="gap-2">
             <Copy class="h-4 w-4" />
-            Copy Ticket
+            {{ t('ticketDialog.copyTicket') }}
           </Button>
         </div>
       </div>

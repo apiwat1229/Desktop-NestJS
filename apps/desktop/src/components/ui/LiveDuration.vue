@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   start: string | Date;
   end?: string | Date | null;
 }>();
+
+const { t } = useI18n();
 
 const now = ref(new Date());
 let timer: any = null;
@@ -32,7 +35,7 @@ const durationText = computed(() => {
 
   // Calculate difference in milliseconds
   const diff = endDate.getTime() - startDate.getTime();
-  if (diff < 0) return '00 min';
+  if (diff < 0) return '00 ' + t('liveDuration.min');
 
   // formatting
   const minutes = Math.floor(diff / 60000); // Total minutes
@@ -41,9 +44,9 @@ const durationText = computed(() => {
   const m = minutes % 60;
 
   if (h > 0) {
-    return `${h} hr ${m} min`;
+    return `${h} ${t('liveDuration.hr')} ${m} ${t('liveDuration.min')}`;
   }
-  return `${m} min`;
+  return `${m} ${t('liveDuration.min')}`;
 });
 </script>
 

@@ -15,6 +15,7 @@ import {
 import approvalsApi, { type ApprovalRequest } from '@/services/approvals';
 import { handleApiError } from '@/utils/errorHandler';
 import { h, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -27,10 +28,12 @@ const filters = ref({
   showDeleted: false,
 });
 
+const { t } = useI18n();
+
 const columns = [
   {
     accessorKey: 'requestType',
-    header: 'Type',
+    header: t('approval.list.type'),
     cell: ({ row }: any) => {
       const isVoided = row.original.status === 'VOID';
       return h(
@@ -44,18 +47,18 @@ const columns = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('approval.list.status'),
     cell: ({ row }: any) => h(ApprovalStatusBadge, { status: row.original.status }),
   },
   {
     accessorKey: 'requester',
-    header: 'Requester',
+    header: t('approval.list.requester'),
     cell: ({ row }: any) =>
       row.original.requester?.displayName || row.original.requester?.email || '-',
   },
   {
     accessorKey: 'submittedAt',
-    header: 'Submitted Date',
+    header: t('approval.list.submittedDate'),
     cell: ({ row }: any) => {
       const date = new Date(row.original.submittedAt);
       return new Intl.DateTimeFormat('th-TH', {
@@ -69,7 +72,7 @@ const columns = [
   },
   {
     id: 'actions',
-    header: 'Actions',
+    header: t('approval.list.actions'),
     cell: ({ row }: any) =>
       h(
         Button,
@@ -77,7 +80,7 @@ const columns = [
           size: 'sm',
           onClick: () => router.push(`/admin/approvals/${row.original.id}`),
         },
-        () => 'View Details'
+        () => t('approval.list.viewDetails')
       ),
   },
 ];
@@ -91,7 +94,7 @@ const fetchApprovals = async () => {
     });
     approvals.value = response.data;
   } catch (error: any) {
-    handleApiError(error, 'Failed to load approval requests');
+    handleApiError(error, t('approval.list.loadError'));
   } finally {
     isLoading.value = false;
   }
@@ -106,35 +109,35 @@ onMounted(() => {
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold">Approval Requests</h1>
-        <p class="text-muted-foreground">Manage all approval requests</p>
+        <h1 class="text-3xl font-bold">{{ t('approval.list.title') }}</h1>
+        <p class="text-muted-foreground">{{ t('approval.list.description') }}</p>
       </div>
     </div>
 
     <!-- Filters -->
     <Card>
       <CardHeader>
-        <CardTitle>Filters</CardTitle>
-        <CardDescription>Filter approval requests</CardDescription>
+        <CardTitle>{{ t('approval.list.filters') }}</CardTitle>
+        <CardDescription>{{ t('approval.list.filterDescription') }}</CardDescription>
       </CardHeader>
       <CardContent>
         <div class="flex flex-wrap gap-4">
           <!-- Status Filter -->
           <div class="w-64">
-            <Label>Status</Label>
+            <Label>{{ t('approval.list.status') }}</Label>
             <Select v-model="filters.status" @update:model-value="fetchApprovals">
               <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue :placeholder="t('approval.list.allStatuses')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
-                <SelectItem value="PENDING">Pending Approval</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-                <SelectItem value="RETURNED">Returned for Edit</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="VOID">Void</SelectItem>
-                <SelectItem value="EXPIRED">Expired</SelectItem>
+                <SelectItem value="">{{ t('approval.list.allStatuses') }}</SelectItem>
+                <SelectItem value="PENDING">{{ t('approval.status.pending') }}</SelectItem>
+                <SelectItem value="APPROVED">{{ t('approval.status.approved') }}</SelectItem>
+                <SelectItem value="REJECTED">{{ t('approval.status.rejected') }}</SelectItem>
+                <SelectItem value="RETURNED">{{ t('approval.status.returned') }}</SelectItem>
+                <SelectItem value="CANCELLED">{{ t('approval.status.cancelled') }}</SelectItem>
+                <SelectItem value="VOID">{{ t('approval.status.void') }}</SelectItem>
+                <SelectItem value="EXPIRED">{{ t('approval.status.expired') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -151,7 +154,7 @@ onMounted(() => {
                   }
                 "
               />
-              <Label>Show Deleted Items</Label>
+              <Label>{{ t('approval.list.showDeleted') }}</Label>
             </div>
           </div>
         </div>

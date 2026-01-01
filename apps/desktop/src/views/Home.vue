@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface ServiceModule {
   id: string;
@@ -30,11 +31,13 @@ interface ServiceModule {
   route: string;
 }
 
-const modules: ServiceModule[] = [
+const { t } = useI18n();
+
+const modules = computed<ServiceModule[]>(() => [
   {
     id: 'mrp',
-    title: 'MRP System',
-    description: 'Material Requirements Planning for production and inventory.',
+    title: t('services.mrp.name'),
+    description: t('services.mrp.description'),
     icon: Box,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50/50 group-hover:bg-blue-100/50',
@@ -43,8 +46,8 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'cuplump',
-    title: 'Cuplump Pool',
-    description: 'Rubber Cup Lump Management and tracking system.',
+    title: t('services.cuplump.name'),
+    description: t('services.cuplump.description'),
     icon: Droplets,
     color: 'text-orange-600',
     bgColor: 'bg-orange-50/50 group-hover:bg-orange-100/50',
@@ -53,8 +56,8 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'booking',
-    title: 'Booking Queue',
-    description: 'Queue Management System for supplier deliveries.',
+    title: t('services.booking.name'),
+    description: t('services.booking.description'),
     icon: Calendar,
     color: 'text-green-600',
     bgColor: 'bg-green-50/50 group-hover:bg-green-100/50',
@@ -63,8 +66,8 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'truck-scale',
-    title: 'Truck Scale ',
-    description: 'Weighing System and Booking Check-in for logistics.',
+    title: t('services.truck.name'),
+    description: t('services.truck.description'),
     icon: Truck,
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50/50 group-hover:bg-emerald-100/50',
@@ -73,8 +76,8 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'maintenance',
-    title: 'Maintenance',
-    description: 'Equipment Maintenance and Work Order management.',
+    title: t('services.maintenance.name'),
+    description: t('services.maintenance.description'),
     icon: Wrench,
     color: 'text-red-500',
     bgColor: 'bg-red-50/50 group-hover:bg-red-100/50',
@@ -83,8 +86,8 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'it-helpdesk',
-    title: 'IT Help Desk',
-    description: 'Technical Support ticketing and asset management.',
+    title: t('services.itHelp.name'),
+    description: t('services.itHelp.description'),
     icon: Headset,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50/50 group-hover:bg-purple-100/50',
@@ -93,15 +96,15 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'warehouse',
-    title: 'Warehouse',
-    description: 'Inventory Management for finished goods and spares.',
+    title: t('services.warehouse.name'),
+    description: t('services.warehouse.description'),
     icon: Warehouse,
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50/50 group-hover:bg-indigo-100/50',
     hoverBorder: 'group-hover:border-indigo-500',
     route: '/admin/warehouse',
   },
-];
+]);
 
 // Sorting Logic
 const sortBy = ref<'az' | 'recent'>('az');
@@ -128,7 +131,7 @@ onMounted(() => {
 });
 
 const sortedModules = computed(() => {
-  const list = [...modules];
+  const list = [...modules.value];
   if (sortBy.value === 'az') {
     return list.sort((a, b) => a.title.localeCompare(b.title));
   } else if (sortBy.value === 'recent') {
@@ -152,9 +155,9 @@ const sortedModules = computed(() => {
         <!-- Text -->
         <div>
           <h1 class="text-3xl font-bold tracking-tight text-foreground leading-tight">
-            Services & Modules
+            {{ t('services.title') }}
           </h1>
-          <p class="text-muted-foreground text-lg">Select a module to access specialized tools.</p>
+          <p class="text-muted-foreground text-lg">{{ t('services.subtitle') }}</p>
         </div>
       </div>
 
@@ -166,12 +169,12 @@ const sortedModules = computed(() => {
           >
             <div class="flex items-center gap-2">
               <ArrowUpDown class="h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Sort by" />
+              <SelectValue :placeholder="t('common.sortBy')" />
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="az">A-Z</SelectItem>
-            <SelectItem value="recent">Last Used</SelectItem>
+            <SelectItem value="az">{{ t('common.sortAZ') }}</SelectItem>
+            <SelectItem value="recent">{{ t('common.sortRecent') }}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -200,9 +203,9 @@ const sortedModules = computed(() => {
         <div
           class="absolute top-6 right-6 flex items-center gap-2 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0"
         >
-          <span class="text-xs font-bold tracking-wider uppercase" :class="module.color"
-            >Access Module</span
-          >
+          <span class="text-xs font-bold tracking-wider uppercase" :class="module.color">{{
+            t('services.accessModule')
+          }}</span>
           <svg
             width="16"
             height="16"

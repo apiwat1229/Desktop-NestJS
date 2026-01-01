@@ -13,6 +13,7 @@ import approvalsApi from '@/services/approvals';
 import { handleApiError } from '@/utils/errorHandler';
 import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = defineModel<boolean>('open');
+const { t } = useI18n();
 const remark = ref('');
 const isLoading = ref(false);
 const error = ref('');
@@ -32,7 +34,7 @@ const isFormValid = computed(() => remark.value.trim().length > 0);
 
 const handleReturn = async () => {
   if (!isFormValid.value) {
-    error.value = 'Please provide a reason for return';
+    error.value = t('approval.dialogs.return.reasonRequired');
     return;
   }
 
@@ -44,13 +46,13 @@ const handleReturn = async () => {
       remark: remark.value,
     });
 
-    toast.success('Request returned successfully');
+    toast.success(t('approval.dialogs.return.success'));
 
     emit('success');
     isOpen.value = false;
     remark.value = '';
   } catch (err: any) {
-    handleApiError(err, 'Failed to return request');
+    handleApiError(err, t('approval.dialogs.return.error'));
   } finally {
     isLoading.value = false;
   }
@@ -61,15 +63,15 @@ const handleReturn = async () => {
   <Dialog v-model:open="isOpen">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Return Request for Edit</DialogTitle>
+        <DialogTitle>{{ t('approval.dialogs.return.title') }}</DialogTitle>
       </DialogHeader>
 
       <div class="space-y-4">
         <div>
-          <Label>Reason for Return *</Label>
+          <Label>{{ t('approval.dialogs.return.reasonLabel') }}</Label>
           <Textarea
             v-model="remark"
-            placeholder="Please provide a reason, e.g.: Please add more details..."
+            :placeholder="t('approval.dialogs.return.reasonPlaceholder')"
             :disabled="isLoading"
             required
           />
@@ -78,7 +80,9 @@ const handleReturn = async () => {
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isOpen = false" :disabled="isLoading"> Cancel </Button>
+        <Button variant="outline" @click="isOpen = false" :disabled="isLoading">{{
+          t('common.cancel')
+        }}</Button>
         <Button
           class="border-blue-500 text-blue-600 hover:bg-blue-50"
           variant="outline"
@@ -87,7 +91,7 @@ const handleReturn = async () => {
         >
           <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
           <ArrowLeft v-else class="w-4 h-4 mr-2" />
-          {{ isLoading ? 'Processing...' : 'Return for Edit' }}
+          {{ isLoading ? t('approval.dialogs.return.processing') : t('approval.actions.return') }}
         </Button>
       </DialogFooter>
     </DialogContent>

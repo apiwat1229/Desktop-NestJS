@@ -21,11 +21,7 @@ const delegatedProps = reactiveOmit(props, 'toastOptions', 'position', 'richColo
     position="top-center"
     :toast-options="{
       classes: {
-        toast:
-          'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg justify-center',
-        description: 'group-[.toast]:text-muted-foreground',
-        actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
-        cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+        toast: 'group toast group-[.toaster]:shadow-lg justify-center',
       },
     }"
     v-bind="delegatedProps"

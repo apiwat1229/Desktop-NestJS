@@ -28,6 +28,7 @@ import {
 } from '@tanstack/vue-table';
 import { Trash2 } from 'lucide-vue-next';
 import { h, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   columns: ColumnDef<TData, TValue>[];
@@ -95,6 +96,8 @@ const table = useVueTable({
   },
   enableRowSelection: props.enableSelection,
 });
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -128,7 +131,7 @@ const table = useVueTable({
           <template v-else>
             <TableRow>
               <TableCell :colspan="columnsWithSelection.length" class="h-24 text-center">
-                No results.
+                {{ t('common.table.noResults') }}
               </TableCell>
             </TableRow>
           </template>
@@ -141,7 +144,7 @@ const table = useVueTable({
       <div class="flex items-center gap-4">
         <!-- Page Size Selector - Moved to front -->
         <div class="flex items-center gap-2">
-          <span class="text-sm text-muted-foreground">Rows per page:</span>
+          <span class="text-sm text-muted-foreground">{{ t('common.table.rowsPerPage') }}</span>
           <Select
             :model-value="String(table.getState().pagination.pageSize)"
             @update:model-value="(value) => table.setPageSize(Number(value))"
@@ -162,8 +165,12 @@ const table = useVueTable({
         </div>
 
         <div class="text-sm text-muted-foreground">
-          {{ table.getFilteredSelectedRowModel().rows.length }} of
-          {{ table.getFilteredRowModel().rows.length }} row(s) selected.
+          {{
+            t('common.table.selectedRows', {
+              selected: table.getFilteredSelectedRowModel().rows.length,
+              total: table.getFilteredRowModel().rows.length,
+            })
+          }}
         </div>
 
         <!-- Delete Selected Button - Improved styling -->
@@ -180,13 +187,22 @@ const table = useVueTable({
           "
         >
           <Trash2 class="w-4 h-4" />
-          <span>Delete Selected ({{ table.getFilteredSelectedRowModel().rows.length }})</span>
+          <span>{{
+            t('common.table.deleteSelected', {
+              count: table.getFilteredSelectedRowModel().rows.length,
+            })
+          }}</span>
         </Button>
       </div>
 
       <div class="flex items-center gap-2">
         <div class="text-sm text-muted-foreground">
-          Page {{ table.getState().pagination.pageIndex + 1 }} of {{ table.getPageCount() }}
+          {{
+            t('common.table.pageOf', {
+              current: table.getState().pagination.pageIndex + 1,
+              total: table.getPageCount(),
+            })
+          }}
         </div>
         <div class="space-x-2">
           <Button
@@ -195,7 +211,7 @@ const table = useVueTable({
             :disabled="!table.getCanPreviousPage()"
             @click="table.previousPage()"
           >
-            Previous
+            {{ t('common.previous') }}
           </Button>
           <Button
             variant="outline"
@@ -203,7 +219,7 @@ const table = useVueTable({
             :disabled="!table.getCanNextPage()"
             @click="table.nextPage()"
           >
-            Next
+            {{ t('common.next') }}
           </Button>
         </div>
       </div>

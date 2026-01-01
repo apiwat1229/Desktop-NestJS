@@ -17,6 +17,7 @@ import { useAuthStore } from '@/stores/auth';
 import { handleApiError } from '@/utils/errorHandler';
 import { ArrowLeft } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
@@ -34,6 +35,8 @@ const showVoidDialog = ref(false);
 const showCancelDialog = ref(false);
 const showReturnDialog = ref(false);
 
+const { t } = useI18n();
+
 const currentUser = computed(() => authStore.user);
 const isVoided = computed(() => request.value?.status === 'VOID');
 
@@ -50,7 +53,7 @@ const fetchRequest = async () => {
     request.value = requestRes.data;
     history.value = historyRes.data;
   } catch (error: any) {
-    handleApiError(error, 'Failed to load request data');
+    handleApiError(error, t('approval.detail.loadError'));
     router.push('/approvals');
   } finally {
     isLoading.value = false;
@@ -83,7 +86,7 @@ onMounted(() => {
     <!-- Back Button -->
     <Button variant="ghost" @click="router.push('/approvals')">
       <ArrowLeft class="w-4 h-4 mr-2" />
-      Back to List
+      {{ t('approval.detail.backToList') }}
     </Button>
 
     <!-- Header -->
@@ -97,7 +100,9 @@ onMounted(() => {
             {{ request.requestType }}
           </h1>
           <p class="text-muted-foreground">ID: {{ request.id }}</p>
-          <Badge v-if="isVoided" variant="destructive" class="mt-2"> VOID - Cannot be used </Badge>
+          <Badge v-if="isVoided" variant="destructive" class="mt-2">{{
+            t('approval.detail.voidBadge')
+          }}</Badge>
         </div>
         <ApprovalStatusBadge :status="request.status" />
       </div>
@@ -107,59 +112,59 @@ onMounted(() => {
     <VoidedWatermark :is-voided="isVoided">
       <Card>
         <CardHeader>
-          <CardTitle>Request Details</CardTitle>
+          <CardTitle>{{ t('approval.detail.requestDetails') }}</CardTitle>
         </CardHeader>
         <CardContent class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <Label>ประเภทคำขอ</Label>
+              <Label>{{ t('approval.detail.requestType') }}</Label>
               <p>{{ request.requestType }}</p>
             </div>
             <div>
-              <Label>ประเภทข้อมูล</Label>
+              <Label>{{ t('approval.detail.entityType') }}</Label>
               <p>{{ request.entityType }}</p>
             </div>
             <div>
-              <Label>ผู้ขอ</Label>
+              <Label>{{ t('approval.detail.requester') }}</Label>
               <p>{{ request.requester?.displayName || request.requester?.email || '-' }}</p>
             </div>
             <div>
-              <Label>วันที่ส่ง</Label>
+              <Label>{{ t('approval.detail.submittedDate') }}</Label>
               <p>{{ formatDate(request.submittedAt) }}</p>
             </div>
             <div v-if="request.approver">
-              <Label>ผู้อนุมัติ</Label>
+              <Label>{{ t('approval.detail.approver') }}</Label>
               <p>{{ request.approver.displayName || request.approver.email }}</p>
             </div>
             <div v-if="request.actedAt">
-              <Label>วันที่พิจารณา</Label>
+              <Label>{{ t('approval.detail.actedDate') }}</Label>
               <p>{{ formatDate(request.actedAt) }}</p>
             </div>
             <div>
-              <Label>ลำดับความสำคัญ</Label>
+              <Label>{{ t('approval.detail.priority') }}</Label>
               <Badge :variant="request.priority === 'URGENT' ? 'destructive' : 'secondary'">
                 {{ request.priority }}
               </Badge>
             </div>
             <div v-if="request.expiresAt">
-              <Label>หมดอายุ</Label>
+              <Label>{{ t('approval.detail.expiresAt') }}</Label>
               <p>{{ formatDate(request.expiresAt) }}</p>
             </div>
           </div>
 
           <div v-if="request.reason">
-            <Label>เหตุผล</Label>
+            <Label>{{ t('approval.detail.reason') }}</Label>
             <p class="mt-1">{{ request.reason }}</p>
           </div>
 
           <div v-if="request.remark">
-            <Label>หมายเหตุ</Label>
+            <Label>{{ t('approval.detail.remark') }}</Label>
             <p class="mt-1">{{ request.remark }}</p>
           </div>
 
           <!-- Show Current Data -->
           <div v-if="request.currentData && Object.keys(request.currentData).length > 0">
-            <Label>ข้อมูลปัจจุบัน</Label>
+            <Label>{{ t('approval.detail.currentData') }}</Label>
             <pre class="mt-2 p-4 bg-muted rounded text-sm overflow-auto">{{
               JSON.stringify(request.currentData, null, 2)
             }}</pre>
@@ -167,7 +172,7 @@ onMounted(() => {
 
           <!-- Show Proposed Changes -->
           <div v-if="request.proposedData && Object.keys(request.proposedData).length > 0">
-            <Label>การเปลี่ยนแปลงที่เสนอ</Label>
+            <Label>{{ t('approval.detail.proposedChanges') }}</Label>
             <pre class="mt-2 p-4 bg-muted rounded text-sm overflow-auto">{{
               JSON.stringify(request.proposedData, null, 2)
             }}</pre>
@@ -179,7 +184,7 @@ onMounted(() => {
     <!-- Actions -->
     <Card v-if="currentUser">
       <CardHeader>
-        <CardTitle>Management</CardTitle>
+        <CardTitle>{{ t('approval.detail.management') }}</CardTitle>
       </CardHeader>
       <CardContent>
         <ApprovalActions
@@ -198,7 +203,7 @@ onMounted(() => {
     <!-- History Timeline -->
     <Card>
       <CardHeader>
-        <CardTitle>Transaction History</CardTitle>
+        <CardTitle>{{ t('approval.detail.history') }}</CardTitle>
       </CardHeader>
       <CardContent>
         <ApprovalHistoryTimeline :history="history" />
@@ -231,6 +236,6 @@ onMounted(() => {
 
   <!-- Loading State -->
   <div v-else-if="isLoading" class="flex items-center justify-center min-h-[400px]">
-    <p class="text-muted-foreground">Loading...</p>
+    <p class="text-muted-foreground">{{ t('common.loading') }}</p>
   </div>
 </template>

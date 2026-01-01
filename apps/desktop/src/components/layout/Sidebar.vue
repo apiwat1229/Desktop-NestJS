@@ -13,54 +13,72 @@ import {
   Users,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const { hasPermission, isAdmin } = usePermissions();
 
-const allMenuGroups = [
+const { t } = useI18n();
+
+const allMenuGroups = computed(() => [
   {
-    title: 'Main',
+    title: t('admin.sidebar.main'),
     items: [
-      { name: 'Dashboard', path: '/admin', icon: LayoutDashboard }, // Public for admin panel
-      { name: 'Roles & Permissions', path: '/admin/roles', icon: Shield, permission: 'roles:read' },
-      { name: 'Users Management', path: '/admin/users', icon: Users, permission: 'users:read' },
-      { name: 'Suppliers', path: '/admin/suppliers', icon: Truck, permission: 'suppliers:read' },
+      { name: t('admin.sidebar.dashboard'), path: '/admin', icon: LayoutDashboard }, // Public for admin panel
       {
-        name: 'Rubber Types',
+        name: t('admin.sidebar.roles'),
+        path: '/admin/roles',
+        icon: Shield,
+        permission: 'roles:read',
+      },
+      {
+        name: t('admin.sidebar.users'),
+        path: '/admin/users',
+        icon: Users,
+        permission: 'users:read',
+      },
+      {
+        name: t('admin.sidebar.suppliers'),
+        path: '/admin/suppliers',
+        icon: Truck,
+        permission: 'suppliers:read',
+      },
+      {
+        name: t('admin.sidebar.rubberTypes'),
         path: '/admin/rubber-types',
         icon: Layers,
         permission: 'rubberTypes:read',
       },
       {
-        name: 'Notifications',
+        name: t('admin.sidebar.notifications'),
         path: '/admin/notifications',
         icon: Bell,
         permission: 'notifications:read',
       },
       {
-        name: 'Booking Queue',
+        name: t('admin.sidebar.bookingQueue'),
         path: '/bookings',
         icon: Calendar,
         permission: 'bookings:read',
       },
       {
-        name: 'Truck Scale',
+        name: t('admin.sidebar.truckScale'),
         path: '/scale',
         icon: Truck,
         permission: 'bookings:read',
       },
-      { name: 'Approvals', path: '/admin/approvals', icon: ClipboardCheck }, // Pending permission module
+      { name: t('admin.sidebar.approvals'), path: '/admin/approvals', icon: ClipboardCheck }, // Pending permission module
     ],
   },
   {
-    title: 'System',
-    items: [{ name: 'Analytics', path: '/admin/analytics', icon: Activity }], // Pending permission module
+    title: t('admin.sidebar.system'),
+    items: [{ name: t('admin.sidebar.analytics'), path: '/admin/analytics', icon: Activity }], // Pending permission module
   },
-];
+]);
 
 const menuGroups = computed(() => {
-  return allMenuGroups
+  return allMenuGroups.value
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {

@@ -24,8 +24,10 @@ import { rubberTypesApi, type RubberType } from '@/services/rubberTypes';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { ArrowUpDown, Edit, Layers, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, h, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // State
+const { t } = useI18n();
 const rubberTypes = ref<RubberType[]>([]);
 const isLoading = ref(true);
 const searchQuery = ref('');
@@ -145,7 +147,7 @@ const columns: ColumnDef<RubberType>[] = [
           variant: 'ghost',
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         },
-        () => ['Code', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+        () => [t('admin.rubberTypes.code'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
       );
     },
     cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('code')),
@@ -159,20 +161,20 @@ const columns: ColumnDef<RubberType>[] = [
           variant: 'ghost',
           onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
         },
-        () => ['Name', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
+        () => [t('admin.rubberTypes.name'), h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]
       );
     },
     cell: ({ row }) => h('div', row.getValue('name')),
   },
   {
     accessorKey: 'description',
-    header: 'Description',
+    header: t('admin.rubberTypes.description'),
     cell: ({ row }) =>
       h('div', { class: 'text-muted-foreground' }, row.getValue('description') || '-'),
   },
   {
     accessorKey: 'is_active',
-    header: () => h('div', { class: 'text-center w-full' }, 'Status'),
+    header: () => h('div', { class: 'text-center w-full' }, t('common.status')),
     cell: ({ row }) => {
       const isActive = row.getValue('is_active');
       return h('div', { class: 'flex justify-center' }, [
@@ -184,7 +186,7 @@ const columns: ColumnDef<RubberType>[] = [
               isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground',
             ].join(' '),
           },
-          isActive ? 'Active' : 'Inactive'
+          isActive ? t('admin.status.active') : t('admin.status.inactive')
         ),
       ]);
     },
@@ -192,7 +194,7 @@ const columns: ColumnDef<RubberType>[] = [
   {
     id: 'actions',
     enableHiding: false,
-    header: () => h('div', { class: 'text-right' }, 'Actions'),
+    header: () => h('div', { class: 'text-right' }, t('common.actions')),
     cell: ({ row }) => {
       const item = row.original;
       return h('div', { class: 'flex items-center justify-end gap-2' }, [
@@ -243,9 +245,11 @@ onMounted(() => {
             <Layers class="h-8 w-8" />
           </div>
           <div>
-            <h1 class="text-2xl font-bold tracking-tight text-foreground">Rubber Types</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">
+              {{ t('admin.rubberTypes.title') }}
+            </h1>
             <p class="text-sm text-muted-foreground mt-1">
-              Manage rubber type classifications and codes.
+              {{ t('admin.rubberTypes.subtitle') }}
             </p>
           </div>
         </div>
@@ -254,19 +258,19 @@ onMounted(() => {
         <div class="flex items-center gap-8">
           <div class="text-center">
             <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-              Total
+              {{ t('admin.rubberTypes.stats.total') }}
             </div>
             <div class="text-3xl font-bold">{{ stats.total }}</div>
           </div>
           <div class="text-center">
             <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
-              Active
+              {{ t('admin.rubberTypes.stats.active') }}
             </div>
             <div class="text-3xl font-bold text-emerald-500">{{ stats.active }}</div>
           </div>
           <div class="text-center">
             <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-              Inactive
+              {{ t('admin.rubberTypes.stats.inactive') }}
             </div>
             <div class="text-3xl font-bold text-muted-foreground">{{ stats.inactive }}</div>
           </div>
@@ -276,7 +280,7 @@ onMounted(() => {
         <div class="flex-shrink-0">
           <Button @click="handleOpenCreate" size="lg" class="shadow-lg shadow-primary/20">
             <Plus class="mr-2 h-5 w-5" />
-            Add New
+            {{ t('admin.rubberTypes.addNew') }}
           </Button>
         </div>
       </div>
@@ -286,17 +290,21 @@ onMounted(() => {
     <div class="flex items-center justify-between gap-4">
       <div class="relative w-full max-w-sm">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input v-model="searchQuery" placeholder="Search code or name..." class="pl-9" />
+        <Input
+          v-model="searchQuery"
+          :placeholder="t('admin.rubberTypes.searchPlaceholder')"
+          class="pl-9"
+        />
       </div>
 
       <Select v-model="statusFilter">
         <SelectTrigger class="w-[180px]">
-          <SelectValue placeholder="All Status" />
+          <SelectValue :placeholder="t('admin.users.allStatus')" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="ALL">All Status</SelectItem>
-          <SelectItem value="ACTIVE">Active</SelectItem>
-          <SelectItem value="INACTIVE">Inactive</SelectItem>
+          <SelectItem value="ALL">{{ t('admin.users.allStatus') }}</SelectItem>
+          <SelectItem value="ACTIVE">{{ t('admin.status.active') }}</SelectItem>
+          <SelectItem value="INACTIVE">{{ t('admin.status.inactive') }}</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -315,30 +323,32 @@ onMounted(() => {
     <Dialog v-model:open="isModalOpen">
       <DialogContent class="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{{ editingItem ? 'Edit Rubber Type' : 'Add New Rubber Type' }}</DialogTitle>
+          <DialogTitle>{{
+            editingItem ? t('admin.rubberTypes.edit') : t('admin.rubberTypes.addNew')
+          }}</DialogTitle>
           <DialogDescription>
-            {{
-              editingItem
-                ? 'Update the details below.'
-                : 'Fill in the information to create a new rubber type.'
-            }}
+            {{ editingItem ? t('common.editDescription') : t('common.createDescription') }}
           </DialogDescription>
         </DialogHeader>
         <div class="grid gap-4 py-4">
           <div class="grid gap-2">
-            <Label for="code">Code <span class="text-destructive">*</span></Label>
+            <Label for="code"
+              >{{ t('admin.rubberTypes.code') }} <span class="text-destructive">*</span></Label
+            >
             <Input id="code" v-model="formData.code" placeholder="e.g. RT-001" />
           </div>
           <div class="grid gap-2">
-            <Label for="name">Name <span class="text-destructive">*</span></Label>
+            <Label for="name"
+              >{{ t('admin.rubberTypes.name') }} <span class="text-destructive">*</span></Label
+            >
             <Input id="name" v-model="formData.name" placeholder="e.g. Latex 100%" />
           </div>
           <div class="grid gap-2">
-            <Label for="description">Description</Label>
+            <Label for="description">{{ t('admin.rubberTypes.description') }}</Label>
             <Textarea
               id="description"
               v-model="formData.description"
-              placeholder="Optional description..."
+              :placeholder="t('admin.roles.descriptionPlaceholder')"
             />
           </div>
           <div class="flex items-center gap-2">
@@ -348,12 +358,12 @@ onMounted(() => {
               v-model="formData.is_active"
               class="h-4 w-4 rounded border-input text-primary focus:ring-primary"
             />
-            <Label for="is_active" class="cursor-pointer">Active</Label>
+            <Label for="is_active" class="cursor-pointer">{{ t('admin.status.active') }}</Label>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" @click="isModalOpen = false">Cancel</Button>
-          <Button @click="handleSubmit">Save Changes</Button>
+          <Button variant="outline" @click="isModalOpen = false">{{ t('common.cancel') }}</Button>
+          <Button @click="handleSubmit">{{ t('common.saveChanges') }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -362,14 +372,16 @@ onMounted(() => {
     <Dialog v-model:open="isDeleteModalOpen">
       <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Delete Rubber Type?</DialogTitle>
+          <DialogTitle>{{ t('admin.rubberTypes.deleteTitle') }}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this rubber type? This action cannot be undone.
+            {{ t('admin.rubberTypes.deleteDescription') }}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" @click="isDeleteModalOpen = false">Cancel</Button>
-          <Button variant="destructive" @click="confirmDelete">Delete</Button>
+          <Button variant="outline" @click="isDeleteModalOpen = false">{{
+            t('common.cancel')
+          }}</Button>
+          <Button variant="destructive" @click="confirmDelete">{{ t('common.delete') }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

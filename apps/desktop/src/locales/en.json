@@ -37,7 +37,18 @@
     "users": "users",
     "optional": "Optional",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "sortAZ": "A-Z",
+    "sortRecent": "Last Used",
+    "sortBy": "Sort by",
+    "settings": "Settings",
+    "table": {
+      "noResults": "No results.",
+      "rowsPerPage": "Rows per page:",
+      "selectedRows": "{selected} of {total} row(s) selected.",
+      "deleteSelected": "Delete Selected ({count})",
+      "pageOf": "Page {current} of {total}"
+    }
   },
   "validation": {
     "required": "This field is required",
@@ -222,7 +233,10 @@
       "notifications": "Notifications",
       "apps": "App Notification",
       "approvals": "Approvals",
-      "analytics": "Analytics"
+      "analytics": "Analytics",
+      "roles": "Roles & Permissions",
+      "bookingQueue": "Booking Queue",
+      "truckScale": "Truck Scale"
     },
     "userProfile": {
       "title": "User Profile",
@@ -250,26 +264,40 @@
       "passwordMismatch": "New passwords do not match."
     },
     "dashboard": {
-      "title": "Dashboard",
-      "subtitle": "Overview of your system performance and user activity.",
-      "download": "Download",
-      "tabs": {
-        "overview": "Overview",
-        "analytics": "Analytics",
-        "reports": "Reports",
-        "notifications": "Notifications"
+      "title": "System Monitor",
+      "subtitle": "Real-time overview of system performance and activities.",
+      "refresh": "Refresh",
+      "bookingsToday": "Bookings Today",
+      "bookingsTodayDesc": "Scheduled for today",
+      "pendingApprovals": "Pending Approvals",
+      "pendingApprovalsDesc": "Require attention",
+      "unreadAlerts": "Unread Alerts",
+      "unreadAlertsDesc": "System notifications",
+      "totalUsers": "Total Users",
+      "totalUsersDesc": "Active accounts",
+      "recentActivity": "Recent Activity",
+      "recentActivityDesc": "Latest approval requests and system actions.",
+      "table": {
+        "type": "Type",
+        "requester": "Requester",
+        "status": "Status",
+        "time": "Time",
+        "noActivity": "No recent activity found."
       },
-      "metrics": {
-        "revenue": "Total Revenue",
-        "subscriptions": "Subscriptions",
-        "sales": "Sales",
-        "activeNow": "Active Now",
-        "fromLastMonth": "from last month",
-        "sinceLastHour": "since last hour"
-      },
-      "recentSales": {
-        "title": "Recent Sales",
-        "subtitle": "You made {{count}} sales this month."
+      "systemHealth": {
+        "title": "System Health",
+        "subtitle": "Operational Status",
+        "database": "Database",
+        "apiServer": "API Server",
+        "socketIo": "Socket.IO",
+        "connected": "Connected",
+        "online": "Online",
+        "active": "Active",
+        "lastCheck": "Last check: Just now",
+        "monitoringTools": "Monitoring Tools",
+        "trafficAnalytics": "Traffic Analytics",
+        "systemLogs": "System Logs",
+        "system": "System"
       }
     },
     "analytics": {
@@ -302,6 +330,7 @@
       "address": "Address",
       "businessDetails": "Business Details",
       "code": "Code",
+      "name": "Name",
       "firstName": "First Name",
       "lastName": "Last Name",
       "displayName": "Display Name",
@@ -316,7 +345,51 @@
       "subDistrict": "Sub-District",
       "zipcode": "Zipcode",
       "certNum": "Certificate Number",
-      "selectTitle": "Select Title"
+      "taxId": "Tax ID",
+      "selectTitle": "Select Title",
+      "titleOptions": {
+        "mr": "Mr.",
+        "mrs": "Mrs.",
+        "ms": "Ms.",
+        "company": "Company",
+        "partnership": "Partnership",
+        "actingSubLt": "Acting Sub Lt.",
+        "coop": "Cooperative"
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "searchPlaceholder": "Search suppliers...",
+      "deleteTitle": "Delete Supplier?",
+      "deleteDescription": "Are you sure you want to delete this supplier? This action cannot be undone.",
+      "noSuppliers": "No Suppliers Found",
+      "noSuppliersDesc": "No suppliers match your current filters or search query.",
+      "dialog": {
+        "labels": {
+          "province": "Province"
+        }
+      }
+    },
+    "rubberTypes": {
+      "title": "Rubber Types",
+      "subtitle": "Manage rubber type classifications and codes.",
+      "addNew": "Add New",
+      "edit": "Edit Rubber Type",
+      "deleteTitle": "Delete Rubber Type?",
+      "deleteDescription": "Are you sure you want to delete this rubber type? This action cannot be undone.",
+      "code": "Code",
+      "name": "Name",
+      "description": "Description",
+      "searchPlaceholder": "Search code or name...",
+      "noData": "No rubber types found",
+      "noDataDesc": "No rubber types match your current search.",
+      "stats": {
+        "total": "Total",
+        "active": "Active",
+        "inactive": "Inactive"
+      }
     },
     "users": {
       "title": "Users Management",
@@ -455,7 +528,13 @@
     "signIn": "Sign in",
     "signingIn": "Signing in...",
     "loginFailed": "Login failed",
-    "passwordPlaceholder": "•••••"
+    "passwordPlaceholder": "•••••",
+    "loginDescription": "Enter your email below to login to your account",
+    "emailOrUsername": "Email or Username",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "accountLocked": "Your account has been locked due to multiple failed login attempts. Please contact IT support.",
+    "passwordChanged": "Password changed successfully! You are now logged in."
   },
   "settings": {
     "title": "Settings",
@@ -479,5 +558,340 @@
     "pageNotFound": "Page not found",
     "pageNotFoundDesc": "The page you are looking for does not exist.",
     "goBackHome": "Go back home"
+  },
+  "truckScale": {
+    "title": "Truck Scale",
+    "checkIn": "Check-in",
+    "bookingDetails": "Booking Details",
+    "timeLog": "Time Log",
+    "notRecorded": "Not recorded yet",
+    "weightIn": "Weight In",
+    "weightOut": "Weight Out",
+    "confirmCheckout": "Confirm Check-out",
+    "requestEdit": "Request Edit",
+    "checkInRecord": "Check-in Record",
+    "formDescription": "Form to record truck check-in details.",
+    "licensePlate": "License Plate",
+    "rubberSource": "Rubber Source",
+    "truckType": "Truck Type",
+    "selectTruckType": "Select truck type",
+    "specifySource": "Specify source",
+    "rubberType": "Rubber Type",
+    "selectRubberType": "Select rubber type",
+    "weightInRecord": "Weight In Record",
+    "weightOutRecord": "Weight Out Record",
+    "verifyBeforeConfirm": "Please verify before confirming",
+    "grossWeight": "Gross Weight",
+    "netWeight": "Net Weight",
+    "confirmCheckoutTitle": "Confirm Check-out",
+    "confirmCheckoutDesc": "Please verify all information before confirming check-out.",
+    "startDrainTimer": "Start Drain Timer",
+    "stopDrainTimer": "Stop Drain Timer",
+    "drainDuration": "Drain Duration",
+    "reasonForEdit": "Reason for Edit",
+    "reasonPlaceholder": "e.g. Wrong weight entry, truck changed, etc.",
+    "searchBooking": "Search Booking",
+    "searchPlaceholder": "Search by license plate, supplier, or booking code...",
+    "reasonRequired": "Reason Required",
+    "specifyReason": "Please specify reason",
+    "recordWeightOut": "Record Weight Out",
+    "weightOutLabel": "Weight Out",
+    "sendRequest": "Send Request",
+    "date": "Date",
+    "type": "Type",
+    "status": "Status",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "duration": "Duration",
+    "trips": "trips",
+    "truckTypes": {
+      "pickup": "Pickup",
+      "6wheeler": "6-Wheeler",
+      "10wheeler": "10-Wheeler",
+      "10wheelerTrailer": "10-Wheeler (Trailer)",
+      "trailer": "Trailer"
+    },
+    "toast": {
+      "checkInSuccess": "Check-in recorded successfully",
+      "weightInSuccess": "Weight in recorded successfully",
+      "weightOutSuccess": "Weight out recorded successfully",
+      "checkoutSuccess": "Check-out completed successfully",
+      "drainTimerStarted": "Drain timer started",
+      "drainTimerStopped": "Drain timer stopped",
+      "editRequestSent": "Edit request has been sent for approval",
+      "errorCheckIn": "Failed to record check-in",
+      "errorWeightIn": "Failed to record weight in",
+      "errorWeightOut": "Failed to record weight out",
+      "selectTruckType": "Please select truck type",
+      "truckRegisterRequired": "Please enter truck registration number",
+      "loadBookingsFailed": "Failed to load bookings",
+      "weightOutRequired": "Please enter weight out",
+      "reasonRequired": "Please provide a reason",
+      "startDrainFailed": "Failed to start drain",
+      "reasonRequiredDuration": "Please provide a reason (duration less than 40 minutes)",
+      "stopDrainFailed": "Failed to stop drain",
+      "editRequestFailed": "Failed to send edit request"
+    },
+    "dashboard": "Dashboard",
+    "queue": "Queue",
+    "time": "Time",
+    "supplier": "Supplier",
+    "truck": "Truck",
+    "totalExpected": "Total Expected",
+    "startDrain": "Start Drain",
+    "stopDrain": "Stop Drain",
+    "totalDrain": "Total Drain",
+
+    "stats": {
+      "checkedIn": "Checked In",
+      "pending": "Pending",
+      "totalTrips": "Total Truck",
+      "totalNetWeight": "Total Net Weight",
+      "totalGross": "Total Gross",
+      "inOut": "In / Out"
+    },
+    "confirmCheckIn": "Confirm Check-in",
+    "confirmCheckInDetails": "Confirm check-in details.",
+    "checkInTime": "Check-in Time",
+    "recordWeightIn": "Record Weight In",
+    "recordWeightInDescription": "Record weight in data including rubber source and type.",
+    "searchRubberType": "Search rubber type...",
+    "rubberTypeNotFound": "Rubber type not found",
+    "confirmWeightOutRecord": "Confirm Weight Out Record",
+    "weight": "Weight",
+    "mainTruck": "Main Truck",
+    "trailer": "Trailer",
+    "totalDuration": "Total Duration",
+    "startTime": "Start Time",
+    "stopTime": "Stop Time",
+    "confirmStop": "Confirm Stop",
+    "confirmStartDrainTimer": "Confirm Start Drain Timer",
+    "confirmStartDrainDescription": "Confirm to start drain timer.",
+    "confirmStopDrainTimer": "Confirm Stop Drain Timer",
+    "confirmStopDrainDescription": "Confirm to stop drain timer.",
+    "requestEditTitle": "Request Edit",
+    "requestEditDescription": "Request to edit weight in data.",
+    "requestEditPlaceholder": "e.g. Wrong weight entry, truck changed, etc.",
+    "netWeightOut": "Net Weight Out",
+    "settings": {
+      "autoRefresh": "Auto Refresh",
+      "autoRefreshDesc": "Automatically refresh data when a new notification arrives.",
+      "sound": "Notification Sound",
+      "soundDesc": "Play a sound when a notification is received."
+    }
+  },
+  "approval": {
+    "title": "Approval Requests",
+    "manageAll": "Manage all approval requests",
+    "backToList": "Back to List",
+    "requestDetails": "Request Details",
+    "management": "Management",
+    "transactionHistory": "Transaction History",
+    "loading": "Loading...",
+    "voidCannotUse": "VOID - Cannot be used",
+    "requestType": "Request Type",
+    "dataType": "Data Type",
+    "requester": "Requester",
+    "submittedDate": "Submitted Date",
+    "approver": "Approver",
+    "reviewDate": "Review Date",
+    "priority": "Priority",
+    "expiresAt": "Expires",
+    "reason": "Reason",
+    "note": "Note",
+    "currentData": "Current Data",
+    "proposedChanges": "Proposed Changes",
+    "filters": "Filters",
+    "filterRequests": "Filter approval requests",
+    "allStatuses": "All Statuses",
+    "showDeletedItems": "Show Deleted Items",
+    "viewDetails": "View Details",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "return": "Return for Edit",
+      "cancel": "Cancel Request",
+      "void": "Void",
+      "edit": "Edit Request",
+      "noActions": "No actions available"
+    },
+    "status": {
+      "pending": "Pending Approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "returned": "Returned for Edit",
+      "cancelled": "Cancelled",
+      "void": "Void",
+      "expired": "Expired"
+    },
+    "history": {
+      "created": "Request Created",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "returned": "Returned for Edit",
+      "cancelled": "Cancelled",
+      "voided": "Voided",
+      "expired": "Expired",
+      "deleted": "Deleted",
+      "noHistory": "No transaction history",
+      "performedBy": "Performed by",
+      "note": "Note",
+      "changes": "Changes",
+      "before": "Before",
+      "after": "After"
+    },
+    "dialogs": {
+      "approve": {
+        "title": "Approve Request",
+        "description": "Do you want to approve this request?",
+        "remarkLabel": "Remark (Optional)",
+        "remarkPlaceholder": "Enter remark...",
+        "processing": "Processing...",
+        "success": "Request approved successfully",
+        "error": "Failed to approve request"
+      },
+      "reject": {
+        "title": "Reject Request",
+        "reasonLabel": "Reason for Rejection *",
+        "reasonPlaceholder": "Please provide a reason...",
+        "reasonRequired": "Please provide a reason for rejection",
+        "processing": "Processing...",
+        "success": "Request rejected successfully",
+        "error": "Failed to reject request"
+      },
+      "return": {
+        "title": "Return Request for Edit",
+        "reasonLabel": "Reason for Return *",
+        "reasonPlaceholder": "Please provide a reason, e.g.: Please add more details...",
+        "reasonRequired": "Please provide a reason for return",
+        "processing": "Processing...",
+        "success": "Request returned successfully",
+        "error": "Failed to return request"
+      },
+      "void": {
+        "title": "Void Request",
+        "warning": "⚠️ Voiding will cancel the previous approval",
+        "reasonLabel": "Reason for Voiding *",
+        "reasonPlaceholder": "e.g.: Incorrect amount entered",
+        "reasonRequired": "Please provide a reason for voiding",
+        "processing": "Processing...",
+        "success": "Request voided successfully",
+        "error": "Failed to void request"
+      },
+      "cancel": {
+        "title": "Cancel Request",
+        "description": "Are you sure you want to cancel this request?",
+        "reasonLabel": "Reason (Optional)",
+        "reasonPlaceholder": "Enter reason...",
+        "processing": "Processing...",
+        "success": "Request cancelled successfully",
+        "error": "Failed to cancel request",
+        "close": "Close"
+      }
+    },
+    "errors": {
+      "loadFailed": "Failed to load request data",
+      "loadListFailed": "Failed to load approval requests"
+    }
+  },
+  "bookingQueue": {
+    "title": "Booking Queue",
+    "manageQueue": "Manage booking queue for supplier deliveries on",
+    "addBooking": "Add Booking",
+    "slotFull": "Slot Full",
+    "selectDate": "Select Date",
+    "timeSlot": "Time Slot",
+    "totalToday": "Total Queues Today",
+    "currentQueue": "Current Queue",
+    "nextQueue": "Next Queue",
+    "available": "Available",
+    "unlimited": "Unlimited",
+    "noData": "No data available",
+    "noBookings": "No bookings found for this slot.",
+    "queueNumber": "Queue Number",
+    "supplierCode": "Supplier Code",
+    "supplierName": "Supplier Name",
+    "truck": "Truck",
+    "type": "Type",
+    "bookingCode": "Booking Code",
+    "ticket": "Ticket",
+    "confirmDelete": "Confirm Delete",
+    "deleteWarning": "Are you sure you want to delete this booking? This action cannot be undone.",
+    "toast": {
+      "cancellationSent": "Cancellation request has been sent for approval",
+      "deleted": "Booking deleted",
+      "loadFailed": "Failed to load queues",
+      "deleteError": "Failed to delete booking"
+    },
+    "refresh": "Refresh",
+    "pickDate": "Pick a date"
+  },
+  "bookingSheet": {
+    "editRequest": "Edit request has been sent for approval",
+    "updateSuccess": "Updated successfully",
+    "truckTypes": {
+      "pickup": "Pickup",
+      "6wheeler": "6-Wheeler",
+      "10wheeler": "10-Wheeler",
+      "10wheelerTrailer": "10-Wheeler (Trailer)",
+      "trailer": "Trailer"
+    }
+  },
+  "ticketDialog": {
+    "title": "Ticket Details",
+    "description": "Preview of the booking ticket details.",
+    "queueTicket": "Queue Ticket CL",
+    "code": "Code",
+    "name": "Name",
+    "date": "Date",
+    "time": "Time",
+    "truck": "Truck",
+    "type": "Type",
+    "booking": "Booking",
+    "recorder": "Recorder",
+    "queue": "Queue",
+    "parkingInfo": "Vehicles can park overnight",
+    "parkingLocation": "in front of the factory",
+    "parkingWarning": "* Do NOT park on the factory entrance road *",
+    "saveTicket": "Save Ticket",
+    "copyTicket": "Copy Ticket",
+    "noCode": "No Code",
+    "weekdays": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    }
+  },
+  "liveDuration": {
+    "min": "min",
+    "hr": "hr"
+  },
+  "errors": {
+    "default": "An error occurred. Please try again",
+    "invalidData": "Invalid data. Please check again",
+    "loginAgain": "Please log in again",
+    "noPermission": "You do not have permission for this action",
+    "notFound": "Data not found",
+    "serverError": "Server error occurred",
+    "connectionFailed": "Unable to connect to server",
+    "tryAgain": "Please try again"
   }
 }

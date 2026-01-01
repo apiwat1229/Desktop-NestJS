@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import AppearanceSettings from '@/components/settings/AppearanceSettings.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar/index';
 import { Button } from '@/components/ui/button';
@@ -65,10 +66,6 @@ const pageTitle = computed(() => {
 });
 
 const { locale } = useI18n();
-
-const toggleLanguage = () => {
-  locale.value = locale.value === 'en' ? 'th' : 'en';
-};
 
 // --- Notifications Logic ---
 const unreadNotifications = ref<NotificationDto[]>([]);
@@ -369,16 +366,7 @@ onUnmounted(() => {
 
       <!-- Window Controls -->
       <div class="flex items-center gap-1 border-l pl-2 ml-2">
-        <!-- Language Switcher -->
-        <Button
-          variant="ghost"
-          size="sm"
-          class="h-9 w-12 px-0 font-bold mr-1"
-          @click="toggleLanguage"
-          :title="locale === 'en' ? 'Switch to Thai' : 'Switch to English'"
-        >
-          <span>{{ locale === 'en' ? 'EN' : 'TH' }}</span>
-        </Button>
+        <LanguageSwitcher />
         <Button variant="ghost" size="icon" class="h-8 w-8" title="Minimize">
           <svg
             width="15"

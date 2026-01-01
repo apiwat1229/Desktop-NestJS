@@ -37,7 +37,18 @@
     "users": "ผู้ใช้งาน",
     "optional": "ระบุหรือไม่ก็ได้",
     "next": "ถัดไป",
-    "previous": "ย้อนกลับ"
+    "previous": "ย้อนกลับ",
+    "sortAZ": "A-Z",
+    "sortRecent": "ใช้งานล่าสุด",
+    "sortBy": "เรียงตาม",
+    "settings": "การตั้งค่า",
+    "table": {
+      "noResults": "ไม่พบข้อมูล",
+      "rowsPerPage": "แถวต่อหน้า:",
+      "selectedRows": "เลือกแล้ว {selected} จาก {total} แถว",
+      "deleteSelected": "ลบที่เลือก ({count})",
+      "pageOf": "หน้า {current} จาก {total}"
+    }
   },
   "validation": {
     "required": "กรุณากรอกข้อมูล",
@@ -150,11 +161,16 @@
       "totalRoles": "บทบาททั้งหมด",
       "assignedUsers": "ผู้ใช้ที่กำหนดแล้ว",
       "unassigned": "ยังไม่ได้กำหนด",
-      "managePermissions": "จัดการสิทธิ์"
+      "managePermissions": "จัดการสิทธิ์",
+      "title": "บทบาทและสิทธิ์การใช้งาน",
+      "subtitle": "จัดการการเข้าถึง, โปรไฟล์, และสิทธิ์ของผู้ใช้งาน",
+      "assignedUsersDesc": "เลือกผู้ใช้งานเพื่อมอบหมายให้กับบทบาทนี้",
+      "deleteConfirm": "ลบบทบาท?",
+      "deleteMessage": "คุณแน่ใจหรือไม่ว่าต้องการลบบทบาทนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+      "confirmRemoveUser": "ลบผู้ใช้ออกจากบทบาท?",
+      "confirmRemoveUserDesc": "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากบทบาท?"
     },
-    "users": {
-      "fetchError": "โหลดข้อมูลผู้ใช้ไม่สำเร็จ"
-    },
+
     "notifications": {
       "title": "การจัดการการแจ้งเตือน",
       "subtitle": "สร้าง ดู และจัดการการแจ้งเตือนของระบบ",
@@ -239,7 +255,10 @@
       "notifications": "การแจ้งเตือน",
       "apps": "การแจ้งเตือนแอป",
       "approvals": "การอนุมัติ",
-      "analytics": "การวิเคราะห์"
+      "analytics": "การวิเคราะห์",
+      "roles": "บทบาทและสิทธิ์",
+      "bookingQueue": "คิวการจอง",
+      "truckScale": "เครื่องชั่งรถบรรทุก"
     },
     "userProfile": {
       "title": "โปรไฟล์ผู้ใช้",
@@ -267,26 +286,40 @@
       "passwordMismatch": "รหัสผ่านใหม่ไม่ตรงกัน"
     },
     "dashboard": {
-      "title": "แดชบอร์ด",
-      "subtitle": "ภาพรวมประสิทธิภาพระบบและกิจกรรมผู้ใช้",
-      "download": "ดาวน์โหลด",
-      "tabs": {
-        "overview": "ภาพรวม",
-        "analytics": "การวิเคราะห์",
-        "reports": "รายงาน",
-        "notifications": "การแจ้งเตือน"
+      "title": "การตรวจสอบระบบ",
+      "subtitle": "ภาพรวมประสิทธิภาพระบบและกิจกรรมแบบเรียลไทม์",
+      "refresh": "รีเฟรช",
+      "bookingsToday": "การจองวันนี้",
+      "bookingsTodayDesc": "กำหนดการสำหรับวันนี้",
+      "pendingApprovals": "รอการอนุมัติ",
+      "pendingApprovalsDesc": "ต้องการความสนใจ",
+      "unreadAlerts": "การแจ้งเตือนที่ยังไม่อ่าน",
+      "unreadAlertsDesc": "การแจ้งเตือนระบบ",
+      "totalUsers": "ผู้ใช้ทั้งหมด",
+      "totalUsersDesc": "บัญชีที่ใช้งานอยู่",
+      "recentActivity": "กิจกรรมล่าสุด",
+      "recentActivityDesc": "คำขออนุมัติล่าสุดและการดำเนินการของระบบ",
+      "table": {
+        "type": "ประเภท",
+        "requester": "ผู้ร้องขอ",
+        "status": "สถานะ",
+        "time": "เวลา",
+        "noActivity": "ไม่พบกิจกรรมล่าสุด"
       },
-      "metrics": {
-        "revenue": "รายได้รวม",
-        "subscriptions": "การสมัครสมาชิก",
-        "sales": "ยอดขาย",
-        "activeNow": "ใช้งานอยู่ตอนนี้",
-        "fromLastMonth": "จากเดือนที่แล้ว",
-        "sinceLastHour": "ตั้งแต่ชั่วโมงที่แล้ว"
-      },
-      "recentSales": {
-        "title": "ยอดขายล่าสุด",
-        "subtitle": "คุณมียอดขาย {{count}} รายการในเดือนนี้"
+      "systemHealth": {
+        "title": "สุขภาพระบบ",
+        "subtitle": "สถานะการทำงาน",
+        "database": "ฐานข้อมูล",
+        "apiServer": "API Server",
+        "socketIo": "Socket.IO",
+        "connected": "เชื่อมต่อแล้ว",
+        "online": "ออนไลน์",
+        "active": "ใช้งานอยู่",
+        "lastCheck": "ตรวจสอบล่าสุด: สักครู่นี้",
+        "monitoringTools": "เครื่องมือตรวจสอบ",
+        "trafficAnalytics": "วิเคราะห์การจราจร",
+        "systemLogs": "บันทึกระบบ",
+        "system": "ระบบ"
       }
     },
     "analytics": {
@@ -319,6 +352,7 @@
       "address": "ที่อยู่",
       "businessDetails": "รายละเอียดธุรกิจ",
       "code": "รหัส",
+      "name": "ชื่อ",
       "firstName": "ชื่อจริง",
       "lastName": "นามสกุล",
       "displayName": "ชื่อที่แสดง",
@@ -333,7 +367,51 @@
       "subDistrict": "ตำบล/แขวง",
       "zipcode": "รหัสไปรษณีย์",
       "certNum": "หมายเลขใบรับรอง",
-      "selectTitle": "เลือกคำนำหน้า"
+      "taxId": "Tax ID",
+      "selectTitle": "เลือกคำนำหน้า",
+      "titleOptions": {
+        "mr": "นาย",
+        "mrs": "นาง",
+        "ms": "นางสาว",
+        "company": "บริษัท",
+        "partnership": "หจก.",
+        "actingSubLt": "ว่าที่ ร.ต.",
+        "coop": "สหกรณ์"
+      },
+      "stats": {
+        "total": "ทั้งหมด",
+        "active": "ใช้งานอยู่",
+        "suspended": "ระงับการใช้งาน"
+      },
+      "searchPlaceholder": "ค้นหาผู้จัดจำหน่าย...",
+      "deleteTitle": "ลบผู้จัดจำหน่าย?",
+      "deleteDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบผู้จัดจำหน่ายนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+      "noSuppliers": "ไม่พบผู้จัดจำหน่าย",
+      "noSuppliersDesc": "ไม่มีผู้จัดจำหน่ายที่ตรงกับตัวกรองหรือคำค้นหาของคุณ",
+      "dialog": {
+        "labels": {
+          "province": "จังหวัด"
+        }
+      }
+    },
+    "rubberTypes": {
+      "title": "ประเภทยาง",
+      "subtitle": "จัดการการจำแนกประเภทและรหัสยาง",
+      "addNew": "เพิ่มใหม่",
+      "edit": "แก้ไขประเภทยาง",
+      "deleteTitle": "ลบประเภทยาง?",
+      "deleteDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบประเภทยางนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+      "code": "รหัส",
+      "name": "ชื่อ",
+      "description": "คำอธิบาย",
+      "searchPlaceholder": "ค้นหารหัสหรือชื่อ...",
+      "noData": "ไม่พบข้อมูลประเภทยาง",
+      "noDataDesc": "ไม่มีประเภทยางที่ตรงกับการค้นหาปัจจุบัน",
+      "stats": {
+        "total": "ทั้งหมด",
+        "active": "ใช้งานอยู่",
+        "inactive": "ระงับการใช้งาน"
+      }
     },
     "users": {
       "title": "การจัดการผู้ใช้งาน",
@@ -429,23 +507,6 @@
       "staff1": "พนักงาน 1",
       "opLeader": "หัวหน้าฝ่ายปฏิบัติการ",
       "op": "ฝ่ายปฏิบัติการ"
-    },
-    "roles": {
-      "title": "บทบาทและสิทธิ์การใช้งาน",
-      "subtitle": "จัดการการเข้าถึง, โปรไฟล์, และสิทธิ์ของผู้ใช้งาน",
-      "totalRoles": "บทบาททั้งหมด",
-      "assignedUsers": "ผู้ใช้ที่ได้รับมอบหมาย",
-      "unassigned": "ยังไม่ได้มอบหมาย",
-      "addRole": "เพิ่มบทบาทใหม่",
-      "editRole": "แก้ไขบทบาท",
-      "roleAccess": "การเข้าถึงของบทบาท",
-      "editDescription": "จัดการสิทธิ์และการเข้าถึงของบทบาท",
-      "assignUsers": "มอบหมายผู้ใช้งาน",
-      "assignUsersDesc": "เลือกผู้ใช้งานเพื่อมอบหมายให้กับบทบาทนี้",
-      "deleteConfirm": "ลบบทบาท?",
-      "deleteMessage": "คุณแน่ใจหรือไม่ว่าต้องการลบบทบาทนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
-      "confirmRemoveUser": "ลบผู้ใช้ออกจากบทบาท?",
-      "confirmRemoveUserDesc": "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากบทบาท?"
     }
   },
   "profile": {
@@ -461,7 +522,13 @@
     "signIn": "ลงชื่อเข้าใช้",
     "signingIn": "กำลังลงชื่อเข้าใช้...",
     "loginFailed": "เข้าสู่ระบบล้มเหลว",
-    "passwordPlaceholder": "•••••"
+    "passwordPlaceholder": "•••••",
+    "loginDescription": "กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ",
+    "emailOrUsername": "อีเมลหรือชื่อผู้ใช้",
+    "noAccount": "ยังไม่มีบัญชีใช่หรือไม่?",
+    "signUp": "สมัครสมาชิก",
+    "accountLocked": "บัญชีของคุณถูกระงับเนื่องจากเข้าสู่ระบบผิดพลาดเกินกำหนด กรุณาติดต่อฝ่าย IT",
+    "passwordChanged": "เปลี่ยนรหัสผ่านสำเร็จ! คุณเข้าสู่ระบบแล้ว"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -485,5 +552,339 @@
     "pageNotFound": "ไม่พบหน้า",
     "pageNotFoundDesc": "หน้าที่คุณค้นหาไม่มีอยู่",
     "goBackHome": "กลับหน้าแรก"
+  },
+  "truckScale": {
+    "title": "เครื่องชั่งรถบรรทุก",
+    "checkIn": "เช็คอิน",
+    "bookingDetails": "รายละเอียดการจอง",
+    "timeLog": "ประวัติเวลา",
+    "notRecorded": "ยังไม่ได้บันทึก",
+    "weightIn": "ชั่งเข้า",
+    "weightOut": "ชั่งออก",
+    "confirmCheckout": "ยืนยันเช็คเอาท์",
+    "requestEdit": "ขอแก้ไข",
+    "checkInRecord": "บันทึก Check-in",
+    "formDescription": "แบบฟอร์มบันทึกรายละเอียดการเช็คอินรถบรรทุก",
+    "licensePlate": "ทะเบียนรถ",
+    "rubberSource": "แหล่งที่มายาง",
+    "truckType": "ประเภทรถ",
+    "selectTruckType": "เลือกประเภทรถ",
+    "specifySource": "ระบุที่มา",
+    "rubberType": "ประเภทยาง",
+    "selectRubberType": "เลือกประเภทยาง",
+    "weightInRecord": "บันทึกชั่งเข้า",
+    "weightOutRecord": "บันทึกชั่งออก",
+    "verifyBeforeConfirm": "กรุณาตรวจสอบความถูกต้องก่อนยืนยัน",
+    "grossWeight": "น้ำหนักรวม",
+    "netWeight": "น้ำหนักสุทธิ",
+    "confirmCheckoutTitle": "ยืนยันการเช็คเอาท์",
+    "confirmCheckoutDesc": "กรุณาตรวจสอบข้อมูลทั้งหมดก่อนยืนยันการเช็คเอาท์",
+    "startDrainTimer": "เริ่มจับเวลาระบาย",
+    "stopDrainTimer": "หยุดจับเวลาระบาย",
+    "drainDuration": "ระยะเวลาระบาย",
+    "reasonForEdit": "เหตุผลการแก้ไข",
+    "reasonPlaceholder": "เช่น ลงน้ำหนักผิด, เปลี่ยนรถ ฯลฯ",
+    "searchBooking": "ค้นหาการจอง",
+    "searchPlaceholder": "ค้นหาจากทะเบียนรถ, ผู้จัดจำหน่าย, หรือรหัสการจอง...",
+    "reasonRequired": "ระบุเหตุผล",
+    "specifyReason": "โปรดระบุเหตุผล",
+    "recordWeightOut": "บันทึกน้ำหนักชั่งออก",
+    "weightOutLabel": "น้ำหนักชั่งออก",
+    "sendRequest": "ส่งคำขอ",
+    "date": "วันที่",
+    "type": "ประเภท",
+    "status": "สถานะ",
+    "inProgress": "กำลังดำเนินการ",
+    "completed": "เสร็จสิ้น",
+    "duration": "ระยะเวลา",
+    "trips": "คัน",
+    "truckTypes": {
+      "pickup": "กระบะ",
+      "6wheeler": "6 ล้อ",
+      "10wheeler": "10 ล้อ",
+      "10wheelerTrailer": "10 ล้อ (พ่วง)",
+      "trailer": "เทรลเลอร์"
+    },
+    "toast": {
+      "checkInSuccess": "บันทึก Check-in สำเร็จ",
+      "weightInSuccess": "บันทึกชั่งเข้าสำเร็จ",
+      "weightOutSuccess": "บันทึกชั่งออกสำเร็จ",
+      "checkoutSuccess": "เช็คเอาท์สำเร็จ",
+      "drainTimerStarted": "เริ่มจับเวลาระบายแล้ว",
+      "drainTimerStopped": "หยุดจับเวลาระบายแล้ว",
+      "editRequestSent": "คำขอแก้ไขถูกส่งไปขออนุมัติแล้ว",
+      "errorCheckIn": "บันทึก Check-in ไม่สำเร็จ",
+      "errorWeightIn": "บันทึกชั่งเข้าไม่สำเร็จ",
+      "errorWeightOut": "บันทึกชั่งออกไม่สำเร็จ",
+      "selectTruckType": "กรุณาเลือกประเภทรถ",
+      "truckRegisterRequired": "กรุณาระบุเลขทะเบียนรถ",
+      "loadBookingsFailed": "โหลดข้อมูลการจองไม่สำเร็จ",
+      "weightOutRequired": "กรุณาระบุน้ำหนักชั่งออก",
+      "reasonRequired": "กรุณาระบุเหตุผล",
+      "startDrainFailed": "เริ่มระบายไม่สำเร็จ",
+      "reasonRequiredDuration": "กรุณาระบุเหตุผล (ระยะเวลาน้อยกว่า 40 นาที)",
+      "stopDrainFailed": "หยุดระบายไม่สำเร็จ",
+      "editRequestFailed": "ส่งคำขอแก้ไขไม่สำเร็จ"
+    },
+    "dashboard": "แดชบอร์ด",
+    "queue": "คิว",
+    "time": "เวลา",
+    "supplier": "ผู้จัดจำหน่าย",
+    "truck": "รถบรรทุก",
+    "totalExpected": "คาดการณ์ทั้งหมด",
+    "startDrain": "เริ่มปล่อยน้ำ",
+    "stopDrain": "หยุดปล่อยน้ำ",
+    "totalDrain": "เวลาปล่อย",
+    "stats": {
+      "checkedIn": "เช็คอินแล้ว",
+      "pending": "รอคิว",
+      "totalTrips": "เที่ยวทั้งหมด",
+      "totalNetWeight": "น้ำหนักสุทธิ",
+      "totalGross": "น้ำหนักรวม",
+      "inOut": "เข้า / ออก"
+    },
+    "confirmCheckIn": "ยืนยันการเช็คอิน",
+    "confirmCheckInDetails": "ยืนยันรายละเอียดการเช็คอิน",
+    "checkInTime": "เวลาเช็คอิน",
+    "recordWeightIn": "บันทึกชั่งเข้า",
+    "recordWeightInDescription": "บันทึกข้อมูลชั่งเข้า รวมถึงแหล่งที่มาและประเภทยาง",
+    "searchRubberType": "ค้นหาประเภทยาง...",
+    "rubberTypeNotFound": "ไม่พบประเภทยาง",
+    "confirmWeightOutRecord": "ยืนยันบันทึกชั่งออก",
+    "weight": "น้ำหนัก",
+    "mainTruck": "รถแม่",
+    "trailer": "รถลูก",
+    "totalDuration": "ระยะเวลารวม",
+    "startTime": "เวลาเริ่ม",
+    "stopTime": "เวลาหยุด",
+    "confirmStop": "ยืนยันหยุด",
+    "confirmStartDrainTimer": "ยืนยันเริ่มจับเวลาระบาย",
+    "confirmStartDrainDescription": "ยืนยันเพื่อเริ่มจับเวลาระบาย",
+    "confirmStopDrainTimer": "ยืนยันหยุดจับเวลาระบาย",
+    "confirmStopDrainDescription": "ยืนยันเพื่อหยุดจับเวลาระบาย",
+    "requestEditTitle": "ขอแก้ไข",
+    "requestEditDescription": "ขอแก้ไขข้อมูลน้ำหนัก",
+    "requestEditPlaceholder": "เช่น ลงน้ำหนักผิด, เปลี่ยนรถ ฯลฯ",
+    "netWeightOut": "น้ำหนักสุทธิออก",
+    "settings": {
+      "autoRefresh": "รีเฟรชอัตโนมัติ",
+      "autoRefreshDesc": "รีเฟรชข้อมูลอัตโนมัติเมื่อมีการแจ้งเตือนใหม่",
+      "sound": "เสียงแจ้งเตือน",
+      "soundDesc": "เล่นเสียงเมื่อได้รับการแจ้งเตือน"
+    }
+  },
+  "approval": {
+    "title": "คำขออนุมัติ",
+    "manageAll": "จัดการคำขออนุมัติทั้งหมด",
+    "backToList": "กลับไปรายการ",
+    "requestDetails": "รายละเอียดคำขอ",
+    "management": "การจัดการ",
+    "transactionHistory": "ประวัติการทำรายการ",
+    "loading": "กำลังโหลด...",
+    "voidCannotUse": "โมฆะ - ไม่สามารถใช้งานได้",
+    "requestType": "ประเภทคำขอ",
+    "dataType": "ประเภทข้อมูล",
+    "requester": "ผู้ขอ",
+    "submittedDate": "วันที่ส่ง",
+    "approver": "ผู้อนุมัติ",
+    "reviewDate": "วันที่พิจารณา",
+    "priority": "ลำดับความสำคัญ",
+    "expiresAt": "หมดอายุ",
+    "reason": "เหตุผล",
+    "note": "หมายเหตุ",
+    "currentData": "ข้อมูลปัจจุบัน",
+    "proposedChanges": "การเปลี่ยนแปลงที่เสนอ",
+    "filters": "ตัวกรอง",
+    "filterRequests": "กรองรายการคำขออนุมัติ",
+    "allStatuses": "ทุกสถานะ",
+    "showDeletedItems": "แสดงรายการที่ถูกลบ",
+    "viewDetails": "ดูรายละเอียด",
+    "actions": {
+      "approve": "อนุมัติ",
+      "reject": "ปฏิเสธ",
+      "return": "ส่งคืนแก้ไข",
+      "cancel": "ยกเลิกคำขอ",
+      "void": "ทำเป็นโมฆะ",
+      "edit": "แก้ไขคำขอ",
+      "noActions": "ไม่มีการดำเนินการที่สามารถทำได้"
+    },
+    "status": {
+      "pending": "รออนุมัติ",
+      "approved": "อนุมัติแล้ว",
+      "rejected": "ปฏิเสธ",
+      "returned": "ส่งคืนแก้ไข",
+      "cancelled": "ยกเลิก",
+      "void": "โมฆะ",
+      "expired": "หมดอายุ"
+    },
+    "history": {
+      "created": "สร้างคำขอ",
+      "approved": "อนุมัติ",
+      "rejected": "ปฏิเสธ",
+      "returned": "ส่งคืนแก้ไข",
+      "cancelled": "ยกเลิก",
+      "voided": "ทำเป็นโมฆะ",
+      "expired": "หมดอายุ",
+      "deleted": "ลบ",
+      "noHistory": "ไม่มีประวัติการทำรายการ",
+      "performedBy": "ผู้ดำเนินการ",
+      "note": "หมายเหตุ",
+      "changes": "การเปลี่ยนแปลง",
+      "before": "ก่อน",
+      "after": "หลัง"
+    },
+    "dialogs": {
+      "approve": {
+        "title": "อนุมัติคำขอ",
+        "description": "คุณต้องการอนุมัติคำขอนี้หรือไม่?",
+        "remarkLabel": "หมายเหตุ (ไม่บังคับ)",
+        "remarkPlaceholder": "ระบุหมายเหตุ...",
+        "processing": "กำลังดำเนินการ...",
+        "success": "อนุมัติคำขอเรียบร้อยแล้ว",
+        "error": "ไม่สามารถอนุมัติคำขอได้"
+      },
+      "reject": {
+        "title": "ปฏิเสธคำขอ",
+        "reasonLabel": "เหตุผลในการปฏิเสธ *",
+        "reasonPlaceholder": "กรุณาระบุเหตุผล...",
+        "reasonRequired": "กรุณาระบุเหตุผลในการปฏิเสธ",
+        "processing": "กำลังดำเนินการ...",
+        "success": "ปฏิเสธคำขอเรียบร้อยแล้ว",
+        "error": "ไม่สามารถปฏิเสธคำขอได้"
+      },
+      "return": {
+        "title": "ส่งคืนคำขอเพื่อแก้ไข",
+        "reasonLabel": "เหตุผลในการส่งคืน *",
+        "reasonPlaceholder": "กรุณาระบุเหตุผล เช่น: กรุณาเพิ่มรายละเอียด...",
+        "reasonRequired": "กรุณาระบุเหตุผลในการส่งคืน",
+        "processing": "กำลังดำเนินการ...",
+        "success": "ส่งคืนคำขอเรียบร้อยแล้ว",
+        "error": "ไม่สามารถส่งคืนคำขอได้"
+      },
+      "void": {
+        "title": "ทำรายการเป็นโมฆะ",
+        "warning": "⚠️ การทำรายการเป็นโมฆะจะยกเลิกการอนุมัติที่ผ่านมา",
+        "reasonLabel": "เหตุผลในการทำเป็นโมฆะ *",
+        "reasonPlaceholder": "เช่น: ระบุยอดเงินผิด",
+        "reasonRequired": "กรุณาระบุเหตุผลในการทำเป็นโมฆะ",
+        "processing": "กำลังดำเนินการ...",
+        "success": "ทำรายการเป็นโมฆะเรียบร้อยแล้ว",
+        "error": "ไม่สามารถทำรายการเป็นโมฆะได้"
+      },
+      "cancel": {
+        "title": "ยกเลิกคำขอ",
+        "description": "คุณต้องการยกเลิกคำขอนี้หรือไม่?",
+        "reasonLabel": "เหตุผล (ไม่บังคับ)",
+        "reasonPlaceholder": "ระบุเหตุผล...",
+        "processing": "กำลังดำเนินการ...",
+        "success": "ยกเลิกคำขอเรียบร้อยแล้ว",
+        "error": "ไม่สามารถยกเลิกคำขอได้",
+        "close": "ปิด"
+      }
+    },
+    "errors": {
+      "loadFailed": "ไม่สามารถโหลดข้อมูลคำขอได้",
+      "loadListFailed": "ไม่สามารถโหลดรายการคำขอได้"
+    }
+  },
+  "bookingQueue": {
+    "title": "คิวการจอง",
+    "manageQueue": "จัดการคิวการจองสำหรับการส่งมอบของผู้จัดจำหน่ายในวันที่",
+    "addBooking": "เพิ่มการจอง",
+    "slotFull": "เต็ม",
+    "selectDate": "เลือกวันที่",
+    "timeSlot": "ช่วงเวลา",
+    "totalToday": "คิวทั้งหมดวันนี้",
+    "currentQueue": "คิวปัจจุบัน",
+    "nextQueue": "คิวถัดไป",
+    "available": "ว่าง",
+    "unlimited": "ไม่จำกัด",
+    "noData": "ไม่มีข้อมูล",
+    "noBookings": "ไม่พบการจองสำหรับช่วงเวลานี้",
+    "queueNumber": "หมายเลขคิว",
+    "supplierCode": "รหัสผู้จัดจำหน่าย",
+    "supplierName": "ชื่อผู้จัดจำหน่าย",
+    "truck": "รถบรรทุก",
+    "type": "ประเภท",
+    "bookingCode": "รหัสการจอง",
+    "ticket": "ตั๋ว",
+    "confirmDelete": "ยืนยันการลบ",
+    "deleteWarning": "คุณแน่ใจหรือไม่ว่าต้องการลบการจองนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+    "toast": {
+      "cancellationSent": "คำขอยกเลิกถูกส่งไปขออนุมัติแล้ว",
+      "deleted": "ลบการจองแล้ว",
+      "loadFailed": "โหลดคิวไม่สำเร็จ",
+      "deleteError": "ลบการจองล้มเหลว"
+    },
+    "refresh": "รีเฟรช",
+    "pickDate": "เลือกวันที่"
+  },
+  "bookingSheet": {
+    "editRequest": "คำขอแก้ไขถูกส่งไปขออนุมัติแล้ว",
+    "updateSuccess": "อัปเดตสำเร็จ",
+    "truckTypes": {
+      "pickup": "กระบะ",
+      "6wheeler": "6 ล้อ",
+      "10wheeler": "10 ล้อ",
+      "10wheelerTrailer": "10 ล้อ (พ่วง)",
+      "trailer": "เทรลเลอร์"
+    }
+  },
+  "ticketDialog": {
+    "title": "รายละเอียดตั๋ว",
+    "description": "ตัวอย่างรายละเอียดตั๋วการจอง",
+    "queueTicket": "บัตรคิว CL",
+    "code": "รหัส",
+    "name": "ชื่อ",
+    "date": "วันที่",
+    "time": "เวลา",
+    "truck": "รถบรรทุก",
+    "type": "ประเภท",
+    "booking": "การจอง",
+    "recorder": "ผู้บันทึก",
+    "queue": "คิว",
+    "parkingInfo": "สามารถนำรถมาจอดค้างคืนเพื่อรอ",
+    "parkingLocation": "ที่หน้าโรงงานได้",
+    "parkingWarning": "* ห้ามจอดรถบนทางเข้าหน้าโรงงานเด็ดขาด *",
+    "saveTicket": "บันทึกตั๋ว",
+    "copyTicket": "คัดลอกตั๋ว",
+    "noCode": "ไม่มีรหัส",
+    "weekdays": {
+      "sunday": "อาทิตย์",
+      "monday": "จันทร์",
+      "tuesday": "อังคาร",
+      "wednesday": "พุธ",
+      "thursday": "พฤหัสบดี",
+      "friday": "ศุกร์",
+      "saturday": "เสาร์"
+    },
+    "months": {
+      "jan": "ม.ค.",
+      "feb": "ก.พ.",
+      "mar": "มี.ค.",
+      "apr": "เม.ย.",
+      "may": "พ.ค.",
+      "jun": "มิ.ย.",
+      "jul": "ก.ค.",
+      "aug": "ส.ค.",
+      "sep": "ก.ย.",
+      "oct": "ต.ค.",
+      "nov": "พ.ย.",
+      "dec": "ธ.ค."
+    }
+  },
+  "liveDuration": {
+    "min": "นาที",
+    "hr": "ชม."
+  },
+  "errors": {
+    "default": "เกิดข้อผิดพลาด กรุณาลองใหม่",
+    "invalidData": "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+    "loginAgain": "กรุณาเข้าสู่ระบบใหม่",
+    "noPermission": "คุณไม่มีสิทธิ์ในการดำเนินการนี้",
+    "notFound": "ไม่พบข้อมูลที่ต้องการ",
+    "serverError": "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์",
+    "connectionFailed": "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้",
+    "tryAgain": "กรุณาลองใหม่อีกครั้ง"
   }
 }

@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Ban, CheckCircle2, Edit, Slash, XCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   request: any;
@@ -17,6 +18,8 @@ const emit = defineEmits<{
   void: [];
   edit: [];
 }>();
+
+const { t } = useI18n();
 
 // Check if user is the requester
 const isRequester = computed(() => props.request.requesterId === props.currentUserId);
@@ -52,13 +55,13 @@ const canEdit = computed(() => {
     <!-- Approve Button -->
     <Button v-if="canApprove" @click="emit('approve')" class="bg-green-600 hover:bg-green-700">
       <CheckCircle2 class="w-4 h-4 mr-2" />
-      Approve
+      {{ t('approval.actions.approve') }}
     </Button>
 
     <!-- Reject Button -->
     <Button v-if="canApprove" @click="emit('reject')" variant="destructive">
       <XCircle class="w-4 h-4 mr-2" />
-      Reject
+      {{ t('approval.actions.reject') }}
     </Button>
 
     <!-- Return Button -->
@@ -69,25 +72,25 @@ const canEdit = computed(() => {
       class="border-blue-500 text-blue-600 hover:bg-blue-50"
     >
       <ArrowLeft class="w-4 h-4 mr-2" />
-      Return for Edit
+      {{ t('approval.actions.return') }}
     </Button>
 
     <!-- Cancel Button -->
     <Button v-if="canCancel" @click="emit('cancel')" variant="outline">
       <Ban class="w-4 h-4 mr-2" />
-      Cancel Request
+      {{ t('approval.actions.cancel') }}
     </Button>
 
     <!-- Void Button -->
     <Button v-if="canVoid" @click="emit('void')" variant="destructive">
       <Slash class="w-4 h-4 mr-2" />
-      Void
+      {{ t('approval.actions.void') }}
     </Button>
 
     <!-- Edit Button -->
     <Button v-if="canEdit" @click="emit('edit')" variant="default">
       <Edit class="w-4 h-4 mr-2" />
-      Edit Request
+      {{ t('approval.actions.edit') }}
     </Button>
 
     <!-- No actions available -->
@@ -95,7 +98,7 @@ const canEdit = computed(() => {
       v-if="!canApprove && !canCancel && !canVoid && !canEdit"
       class="text-sm text-muted-foreground"
     >
-      No actions available
+      {{ t('approval.noActions') }}
     </p>
   </div>
 </template>

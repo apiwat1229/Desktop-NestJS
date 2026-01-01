@@ -11,20 +11,23 @@ import {
   Slash,
   XCircle,
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   history: any[];
 }>();
 
+const { t } = useI18n();
+
 const actionConfig: Record<string, { label: string; icon: any; color: string }> = {
-  CREATED: { label: 'Request Created', icon: Plus, color: 'text-blue-600' },
-  APPROVED: { label: 'Approved', icon: CheckCircle2, color: 'text-green-600' },
-  REJECTED: { label: 'Rejected', icon: XCircle, color: 'text-red-600' },
-  RETURNED: { label: 'Returned for Edit', icon: ArrowLeft, color: 'text-blue-600' },
-  CANCELLED: { label: 'Cancelled', icon: Ban, color: 'text-gray-600' },
-  VOIDED: { label: 'Voided', icon: Slash, color: 'text-red-600' },
-  EXPIRED: { label: 'Expired', icon: AlertTriangle, color: 'text-orange-600' },
-  DELETED: { label: 'Deleted', icon: XCircle, color: 'text-gray-600' },
+  CREATED: { label: t('approval.history.created'), icon: Plus, color: 'text-blue-600' },
+  APPROVED: { label: t('approval.history.approved'), icon: CheckCircle2, color: 'text-green-600' },
+  REJECTED: { label: t('approval.history.rejected'), icon: XCircle, color: 'text-red-600' },
+  RETURNED: { label: t('approval.history.returned'), icon: ArrowLeft, color: 'text-blue-600' },
+  CANCELLED: { label: t('approval.history.cancelled'), icon: Ban, color: 'text-gray-600' },
+  VOIDED: { label: t('approval.history.voided'), icon: Slash, color: 'text-red-600' },
+  EXPIRED: { label: t('approval.history.expired'), icon: AlertTriangle, color: 'text-orange-600' },
+  DELETED: { label: t('approval.history.deleted'), icon: XCircle, color: 'text-gray-600' },
 };
 
 const formatDate = (dateString: string) => {
@@ -46,7 +49,7 @@ const getConfig = (action: string) => {
 <template>
   <div class="space-y-4">
     <div v-if="history.length === 0" class="text-center py-8 text-muted-foreground">
-      No transaction history
+      {{ t('approval.noHistory') }}
     </div>
 
     <!-- Timeline -->
@@ -83,27 +86,33 @@ const getConfig = (action: string) => {
 
             <div class="space-y-2">
               <p class="text-sm">
-                <span class="font-medium">Performed by:</span>
+                <span class="font-medium">{{ t('approval.history.performedBy') }}:</span>
                 {{ log.actorName }}
               </p>
 
               <p v-if="log.remark" class="text-sm">
-                <span class="font-medium">Note:</span>
+                <span class="font-medium">{{ t('approval.history.note') }}:</span>
                 {{ log.remark }}
               </p>
 
               <!-- Show changes if available -->
               <div v-if="log.oldValue || log.newValue" class="mt-3 pt-3 border-t">
-                <p class="text-xs font-medium text-muted-foreground mb-2">Changes:</p>
+                <p class="text-xs font-medium text-muted-foreground mb-2">
+                  {{ t('approval.history.changes') }}:
+                </p>
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <div v-if="log.oldValue && Object.keys(log.oldValue).length > 0">
-                    <p class="font-medium text-muted-foreground mb-1">Before:</p>
+                    <p class="font-medium text-muted-foreground mb-1">
+                      {{ t('approval.history.before') }}:
+                    </p>
                     <pre class="bg-muted p-2 rounded text-xs overflow-auto">{{
                       JSON.stringify(log.oldValue, null, 2)
                     }}</pre>
                   </div>
                   <div v-if="log.newValue && Object.keys(log.newValue).length > 0">
-                    <p class="font-medium text-muted-foreground mb-1">After:</p>
+                    <p class="font-medium text-muted-foreground mb-1">
+                      {{ t('approval.history.after') }}:
+                    </p>
                     <pre class="bg-muted p-2 rounded text-xs overflow-auto">{{
                       JSON.stringify(log.newValue, null, 2)
                     }}</pre>

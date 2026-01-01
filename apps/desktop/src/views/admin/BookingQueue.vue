@@ -11,6 +11,7 @@ import {
   Trash2,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch, type Ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 import BookingSheet from '@/components/booking/BookingSheet.vue';
@@ -72,7 +73,7 @@ const SLOT_QUEUE_CONFIG: Record<string, { start: number; limit: number | null }>
 };
 
 // --- State ---
-// const { t } = useI18n();
+const { t } = useI18n();
 // const authStore = useAuthStore();
 const selectedDate = ref(fromDate(new Date(), getLocalTimeZone())) as Ref<DateValue>;
 const selectedSlot = ref<string>('08:00-09:00'); // Default slot
@@ -166,7 +167,7 @@ async function fetchQueues() {
     totalDailyQueues.value = dailyResp?.length || 0;
   } catch (err) {
     console.error('Fetch queues error:', err);
-    toast.error('Failed to load queues');
+    toast.error(t('bookingQueue.toast.loadFailed'));
     queues.value = [];
     totalDailyQueues.value = 0;
   } finally {
@@ -178,7 +179,7 @@ async function fetchQueues() {
 
 function handleCreateBooking() {
   if (isSlotFull.value) {
-    toast.error('Slot is full');
+    toast.error(t('bookingQueue.slotFull'));
     return;
   }
   editingBooking.value = null;
@@ -200,14 +201,14 @@ async function confirmDelete() {
   try {
     const res = await bookingsApi.delete(bookingToDelete.value.id);
     if (res && res.status === 'PENDING_APPROVAL') {
-      toast.info('Cancellation request has been sent for approval');
+      toast.info(t('bookingQueue.toast.cancellationSent'));
     } else {
-      toast.success('Booking deleted');
+      toast.success(t('bookingQueue.toast.deleted'));
     }
     fetchQueues();
   } catch (err) {
     console.error('Delete error:', err);
-    toast.error('Failed to delete booking');
+    toast.error(t('bookingQueue.toast.deleteError'));
   } finally {
     deleteDialogOpen.value = false;
     bookingToDelete.value = null;
@@ -304,20 +305,21 @@ watch(selectedSlot, (newSlot) => {
     <!-- Header -->
     <div class="flex items-center justify-between space-y-2">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">Booking Queue</h2>
+        <h2 class="text-2xl font-bold tracking-tight">{{ t('bookingQueue.title') }}</h2>
         <p class="text-muted-foreground">
-          Manage booking queue for supplier deliveries on
+          {{ t('bookingQueue.manageQueue') }}
           {{ format(selectedDateJS, 'dd-MMM-yyyy') }}
         </p>
       </div>
       <div class="flex items-center space-x-2">
         <Button variant="outline" size="sm" @click="fetchQueues">
           <RefreshCw class="mr-2 h-4 w-4" />
-          Refresh
+          <RefreshCw class="mr-2 h-4 w-4" />
+          {{ t('bookingQueue.refresh') }}
         </Button>
         <Button size="sm" :disabled="isSlotFull" @click="handleCreateBooking">
           <Plus class="mr-2 h-4 w-4" />
-          {{ isSlotFull ? 'Slot Full' : 'Add Booking' }}
+          {{ isSlotFull ? t('bookingQueue.slotFull') : t('bookingQueue.addBooking') }}
         </Button>
       </div>
     </div>
@@ -329,7 +331,7 @@ watch(selectedSlot, (newSlot) => {
         <div class="flex flex-col sm:flex-row gap-4 flex-1 w-full lg:w-auto">
           <!-- Date Picker -->
           <div class="flex flex-col gap-2 min-w-[200px]">
-            <span class="text-sm text-muted-foreground">Select Date</span>
+            <span class="text-sm text-muted-foreground">{{ t('bookingQueue.selectDate') }}</span>
             <Popover>
               <PopoverTrigger as-child>
                 <Button
@@ -338,7 +340,11 @@ watch(selectedSlot, (newSlot) => {
                   :class="!selectedDate && 'text-muted-foreground'"
                 >
                   <CalendarIcon class="mr-2 h-4 w-4" />
-                  {{ selectedDate ? format(selectedDateJS, 'dd-MMM-yyyy') : 'Pick a date' }}
+                  {{
+                    selectedDate
+                      ? format(selectedDateJS, 'dd-MMM-yyyy')
+                      : t('bookingQueue.pickDate')
+                  }}
                 </Button>
               </PopoverTrigger>
               <PopoverContent class="w-auto p-0" align="start">
@@ -353,7 +359,7 @@ watch(selectedSlot, (newSlot) => {
 
           <!-- Time Slot Tabs -->
           <div class="flex-1 flex flex-col gap-2 w-full">
-            <span class="text-sm text-muted-foreground">Time Slot</span>
+            <span class="text-sm text-muted-foreground">{{ t('bookingQueue.timeSlot') }}</span>
             <Tabs v-model="selectedSlot" class="w-full">
               <TabsList
                 class="grid w-full h-auto flex-wrap gap-1 bg-muted p-1"
@@ -377,7 +383,7 @@ watch(selectedSlot, (newSlot) => {
         <!-- Right: Slot Info -->
         <div class="flex flex-col items-end text-right border-l pl-6 min-w-[240px]">
           <h3 class="text-lg font-semibold tracking-tight text-primary">
-            Time Slot {{ selectedSlot }}
+            {{ t('bookingQueue.timeSlot') }} {{ selectedSlot }}
           </h3>
           <p class="text-sm text-muted-foreground mt-1">
             {{ format(selectedDateJS, 'dd-MMM-yyyy') }} • Queue
@@ -396,28 +402,28 @@ watch(selectedSlot, (newSlot) => {
     <!-- Stats -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card class="p-3 flex flex-col items-center justify-center text-center">
-        <p class="text-sm text-muted-foreground mb-1">Total Queues Today</p>
+        <p class="text-sm text-muted-foreground mb-1">{{ t('bookingQueue.totalToday') }}</p>
         <p class="text-3xl font-bold">{{ totalDailyQueues }}</p>
       </Card>
       <Card class="p-3 flex flex-col items-center justify-center text-center">
-        <p class="text-sm text-muted-foreground mb-1">Current Queue</p>
+        <p class="text-sm text-muted-foreground mb-1">{{ t('bookingQueue.currentQueue') }}</p>
         <p class="text-3xl font-bold text-primary">
           {{ queues.length > 0 ? Math.max(...queues.map((q) => Number(q.queueNo) || 0)) : '-' }}
         </p>
       </Card>
       <Card class="p-3 flex flex-col items-center justify-center text-center">
-        <p class="text-sm text-muted-foreground mb-1">Next Queue</p>
+        <p class="text-sm text-muted-foreground mb-1">{{ t('bookingQueue.nextQueue') }}</p>
         <p class="text-3xl font-bold text-green-600">
           {{ nextQueueNo !== null ? nextQueueNo : '-' }}
         </p>
       </Card>
       <Card class="p-3 flex flex-col items-center justify-center text-center">
-        <p class="text-sm text-muted-foreground mb-1">Available</p>
+        <p class="text-sm text-muted-foreground mb-1">{{ t('bookingQueue.available') }}</p>
         <p class="text-3xl font-bold text-blue-600">
           {{
             currentSlotConfig.limit
               ? Math.max(0, currentSlotConfig.limit - queues.length)
-              : 'Unlimited'
+              : t('bookingQueue.unlimited')
           }}
         </p>
       </Card>
@@ -437,8 +443,8 @@ watch(selectedSlot, (newSlot) => {
       >
         <FileText class="w-8 h-8 text-blue-500" />
       </div>
-      <h3 class="text-lg font-semibold">No data available</h3>
-      <p class="text-muted-foreground mt-1">No bookings found for this slot.</p>
+      <h3 class="text-lg font-semibold">{{ t('bookingQueue.noData') }}</h3>
+      <p class="text-muted-foreground mt-1">{{ t('bookingQueue.noBookings') }}</p>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -449,7 +455,9 @@ watch(selectedSlot, (newSlot) => {
         :style="{ borderLeftColor: DAY_COLORS[selectedDateJS.getDay()].queueBg }"
       >
         <div class="flex justify-between items-center mb-2">
-          <span class="font-semibold text-sm">Queue Number : {{ queue.queueNo }}</span>
+          <span class="font-semibold text-sm"
+            >{{ t('bookingQueue.queueNumber') }} : {{ queue.queueNo }}</span
+          >
           <div class="flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
@@ -458,7 +466,7 @@ watch(selectedSlot, (newSlot) => {
                     <Edit2 class="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
+                <TooltipContent>{{ t('common.edit') }}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -474,7 +482,7 @@ watch(selectedSlot, (newSlot) => {
                     <Trash2 class="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
+                <TooltipContent>{{ t('common.delete') }}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -482,25 +490,25 @@ watch(selectedSlot, (newSlot) => {
 
         <div class="space-y-1 text-sm">
           <div>
-            <p class="text-xs text-muted-foreground">Supplier Code</p>
+            <p class="text-xs text-muted-foreground">{{ t('bookingQueue.supplierCode') }}</p>
             <p class="font-medium">{{ queue.supplierCode }}</p>
           </div>
           <div>
-            <p class="text-xs text-muted-foreground">Supplier Name</p>
+            <p class="text-xs text-muted-foreground">{{ t('bookingQueue.supplierName') }}</p>
             <p class="font-medium break-words">{{ queue.supplierName }}</p>
           </div>
           <div v-if="queue.truckType || queue.truckRegister">
-            <p class="text-xs text-muted-foreground">Truck</p>
+            <p class="text-xs text-muted-foreground">{{ t('bookingQueue.truck') }}</p>
             <p>{{ [queue.truckType, queue.truckRegister].filter(Boolean).join(' - ') }}</p>
           </div>
           <div>
-            <p class="text-xs text-muted-foreground">Type</p>
+            <p class="text-xs text-muted-foreground">{{ t('bookingQueue.type') }}</p>
             <p>
               {{ RUBBER_TYPE_MAP[queue.rubberType] || queue.rubberTypeName || queue.rubberType }}
             </p>
           </div>
           <div>
-            <p class="text-xs text-muted-foreground">Booking Code</p>
+            <p class="text-xs text-muted-foreground">{{ t('bookingQueue.bookingCode') }}</p>
             <p>{{ queue.bookingCode }}</p>
           </div>
         </div>
@@ -508,7 +516,7 @@ watch(selectedSlot, (newSlot) => {
         <div class="mt-4 pt-4 border-t flex justify-end">
           <Button variant="link" size="sm" class="h-auto p-0" @click="handleShowTicket(queue)">
             <FileText class="h-3 w-3 mr-1" />
-            Ticket
+            {{ t('bookingQueue.ticket') }}
           </Button>
         </div>
       </Card>
@@ -529,29 +537,29 @@ watch(selectedSlot, (newSlot) => {
     <AlertDialog :open="deleteDialogOpen" @update:open="deleteDialogOpen = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('bookingQueue.confirmDelete') }}</AlertDialogTitle>
           <AlertDialogDescription class="space-y-4">
             <div
               v-if="bookingToDelete"
               class="bg-muted/50 p-4 rounded-md text-sm text-foreground space-y-3 border"
             >
               <div class="grid grid-cols-[100px_1fr] gap-2">
-                <span class="text-muted-foreground">Queue Number:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.queueNumber') }}:</span>
                 <span class="font-bold">{{ bookingToDelete.queueNo }}</span>
               </div>
               <div class="grid grid-cols-[100px_1fr] gap-2">
-                <span class="text-muted-foreground">Supplier Code:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.supplierCode') }}:</span>
                 <span>{{ bookingToDelete.supplierCode }}</span>
               </div>
               <div class="grid grid-cols-[100px_1fr] gap-2">
-                <span class="text-muted-foreground">Supplier Name:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.supplierName') }}:</span>
                 <span class="break-words font-medium">{{ bookingToDelete.supplierName }}</span>
               </div>
               <div
                 v-if="bookingToDelete.truckType || bookingToDelete.truckRegister"
                 class="grid grid-cols-[100px_1fr] gap-2"
               >
-                <span class="text-muted-foreground">Truck:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.truck') }}:</span>
                 <span>{{
                   [bookingToDelete.truckType, bookingToDelete.truckRegister]
                     .filter(Boolean)
@@ -559,7 +567,7 @@ watch(selectedSlot, (newSlot) => {
                 }}</span>
               </div>
               <div class="grid grid-cols-[100px_1fr] gap-2">
-                <span class="text-muted-foreground">Type:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.type') }}:</span>
                 <span>{{
                   RUBBER_TYPE_MAP[bookingToDelete.rubberType] ||
                   bookingToDelete.rubberTypeName ||
@@ -567,17 +575,21 @@ watch(selectedSlot, (newSlot) => {
                 }}</span>
               </div>
               <div class="grid grid-cols-[100px_1fr] gap-2">
-                <span class="text-muted-foreground">Booking Code:</span>
+                <span class="text-muted-foreground">{{ t('bookingQueue.bookingCode') }}:</span>
                 <span>{{ bookingToDelete.bookingCode }}</span>
               </div>
             </div>
-            <p>Are you sure you want to delete this booking? This action cannot be undone.</p>
+            <p>{{ t('bookingQueue.deleteWarning') }}</p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="deleteDialogOpen = false">Cancel</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive hover:bg-destructive/90" @click="confirmDelete"
-            >Delete</AlertDialogAction
+          <AlertDialogCancel @click="deleteDialogOpen = false">{{
+            t('common.cancel')
+          }}</AlertDialogCancel>
+          <AlertDialogAction
+            class="bg-destructive hover:bg-destructive/90"
+            @click="confirmDelete"
+            >{{ t('common.delete') }}</AlertDialogAction
           >
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -14,6 +14,7 @@ import approvalsApi from '@/services/approvals';
 import { handleApiError } from '@/utils/errorHandler';
 import { Loader2, Slash } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = defineModel<boolean>('open');
+const { t } = useI18n();
 const reason = ref('');
 const isLoading = ref(false);
 const error = ref('');
@@ -33,7 +35,7 @@ const isFormValid = computed(() => reason.value.trim().length > 0);
 
 const handleVoid = async () => {
   if (!isFormValid.value) {
-    error.value = 'Please provide a reason for voiding';
+    error.value = t('approval.dialogs.void.reasonRequired');
     return;
   }
 
@@ -45,13 +47,13 @@ const handleVoid = async () => {
       reason: reason.value,
     });
 
-    toast.success('Request voided successfully');
+    toast.success(t('approval.dialogs.void.success'));
 
     emit('success');
     isOpen.value = false;
     reason.value = '';
   } catch (err: any) {
-    handleApiError(err, 'Failed to void request');
+    handleApiError(err, t('approval.dialogs.void.error'));
   } finally {
     isLoading.value = false;
   }
@@ -62,18 +64,18 @@ const handleVoid = async () => {
   <Dialog v-model:open="isOpen">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Void Request</DialogTitle>
+        <DialogTitle>{{ t('approval.dialogs.void.title') }}</DialogTitle>
         <DialogDescription class="text-red-600">
-          ⚠️ Voiding will cancel the previous approval
+          {{ t('approval.dialogs.void.warning') }}
         </DialogDescription>
       </DialogHeader>
 
       <div class="space-y-4">
         <div>
-          <Label>Reason for Voiding *</Label>
+          <Label>{{ t('approval.dialogs.void.reasonLabel') }}</Label>
           <Textarea
             v-model="reason"
-            placeholder="e.g.: Incorrect amount entered"
+            :placeholder="t('approval.dialogs.void.reasonPlaceholder')"
             :disabled="isLoading"
             required
           />
@@ -82,11 +84,13 @@ const handleVoid = async () => {
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="isOpen = false" :disabled="isLoading"> Cancel </Button>
+        <Button variant="outline" @click="isOpen = false" :disabled="isLoading">{{
+          t('common.cancel')
+        }}</Button>
         <Button variant="destructive" @click="handleVoid" :disabled="!isFormValid || isLoading">
           <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
           <Slash v-else class="w-4 h-4 mr-2" />
-          {{ isLoading ? 'Processing...' : 'Void' }}
+          {{ isLoading ? t('approval.dialogs.void.processing') : t('approval.actions.void') }}
         </Button>
       </DialogFooter>
     </DialogContent>

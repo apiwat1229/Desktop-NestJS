@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { toast } from 'vue-sonner';
 
 export interface ApiError {
@@ -11,26 +12,28 @@ export interface ApiError {
     message?: string;
 }
 
+const t = i18n.global.t;
+
 export const handleApiError = (error: ApiError, customMessage?: string): string => {
-    let errorMessage = customMessage || 'An error occurred. Please try again';
+    let errorMessage = customMessage || t('errors.default');
 
     if (error.response) {
         // Server responded with error
         switch (error.response.status) {
             case 400:
-                errorMessage = 'Invalid data. Please check again';
+                errorMessage = t('errors.invalidData');
                 break;
             case 401:
-                errorMessage = 'Please log in again';
+                errorMessage = t('errors.loginAgain');
                 break;
             case 403:
-                errorMessage = 'You do not have permission for this action';
+                errorMessage = t('errors.noPermission');
                 break;
             case 404:
-                errorMessage = 'Data not found';
+                errorMessage = t('errors.notFound');
                 break;
             case 500:
-                errorMessage = 'Server error occurred';
+                errorMessage = t('errors.serverError');
                 break;
         }
 
@@ -40,11 +43,11 @@ export const handleApiError = (error: ApiError, customMessage?: string): string 
         }
     } else if (error.request) {
         // Request made but no response
-        errorMessage = 'Unable to connect to server';
+        errorMessage = t('errors.connectionFailed');
     }
 
     toast.error(errorMessage, {
-        description: 'Please try again',
+        description: t('errors.tryAgain'),
     });
 
     console.error('API Error:', error);
