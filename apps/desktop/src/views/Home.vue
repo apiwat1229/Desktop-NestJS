@@ -63,7 +63,7 @@ const modules: ServiceModule[] = [
   },
   {
     id: 'truck-scale',
-    title: 'Truck Scale & Check-in',
+    title: 'Truck Scale ',
     description: 'Weighing System and Booking Check-in for logistics.',
     icon: Truck,
     color: 'text-emerald-600',

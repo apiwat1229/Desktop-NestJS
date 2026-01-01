@@ -39,6 +39,9 @@ defineExpose({
   setPassword: (value: string) => {
     password.value = value;
   },
+  setRememberMe: (value: boolean) => {
+    rememberMe.value = value;
+  },
 });
 </script>
 

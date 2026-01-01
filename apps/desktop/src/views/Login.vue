@@ -24,6 +24,7 @@ onMounted(() => {
 
   if (savedEmail && rememberMe === 'true' && loginFormRef.value) {
     loginFormRef.value.setEmail(savedEmail);
+    loginFormRef.value.setRememberMe(true);
   }
 });
 
