@@ -54,7 +54,6 @@ async function handleLogin({
       storage.delete('remember_me');
     }
 
-    toast.success('Login successful');
     router.push('/');
   } catch (err: any) {
     console.error('Login failed:', err);
@@ -70,13 +69,11 @@ async function handleLogin({
     if (err.response?.data?.message?.includes('locked')) {
       loginError.value =
         'Your account has been locked due to multiple failed login attempts. Please contact IT support.';
-      toast.error(loginError.value);
       return;
     }
 
     // Handle other errors
     loginError.value = err.response?.data?.message || err.message || 'Login failed';
-    toast.error(loginError.value);
   } finally {
     if (loginFormRef.value) {
       loginFormRef.value.setLoading(false);
