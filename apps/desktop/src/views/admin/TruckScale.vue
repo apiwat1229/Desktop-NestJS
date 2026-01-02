@@ -1595,7 +1595,7 @@ onUnmounted(() => {
               {{ t('common.cancel') }}
             </Button>
             <Button class="w-full h-11 bg-blue-600 hover:bg-blue-700" @click="confirmCheckIn">
-              {{ t('common.confirm') }}
+              {{ t('truckScale.checkIn') }}
             </Button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 A modern desktop application monorepo built with **Electron + Vue 3**, **NestJS**, **Prisma**, and **PostgreSQL**.
 
-The application is designed for the **YTRC Portal Center**, providing a robust system for managing factory operations, including user management, suppliers, and queues.
+The application is designed for the **YTRC Portal Center**, providing a robust system for managing factory operations, including user management, suppliers, bookings, and truck scale operations.
 
 ## 🏗️ Architecture
 
@@ -102,41 +102,79 @@ This will:
 
 - Generate the Prisma Client
 - Create database tables
-- Seed with sample data (Default Admin: `admin@example.com` / `password`)
+- Seed with sample data
 
 ### 5. Start Development
 
-From the root directory, run:
+**Quick Start (Recommended for Web Development):**
 
 ```bash
-npm run dev
+npm run dev:web
 ```
 
-This starts:
+This starts both API server and Vite dev server for browser-based development.
 
-- **API Server**: http://localhost:3000/api
-- **Desktop App**: Electron window (Vite dev server)
+**Available Development Commands:**
 
-Or start individually:
+| Command               | Description           | Use Case                                   |
+| --------------------- | --------------------- | ------------------------------------------ |
+| `npm run dev:web`     | API + Vite (web mode) | 🌐 **Recommended** for browser development |
+| `npm run dev`         | API + Electron        | 🖥️ Desktop app development                 |
+| `npm run dev:api`     | API server only       | 🔧 Backend development                     |
+| `npm run dev:vite`    | Vite dev server only  | 🎨 Frontend development                    |
+| `npm run dev:desktop` | Electron app only     | ⚡ Desktop app testing                     |
+| `npm run dev:db`      | PostgreSQL (Docker)   | 🗄️ Start database                          |
 
-```bash
-# API only
-npm run dev:api
+**Access Points:**
 
-# Desktop app only
-npm run dev:desktop
-```
+- **Web App**: http://localhost:5173/
+- **API Server**: http://localhost:2530/api
+- **API Docs (Swagger)**: http://localhost:2530/api/docs
+
+**Development Workflow:**
+
+1. **For Web Development** (Most Common):
+
+   ```bash
+   npm run dev:web
+   ```
+
+   Then open http://localhost:5173/ in your browser.
+
+2. **For Desktop App Development**:
+
+   ```bash
+   npm run dev
+   ```
+
+   Electron window will open automatically.
+
+3. **For Backend Only**:
+   ```bash
+   npm run dev:api
+   ```
 
 ## 🔐 Credentials & Authentication
 
-- **Default Admin**:
-  - Email: `admin@example.com`
-  - Password: `password` (You will be forced to change this on first login)
+**Default Admin Account:**
 
-- **Force Change Password Flow**:
-  - New users created by Admin will have `forceChangePassword: true`.
-  - Upon login, they are redirected to `/change-password`.
-  - They must set a new password to proceed to the Dashboard.
+- Username: `apiwat.s`
+- Password: `Copterida@1229`
+- Role: Admin
+
+**Test Accounts:**
+
+- Email: `admin@example.com`
+- Password: `password` (You will be forced to change this on first login)
+
+**Authentication Features:**
+
+- ✅ JWT-based authentication
+- ✅ Role-based access control (Admin, User)
+- ✅ Force password change on first login
+- ✅ Remember me functionality
+- ✅ Account locking after failed attempts
+- ✅ Password reset flow
 
 ## 📦 Building for Production
 
@@ -174,13 +212,14 @@ npm run start:prod
 - `src/preload/`: Context bridge.
 - `src/renderer/`: Vue 3 application.
   - `components/layout/`: Sidebar, Navbar, MainLayout, GlobalBackground.
-  - `views/`: Page components (Login, Home, NotFound, Error).
+  - `views/`: Page components (Login, Home, TruckScale, NotFound, Error).
   - `stores/`: Pinia state management (Auth).
 
 #### `apps/api` - Backend
 
 - `src/auth/`: Authentication logic (Login, Change Password, Guards).
 - `src/users/`: User management.
+- `src/bookings/`: Booking management for truck scale.
 - `src/app.module.ts`: Root module.
 
 ### Packages
@@ -188,6 +227,88 @@ npm run start:prod
 #### `packages/database`
 
 - `prisma/schema.prisma`: Database schema definition.
+
+## 🛠️ Useful Commands
+
+### Database Management
+
+```bash
+# Open Prisma Studio (Database GUI)
+npm run db:studio
+
+# Generate Prisma Client
+cd packages/database && npx prisma generate
+
+# Create new migration
+cd packages/database && npx prisma migrate dev --name your_migration_name
+
+# Reset database (⚠️ Deletes all data)
+cd packages/database && npx prisma migrate reset
+```
+
+### Code Quality
+
+```bash
+# Run linter
+npm run lint
+
+# Format code
+npm run format
+
+# Type checking
+npm run type-check
+```
+
+### Cleaning
+
+```bash
+# Remove all node_modules
+npm run clean
+
+# Then reinstall
+npm install
+```
+
+## 🐛 Troubleshooting
+
+### Port Already in Use
+
+If you see `EADDRINUSE` error:
+
+```bash
+# Kill process on port 2530 (API)
+lsof -ti :2530 | xargs kill -9
+
+# Kill process on port 5173 (Vite)
+lsof -ti :5173 | xargs kill -9
+
+# Or kill both
+lsof -ti :2530 -ti :5173 | xargs kill -9
+```
+
+### Vite Server Not Starting
+
+If `npm run dev` doesn't start the web server:
+
+```bash
+# Use web mode instead
+npm run dev:web
+```
+
+### Database Connection Issues
+
+1. Check if PostgreSQL is running:
+
+   ```bash
+   docker ps  # if using Docker
+   ```
+
+2. Verify DATABASE_URL in `.env`
+
+3. Regenerate Prisma Client:
+   ```bash
+   cd packages/database && npx prisma generate
+   ```
 
 ## 🤝 Contributing
 

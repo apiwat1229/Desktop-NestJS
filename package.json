@@ -9,8 +9,10 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:desktop\"",
+    "dev:web": "concurrently \"npm run dev:api\" \"npm run dev:vite\"",
     "dev:api": "API_PORT=2530 npm run start:dev --workspace=apps/api",
     "dev:desktop": "npm run dev --workspace=apps/desktop",
+    "dev:vite": "cd apps/desktop && npm run dev",
     "dev:db": "docker-compose up -d",
     "db:studio": "npm run studio --workspace=packages/database",
     "build": "npm run build --workspaces",
